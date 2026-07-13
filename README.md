@@ -60,6 +60,10 @@ Each package:
 
 PRs welcome! See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
 
+## Development Handoff
+
+See [HANDOFF.md](./HANDOFF.md) for complete project context, architecture decisions, and remaining tasks.
+
 ## License
 
 MIT
