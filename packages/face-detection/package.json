@@ -1,0 +1,50 @@
+{
+  "name": "@nitro-mlkit/face-detection",
+  "version": "0.1.0",
+  "description": "High-performance on-device face detection for React Native using ML Kit + Nitro Modules. Batch processing, face embeddings, zero bridge overhead.",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "codegen": "nitro-codegen",
+    "build": "tsc --noEmit",
+    "lint": "tsc --noEmit"
+  },
+  "keywords": [
+    "react-native",
+    "nitro",
+    "mlkit",
+    "face-detection",
+    "face-recognition",
+    "machine-learning",
+    "on-device",
+    "expo",
+    "expo-plugin"
+  ],
+  "author": "pologonzalo",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pologonzalo/react-native-nitro-mlkit",
+    "directory": "packages/face-detection"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-native": ">=0.76",
+    "react-native-nitro-modules": ">=0.20"
+  },
+  "devDependencies": {
+    "nitro-codegen": "*",
+    "react-native-nitro-modules": "*",
+    "typescript": "~5.9.0"
+  },
+  "files": [
+    "src",
+    "ios",
+    "android",
+    "plugin",
+    "nitrogen/generated",
+    "*.podspec",
+    "nitro.json",
+    "app.plugin.js"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "cxxNamespace": ["mlkit", "face"],
+  "ios": {
+    "iosModuleName": "NitroMLKitFace"
+  },
+  "android": {
+    "androidNamespace": ["nitromlkit", "face"],
+    "androidCxxLibName": "NitroMLKitFace"
+  },
+  "autolinking": {}
+}

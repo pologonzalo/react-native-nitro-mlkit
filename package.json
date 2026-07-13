@@ -1,0 +1,11 @@
+{
+  "name": "react-native-nitro-mlkit",
+  "private": true,
+  "description": "High-performance ML Kit modules for React Native, built with Nitro",
+  "scripts": {
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "codegen": "pnpm --filter @nitro-mlkit/face-detection codegen"
+  },
+  "packageManager": "pnpm@10.22.0"
+}
