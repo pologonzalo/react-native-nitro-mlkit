@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "NitroMLKit Example",
+    "slug": "nitro-mlkit-example",
+    "version": "1.0.0",
+    "scheme": "nitro-mlkit-example",
+    "ios": {
+      "bundleIdentifier": "com.nitromlkit.example"
+    },
+    "android": {
+      "package": "com.nitromlkit.example"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-camera",
+      "@nitro-mlkit/face-detection"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
