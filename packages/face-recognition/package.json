@@ -31,8 +31,7 @@
   "peerDependencies": {
     "react": ">=18",
     "react-native": ">=0.76",
-    "react-native-nitro-modules": ">=0.20",
-    "@nitro-mlkit/face-detection": ">=0.1.0"
+    "react-native-nitro-modules": ">=0.20"
   },
   "devDependencies": {
     "nitro-codegen": "*",
