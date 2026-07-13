@@ -1,0 +1,51 @@
+buildscript {
+    ext.safeExtGet = { prop, fallback ->
+        rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+    }
+}
+
+apply plugin: "com.android.library"
+apply plugin: "kotlin-android"
+
+android {
+    namespace "com.nitromlkit.labeling"
+    compileSdkVersion safeExtGet("compileSdkVersion", 35)
+
+    defaultConfig {
+        minSdkVersion safeExtGet("minSdkVersion", 26)
+        targetSdkVersion safeExtGet("targetSdkVersion", 35)
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
+    sourceSets {
+        main {
+            java.srcDirs += [
+                "src/main/kotlin",
+                "../nitrogen/generated/android/kotlin"
+            ]
+        }
+    }
+}
+
+dependencies {
+    // MLKit Image Labeling (bundled — works offline, 400+ labels)
+    implementation "com.google.mlkit:image-labeling:17.0.9"
+
+    // Nitro Modules
+    implementation project(":react-native-nitro-modules")
+
+    // Kotlin coroutines for batch processing
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.9.0"
+
+    // React Native
+    implementation "com.facebook.react:react-android"
+}

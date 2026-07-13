@@ -1,0 +1,52 @@
+{
+  "name": "@nitro-mlkit/face-recognition",
+  "version": "0.1.0",
+  "description": "On-device face recognition for React Native — register people, find them in photos. MLKit detection + MobileFaceNet embeddings (Apache 2.0).",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "codegen": "nitro-codegen",
+    "build": "tsc --noEmit"
+  },
+  "keywords": [
+    "react-native",
+    "nitro",
+    "mlkit",
+    "face-recognition",
+    "face-identification",
+    "face-embeddings",
+    "person-detection",
+    "machine-learning",
+    "on-device",
+    "expo",
+    "expo-plugin"
+  ],
+  "author": "pologonzalo",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pologonzalo/react-native-nitro-mlkit",
+    "directory": "packages/face-recognition"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-native": ">=0.76",
+    "react-native-nitro-modules": ">=0.20",
+    "@nitro-mlkit/face-detection": ">=0.1.0"
+  },
+  "devDependencies": {
+    "nitro-codegen": "*",
+    "react-native-nitro-modules": "*",
+    "typescript": "~5.9.0"
+  },
+  "files": [
+    "src",
+    "ios",
+    "android",
+    "plugin",
+    "nitrogen/generated",
+    "*.podspec",
+    "nitro.json",
+    "app.plugin.js"
+  ]
+}

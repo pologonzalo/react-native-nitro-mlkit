@@ -1,0 +1,51 @@
+{
+  "name": "@nitro-mlkit/image-labeling",
+  "version": "0.1.0",
+  "description": "High-performance on-device image labeling (400+ categories) for React Native using ML Kit + Nitro. Batch processing, safety filtering, zero bridge overhead.",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "codegen": "nitro-codegen",
+    "build": "tsc --noEmit"
+  },
+  "keywords": [
+    "react-native",
+    "nitro",
+    "mlkit",
+    "image-labeling",
+    "image-classification",
+    "nsfw-detection",
+    "content-filter",
+    "machine-learning",
+    "on-device",
+    "expo",
+    "expo-plugin"
+  ],
+  "author": "pologonzalo",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pologonzalo/react-native-nitro-mlkit",
+    "directory": "packages/image-labeling"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-native": ">=0.76",
+    "react-native-nitro-modules": ">=0.20"
+  },
+  "devDependencies": {
+    "nitro-codegen": "*",
+    "react-native-nitro-modules": "*",
+    "typescript": "~5.9.0"
+  },
+  "files": [
+    "src",
+    "ios",
+    "android",
+    "plugin",
+    "nitrogen/generated",
+    "*.podspec",
+    "nitro.json",
+    "app.plugin.js"
+  ]
+}
