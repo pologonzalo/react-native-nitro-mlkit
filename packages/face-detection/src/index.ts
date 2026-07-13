@@ -1,16 +1,16 @@
 export { type FaceDetector } from "./specs/FaceDetector.nitro";
 export type {
+  BatchCropResult,
+  BatchDetectionResult,
+  BatchEmbeddingResult,
+  BatchOptions,
+  CroppedFace,
   DetectedFace,
   DetectedFaceWithEmbedding,
   FaceBounds,
+  FaceDetectionOptions,
   FaceLandmark,
   FaceLandmarkType,
-  FaceDetectionOptions,
-  BatchDetectionResult,
-  BatchOptions,
-  BatchCropResult,
-  BatchEmbeddingResult,
-  CroppedFace,
 } from "./specs/FaceDetector.nitro";
 
 import { NitroModules } from "react-native-nitro-modules";

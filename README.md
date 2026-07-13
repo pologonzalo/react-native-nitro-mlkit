@@ -6,17 +6,18 @@ All processing runs **on-device** — no data leaves the phone, no cloud APIs, n
 
 ## Packages
 
-| Package | Description | Status |
-|---------|-------------|--------|
-| [`@nitro-mlkit/face-detection`](./packages/face-detection) | Face detection with batch processing & native cropping | 🚧 WIP |
-| `@nitro-mlkit/text-recognition` | OCR text recognition | 📋 Planned |
-| `@nitro-mlkit/barcode-scanning` | Barcode & QR code scanning | 📋 Planned |
-| `@nitro-mlkit/image-labeling` | Image classification & labeling | 📋 Planned |
-| `@nitro-mlkit/pose-detection` | Body pose estimation | 📋 Planned |
+| Package                                                    | Description                                            | Status     |
+| ---------------------------------------------------------- | ------------------------------------------------------ | ---------- |
+| [`@nitro-mlkit/face-detection`](./packages/face-detection) | Face detection with batch processing & native cropping | 🚧 WIP     |
+| `@nitro-mlkit/image-labeling`                              | Image classification (400+ labels), safety filter, batch | 🚧 WIP |
+| `@nitro-mlkit/face-recognition`                            | "This is Marcos" — register faces, find people in photos | 🚧 WIP |
+| `@nitro-mlkit/barcode-scanning`                            | Barcode & QR code scanning                             | 📋 Planned |
+| `@nitro-mlkit/text-recognition`                            | OCR text recognition                                   | 📋 Planned |
 
 ## Why Nitro?
 
 Traditional React Native bridge:
+
 ```
 JS → serialize → bridge queue → deserialize → Native → serialize → bridge → JS
      ~0.5ms      ~1ms           ~0.5ms                   ~0.5ms     ~1ms
@@ -25,6 +26,7 @@ JS → serialize → bridge queue → deserialize → Native → serialize → b
 ```
 
 Nitro Modules:
+
 ```
 JS → direct C++ call → Native → direct return → JS
      ~0.01ms                     ~0.01ms
@@ -48,6 +50,7 @@ react-native-nitro-mlkit/
 ```
 
 Each package:
+
 - Installs independently (only download the ML Kit model you need)
 - Has its own Expo config plugin
 - Supports iOS + Android (tvOS/macOS planned)

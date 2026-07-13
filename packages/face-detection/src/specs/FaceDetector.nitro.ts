@@ -129,8 +129,10 @@ export interface BatchCropResult {
  * All processing happens on-device using ML Kit (Android) and
  * Vision framework (iOS). No network calls, no data leaves the device.
  */
-export interface FaceDetector
-  extends HybridObject<{ ios: "swift"; android: "kotlin" }> {
+export interface FaceDetector extends HybridObject<{
+  ios: "swift";
+  android: "kotlin";
+}> {
   /**
    * Detect faces in a single image.
    *
@@ -138,7 +140,10 @@ export interface FaceDetector
    * @param options - Detection options
    * @returns Array of detected faces
    */
-  detect(imageUri: string, options?: FaceDetectionOptions): Promise<DetectedFace[]>;
+  detect(
+    imageUri: string,
+    options?: FaceDetectionOptions,
+  ): Promise<DetectedFace[]>;
 
   /**
    * Detect faces in multiple images in parallel (native-side batching).
@@ -150,7 +155,7 @@ export interface FaceDetector
    */
   detectBatch(
     imageUris: string[],
-    options?: BatchOptions
+    options?: BatchOptions,
   ): Promise<BatchCropResult[]>;
 
   /**
@@ -159,7 +164,7 @@ export interface FaceDetector
    */
   detectPrimary(
     imageUri: string,
-    options?: FaceDetectionOptions
+    options?: FaceDetectionOptions,
   ): Promise<DetectedFace | undefined>;
 
   /**
@@ -168,7 +173,7 @@ export interface FaceDetector
    */
   cropFaces(
     imageUri: string,
-    options?: FaceDetectionOptions & { padding?: number }
+    options?: FaceDetectionOptions & { padding?: number },
   ): Promise<CroppedFace[]>;
 
   /**
@@ -209,7 +214,7 @@ export interface FaceDetector
    */
   detectAndEmbed(
     imageUris: string[],
-    options?: BatchOptions & { embeddingThreshold?: number }
+    options?: BatchOptions & { embeddingThreshold?: number },
   ): Promise<BatchEmbeddingResult[]>;
 }
 

@@ -6,14 +6,14 @@ Uses Google ML Kit (Android) and Apple Vision framework (iOS). **All processing 
 
 ## Why this over existing packages?
 
-| Feature | expo-face-detector | @infinitered | **@nitro-mlkit** |
-|---------|-------------------|--------------|-----------------|
-| Maintained | ❌ Deprecated | ✅ | ✅ |
-| Nitro (zero bridge overhead) | ❌ | ❌ | ✅ |
-| Batch processing | ❌ | ❌ | ✅ |
-| Crop faces natively | ❌ | ❌ | ✅ |
-| Expo config plugin | ❌ | ✅ | ✅ |
-| tvOS support | ❌ | ❌ | ✅ (planned) |
+| Feature                      | expo-face-detector | @infinitered | **@nitro-mlkit** |
+| ---------------------------- | ------------------ | ------------ | ---------------- |
+| Maintained                   | ❌ Deprecated      | ✅           | ✅               |
+| Nitro (zero bridge overhead) | ❌                 | ❌           | ✅               |
+| Batch processing             | ❌                 | ❌           | ✅               |
+| Crop faces natively          | ❌                 | ❌           | ✅               |
+| Expo config plugin           | ❌                 | ✅           | ✅               |
+| tvOS support                 | ❌                 | ❌           | ✅ (planned)     |
 
 ## Installation
 
@@ -34,13 +34,13 @@ Add the plugin to your `app.json`:
 ## Usage
 
 ```typescript
-import { NitroFace } from '@nitro-mlkit/face-detection';
+import { NitroFace } from "@nitro-mlkit/face-detection";
 
 // ─── Detection ──────────────────────────────────────────────
 
 // Detect faces in a single image
 const faces = await NitroFace.detect(imageUri, {
-  performanceMode: 'accurate',
+  performanceMode: "accurate",
   landmarks: true,
   classifications: true,
 });
@@ -65,7 +65,7 @@ const similarity = NitroFace.compareFaces(marcosEmbedding, otherEmbedding);
 
 // Scan 500 gallery photos: detect + embed ALL faces, one bridge call
 const results = await NitroFace.detectAndEmbed(galleryUris, {
-  performanceMode: 'fast',
+  performanceMode: "fast",
   concurrency: 4,
 });
 

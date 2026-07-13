@@ -16,7 +16,7 @@ function withNitroMLKitFace(config) {
       const buildGradlePath = path.join(
         cfg.modRequest.platformProjectRoot,
         "app",
-        "build.gradle"
+        "build.gradle",
       );
 
       if (fs.existsSync(buildGradlePath)) {
@@ -28,7 +28,7 @@ function withNitroMLKitFace(config) {
           // Add after the dependencies { line
           contents = contents.replace(
             /dependencies\s*\{/,
-            `dependencies {\n    ${mlkitDep}`
+            `dependencies {\n    ${mlkitDep}`,
           );
           fs.writeFileSync(buildGradlePath, contents, "utf-8");
         }
