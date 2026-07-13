@@ -1,9 +1,9 @@
 export { type FaceRecognizer } from "./specs/FaceRecognizer.nitro";
 export type {
   FaceEmbedding,
-  RegisteredPerson,
   FaceSearchResult,
   PhotoPersonResult,
+  RegisteredPerson,
 } from "./specs/FaceRecognizer.nitro";
 
 import { NitroModules } from "react-native-nitro-modules";

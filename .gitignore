@@ -1,0 +1,12 @@
+node_modules/
+.DS_Store
+*.tgz
+lib/
+build/
+.expo/
+ios/Pods/
+android/.gradle/
+android/build/
+*.xcworkspace
+*.xcodeproj/xcuserdata
+*.log

@@ -6,13 +6,13 @@ All processing runs **on-device** — no data leaves the phone, no cloud APIs, n
 
 ## Packages
 
-| Package                                                    | Description                                            | Status     |
-| ---------------------------------------------------------- | ------------------------------------------------------ | ---------- |
-| [`@nitro-mlkit/face-detection`](./packages/face-detection) | Face detection with batch processing & native cropping | 🚧 WIP     |
-| `@nitro-mlkit/image-labeling`                              | Image classification (400+ labels), safety filter, batch | 🚧 WIP |
-| `@nitro-mlkit/face-recognition`                            | "This is Marcos" — register faces, find people in photos | 🚧 WIP |
-| `@nitro-mlkit/barcode-scanning`                            | Barcode & QR code scanning                             | 📋 Planned |
-| `@nitro-mlkit/text-recognition`                            | OCR text recognition                                   | 📋 Planned |
+| Package                                                    | Description                                              | Status     |
+| ---------------------------------------------------------- | -------------------------------------------------------- | ---------- |
+| [`@nitro-mlkit/face-detection`](./packages/face-detection) | Face detection with batch processing & native cropping   | 🚧 WIP     |
+| `@nitro-mlkit/image-labeling`                              | Image classification (400+ labels), safety filter, batch | 🚧 WIP     |
+| `@nitro-mlkit/face-recognition`                            | "This is Marcos" — register faces, find people in photos | 🚧 WIP     |
+| `@nitro-mlkit/barcode-scanning`                            | Barcode & QR code scanning                               | 📋 Planned |
+| `@nitro-mlkit/text-recognition`                            | OCR text recognition                                     | 📋 Planned |
 
 ## Why Nitro?
 

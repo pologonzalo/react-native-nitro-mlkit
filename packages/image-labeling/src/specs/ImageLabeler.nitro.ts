@@ -62,8 +62,10 @@ export interface BatchLabelOptions extends LabelingOptions {
  * Uses MLKit Image Labeling (on-device, free, 400+ labels).
  * No custom models needed — Google maintains and updates the labels.
  */
-export interface ImageLabeler
-  extends HybridObject<{ ios: "swift"; android: "kotlin" }> {
+export interface ImageLabeler extends HybridObject<{
+  ios: "swift";
+  android: "kotlin";
+}> {
   /**
    * Label a single image.
    *
@@ -79,7 +81,7 @@ export interface ImageLabeler
    */
   labelBatch(
     imageUris: string[],
-    options?: BatchLabelOptions
+    options?: BatchLabelOptions,
   ): Promise<BatchLabelResult[]>;
 
   /**
@@ -93,7 +95,7 @@ export interface ImageLabeler
    */
   checkSafetyBatch(
     imageUris: string[],
-    options?: { concurrency?: number }
+    options?: { concurrency?: number },
   ): Promise<SafetyResult[]>;
 
   /**
@@ -106,7 +108,7 @@ export interface ImageLabeler
    */
   matchCategories(
     imageUri: string,
-    categories: string[]
+    categories: string[],
   ): Promise<ImageLabel[]>;
 
   /**

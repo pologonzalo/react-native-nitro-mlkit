@@ -86,17 +86,25 @@ export interface BatchEmbeddingResult {
  * Face detection + recognition powered by ML Kit and MobileFaceNet.
  * All on-device, zero network, zero bridge overhead via Nitro.
  */
-export interface FaceDetector
-  extends HybridObject<{ ios: "swift"; android: "kotlin" }> {
+export interface FaceDetector extends HybridObject<{
+  ios: "swift";
+  android: "kotlin";
+}> {
   /**
    * Detect faces in a single image.
    */
-  detect(imageUri: string, options: FaceDetectionOptions): Promise<DetectedFace[]>;
+  detect(
+    imageUri: string,
+    options: FaceDetectionOptions,
+  ): Promise<DetectedFace[]>;
 
   /**
    * Detect faces in multiple images in parallel (native-side batching).
    */
-  detectBatch(imageUris: string[], concurrency: number): Promise<BatchCropResult[]>;
+  detectBatch(
+    imageUris: string[],
+    concurrency: number,
+  ): Promise<BatchCropResult[]>;
 
   /**
    * Detect the largest face in an image (for selfies).
@@ -126,7 +134,10 @@ export interface FaceDetector
   /**
    * Batch detect + embed all faces across N images. One bridge call.
    */
-  detectAndEmbed(imageUris: string[], concurrency: number): Promise<BatchEmbeddingResult[]>;
+  detectAndEmbed(
+    imageUris: string[],
+    concurrency: number,
+  ): Promise<BatchEmbeddingResult[]>;
 
   /**
    * Check if face detection is available.

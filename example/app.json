@@ -10,11 +10,7 @@
     "android": {
       "package": "com.nitromlkit.example"
     },
-    "plugins": [
-      "expo-router",
-      "expo-camera",
-      "@nitro-mlkit/face-detection"
-    ],
+    "plugins": ["expo-router", "expo-camera", "@nitro-mlkit/face-detection"],
     "experiments": {
       "typedRoutes": true
     }

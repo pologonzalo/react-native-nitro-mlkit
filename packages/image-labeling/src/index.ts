@@ -1,9 +1,9 @@
 export { type ImageLabeler } from "./specs/ImageLabeler.nitro";
 export type {
+  BatchLabelOptions,
+  BatchLabelResult,
   ImageLabel,
   LabelingOptions,
-  BatchLabelResult,
-  BatchLabelOptions,
   SafetyResult,
 } from "./specs/ImageLabeler.nitro";
 

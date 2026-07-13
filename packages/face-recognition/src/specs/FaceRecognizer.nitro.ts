@@ -59,9 +59,10 @@ export interface PhotoPersonResult {
  * 2. Scan gallery → findPeopleInPhotos(galleryUris)
  * 3. Get results → "Photo 42 has Marcos (92% confidence)"
  */
-export interface FaceRecognizer
-  extends HybridObject<{ ios: "swift"; android: "kotlin" }> {
-
+export interface FaceRecognizer extends HybridObject<{
+  ios: "swift";
+  android: "kotlin";
+}> {
   // ─── Person Registry ────────────────────────────────────────────────────
 
   /**
@@ -113,7 +114,7 @@ export interface FaceRecognizer
    */
   findPeopleInPhotos(
     imageUris: string[],
-    options?: { concurrency?: number; minSimilarity?: number }
+    options?: { concurrency?: number; minSimilarity?: number },
   ): Promise<PhotoPersonResult[]>;
 
   /**

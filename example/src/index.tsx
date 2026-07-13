@@ -1,7 +1,7 @@
 import { NitroFace } from "@nitro-mlkit/face-detection";
 import { PerformanceMode } from "@nitro-mlkit/face-detection/src/specs/FaceDetector.nitro";
 import * as ImagePicker from "expo-image-picker";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Alert,
   Image,
@@ -72,7 +72,7 @@ export default function HomeScreen() {
       const totalFaces = results.reduce((sum, r) => sum + r.faces.length, 0);
       Alert.alert(
         "Batch Complete",
-        `Processed ${results.length} images, found ${totalFaces} total faces.\nAll in ONE bridge call!`
+        `Processed ${results.length} images, found ${totalFaces} total faces.\nAll in ONE bridge call!`,
       );
     } catch (e: any) {
       Alert.alert("Error", e.message);
@@ -90,20 +90,36 @@ export default function HomeScreen() {
       </Pressable>
 
       {imageUri && (
-        <Image source={{ uri: imageUri }} style={s.preview} resizeMode="contain" />
+        <Image
+          source={{ uri: imageUri }}
+          style={s.preview}
+          resizeMode="contain"
+        />
       )}
 
       {imageUri && (
         <View style={s.actions}>
-          <Pressable style={[s.btn, s.btnPrimary]} onPress={detectFaces} disabled={loading}>
+          <Pressable
+            style={[s.btn, s.btnPrimary]}
+            onPress={detectFaces}
+            disabled={loading}
+          >
             <Text style={s.btnText}>Detect Faces</Text>
           </Pressable>
 
-          <Pressable style={[s.btn, s.btnPrimary]} onPress={cropAllFaces} disabled={loading}>
+          <Pressable
+            style={[s.btn, s.btnPrimary]}
+            onPress={cropAllFaces}
+            disabled={loading}
+          >
             <Text style={s.btnText}>Crop Faces</Text>
           </Pressable>
 
-          <Pressable style={[s.btn, s.btnAccent]} onPress={testBatch} disabled={loading}>
+          <Pressable
+            style={[s.btn, s.btnAccent]}
+            onPress={testBatch}
+            disabled={loading}
+          >
             <Text style={s.btnText}>Batch (10x) 🚀</Text>
           </Pressable>
         </View>
@@ -122,7 +138,8 @@ export default function HomeScreen() {
                 Left eye open: {(face.leftEyeOpenProbability * 100).toFixed(0)}%
               </Text>
               <Text style={s.faceDetail}>
-                Size: {face.bounds.width.toFixed(0)}x{face.bounds.height.toFixed(0)}
+                Size: {face.bounds.width.toFixed(0)}x
+                {face.bounds.height.toFixed(0)}
               </Text>
             </View>
           ))}
@@ -148,8 +165,18 @@ export default function HomeScreen() {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#0A0A1A" },
   content: { padding: 20, paddingTop: 60 },
-  title: { fontSize: 24, fontWeight: "bold", color: "#fff", textAlign: "center" },
-  subtitle: { fontSize: 14, color: "#888", textAlign: "center", marginBottom: 24 },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#fff",
+    textAlign: "center",
+  },
+  subtitle: {
+    fontSize: 14,
+    color: "#888",
+    textAlign: "center",
+    marginBottom: 24,
+  },
   btn: {
     backgroundColor: "#222",
     padding: 14,
@@ -163,10 +190,25 @@ const s = StyleSheet.create({
   preview: { width: "100%", height: 300, borderRadius: 12, marginVertical: 16 },
   actions: { gap: 8 },
   results: { marginTop: 20 },
-  resultsTitle: { fontSize: 18, fontWeight: "600", color: "#fff", marginBottom: 10 },
-  faceCard: { backgroundColor: "#1a1a2e", padding: 12, borderRadius: 8, marginBottom: 8 },
+  resultsTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#fff",
+    marginBottom: 10,
+  },
+  faceCard: {
+    backgroundColor: "#1a1a2e",
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
   faceText: { color: "#fff", fontSize: 16, fontWeight: "600" },
   faceDetail: { color: "#aaa", fontSize: 13, marginTop: 2 },
   cropImg: { width: 100, height: 100, borderRadius: 8, marginRight: 10 },
-  loading: { color: "#ffd700", textAlign: "center", marginTop: 20, fontSize: 16 },
+  loading: {
+    color: "#ffd700",
+    textAlign: "center",
+    marginTop: 20,
+    fontSize: 16,
+  },
 });
