@@ -183,6 +183,45 @@ packages/face-detection/
 - **MLKit on Android**: use bundled version (`com.google.mlkit:...`) not thin/Play Services version, for offline-first
 - **MLKit on iOS**: pods are `GoogleMLKit/FaceDetection` and `GoogleMLKit/ImageLabeling`
 
+## Session 4 — full ML Kit suite build-out (branch `session/face-detection-beta-prep`)
+
+Goal set by the user: wrap **every** ML Kit API as an independent `@nitro-mlkit/*`
+package (install-only-what-you-use; each ships its own ML Kit dep + `.so`).
+
+**9 packages built + verified live on the Pixel 9 emulator (API 36), all committed:**
+
+| Package | Verified | npm |
+| --- | --- | --- |
+| `face-detection` | detect/crop/batch | ✅ beta published (`0.1.0-beta.0`) |
+| `image-labeling` | label 8@433ms, batch 160 | committed, not published |
+| `barcode-scanning` | QR→URL 117ms, EAN→PRODUCT 11ms, batch 20 | committed |
+| `text-recognition` | OCR "Hello Nitro MLKit" 190ms, batch 20 | committed |
+| `object-detection` | pipeline 200ms (0 objects on a face = expected) | committed |
+| `pose-detection` | 33 landmarks 430ms (nose 96%, hips 0% off-frame) | committed |
+| `language-id` | en 100%, es 99%, ~70ms (text, no image) | committed |
+| `face-mesh` | 468 3D points 180ms | committed |
+| `selfie-segmentation` | 128×128 mask PNG, 54% fg, 76ms (clean silhouette) | committed |
+
+Per-package recipe, tooling notes, and the remaining tail live in the
+`nitro-mlkit-suite` project memory. Key facts:
+- **Node 22 required** (`.nvmrc`) — pnpm 10.x uses `node:sqlite`; Node 20 breaks `pnpm install` (and EAS local builds).
+- **`nitro.json` `autolinking` block MUST be filled** or `createHybridObject` fails at runtime.
+- **`package.json` `files` must be scoped to source** (don't glob whole `android/` — it pulls 600 MB of `.cxx`/`build`). Tarballs are ~20-40 kB.
+- Codegen binary is **`nitrogen`** (run from the package dir), not `nitro-codegen`.
+- Each new package's native glue was generated with a parameterized script; the pattern is the same 4 pieces as face-detection.
+
+**Remaining ML Kit APIs (the harder/odd tail):** `smart-reply` (text, easy);
+`translation`, `entity-extraction`, `subject-segmentation` (need a RUNTIME model
+download — slower/flakier to verify on emulator); `digital-ink` (stroke input,
+not an image); `document-scanner` (full-screen Activity flow, not a still-image
+API — wrap differently or skip).
+
+**Still pending (needs the user):** publish the 8 committed betas to npm
+(`npm publish --access public --tag beta` per pkg dir — needs npm login);
+run face-detection's signed `.ipa` on the physical iPhone (all iOS impls build
+but were never run on-device; newer packages have no Swift impl yet); merge the
+branch to `main` + tag.
+
 ## Context: Remin (the app that will use this)
 
 Remin is a party photo game where players guess whose photos are shown. This library enables:
