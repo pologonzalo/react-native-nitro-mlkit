@@ -101,6 +101,12 @@ export default function HomeScreen() {
         </Pressable>
       </Link>
 
+      <Link href="/barcode" asChild>
+        <Pressable style={s.btnBarcode}>
+          <Text style={s.btnText}>🔳 Barcode / QR Scanning</Text>
+        </Pressable>
+      </Link>
+
       {imageUri && (
         <Image
           source={{ uri: imageUri }}
@@ -207,6 +213,13 @@ const s = StyleSheet.create({
   },
   btnLabel: {
     backgroundColor: "#0891b2",
+    padding: 14,
+    borderRadius: 10,
+    alignItems: "center",
+    marginVertical: 6,
+  },
+  btnBarcode: {
+    backgroundColor: "#d97706",
     padding: 14,
     borderRadius: 10,
     alignItems: "center",
