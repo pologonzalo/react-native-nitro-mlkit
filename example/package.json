@@ -15,6 +15,7 @@
     "@nitro-mlkit/barcode-scanning": "workspace:*",
     "@nitro-mlkit/face-detection": "workspace:*",
     "@nitro-mlkit/image-labeling": "workspace:*",
+    "@nitro-mlkit/text-recognition": "workspace:*",
     "@react-native-ml-kit/face-detection": "2.0.1",
     "expo": "~55.0.0",
     "expo-build-properties": "~55.0.15",

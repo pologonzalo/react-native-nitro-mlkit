@@ -107,6 +107,12 @@ export default function HomeScreen() {
         </Pressable>
       </Link>
 
+      <Link href="/ocr" asChild>
+        <Pressable style={s.btnOcr}>
+          <Text style={s.btnText}>🔤 Text Recognition (OCR)</Text>
+        </Pressable>
+      </Link>
+
       {imageUri && (
         <Image
           source={{ uri: imageUri }}
@@ -220,6 +226,13 @@ const s = StyleSheet.create({
   },
   btnBarcode: {
     backgroundColor: "#d97706",
+    padding: 14,
+    borderRadius: 10,
+    alignItems: "center",
+    marginVertical: 6,
+  },
+  btnOcr: {
+    backgroundColor: "#db2777",
     padding: 14,
     borderRadius: 10,
     alignItems: "center",

@@ -1,0 +1,16 @@
+{
+  "cxxNamespace": ["mlkit", "text"],
+  "ios": {
+    "iosModuleName": "NitroMLKitText"
+  },
+  "android": {
+    "androidNamespace": ["nitromlkit", "text"],
+    "androidCxxLibName": "NitroMLKitText"
+  },
+  "autolinking": {
+    "TextRecognizer": {
+      "ios": { "language": "swift", "implementationClassName": "HybridTextRecognizer" },
+      "android": { "language": "kotlin", "implementationClassName": "HybridTextRecognizer" }
+    }
+  }
+}
