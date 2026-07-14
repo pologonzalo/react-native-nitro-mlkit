@@ -16,6 +16,7 @@
 #include <NitroModules/HybridObjectRegistry.hpp>
 
 #include "JHybridImageLabelerSpec.hpp"
+#include <NitroModules/DefaultConstructableObject.hpp>
 
 namespace margelo::nitro::mlkit::labeling {
 
@@ -25,7 +26,14 @@ int initialize(JavaVM* vm) {
   });
 }
 
-
+struct JHybridImageLabelerSpecImpl: public jni::JavaClass<JHybridImageLabelerSpecImpl, JHybridImageLabelerSpec::JavaPart> {
+  static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/nitromlkit/labeling/HybridImageLabeler;";
+  static std::shared_ptr<JHybridImageLabelerSpec> create() {
+    static const auto constructorFn = javaClassStatic()->getConstructor<JHybridImageLabelerSpecImpl::javaobject()>();
+    jni::local_ref<JHybridImageLabelerSpec::JavaPart> javaPart = javaClassStatic()->newObject(constructorFn);
+    return javaPart->getJHybridImageLabelerSpec();
+  }
+};
 
 void registerAllNatives() {
   using namespace margelo::nitro;
@@ -35,7 +43,12 @@ void registerAllNatives() {
   margelo::nitro::mlkit::labeling::JHybridImageLabelerSpec::CxxPart::registerNatives();
 
   // Register Nitro Hybrid Objects
-  
+  HybridObjectRegistry::registerHybridObjectConstructor(
+    "ImageLabeler",
+    []() -> std::shared_ptr<HybridObject> {
+      return JHybridImageLabelerSpecImpl::create();
+    }
+  );
 }
 
 } // namespace margelo::nitro::mlkit::labeling

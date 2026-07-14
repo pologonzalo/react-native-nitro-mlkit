@@ -95,6 +95,12 @@ export default function HomeScreen() {
         </Pressable>
       </Link>
 
+      <Link href="/labeling" asChild>
+        <Pressable style={s.btnLabel}>
+          <Text style={s.btnText}>🏷️ Image Labeling</Text>
+        </Pressable>
+      </Link>
+
       {imageUri && (
         <Image
           source={{ uri: imageUri }}
@@ -194,6 +200,13 @@ const s = StyleSheet.create({
   btnAccent: { backgroundColor: "#22c55e" },
   btnBench: {
     backgroundColor: "#7c3aed",
+    padding: 14,
+    borderRadius: 10,
+    alignItems: "center",
+    marginVertical: 6,
+  },
+  btnLabel: {
+    backgroundColor: "#0891b2",
     padding: 14,
     borderRadius: 10,
     alignItems: "center",
