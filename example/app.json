@@ -5,7 +5,10 @@
     "version": "1.0.0",
     "scheme": "nitro-mlkit-example",
     "ios": {
-      "bundleIdentifier": "com.nitromlkit.example"
+      "bundleIdentifier": "com.nitromlkit.example",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.nitromlkit.example",

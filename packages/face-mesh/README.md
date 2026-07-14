@@ -1,7 +1,8 @@
 # @nitro-mlkit/face-mesh
 
-> ⚠️ **Beta (`0.1.0-beta.x`).** Android verified on-device; iOS builds & links but
-> device runtime is pending — see [Platform status](#platform-status).
+> ⚠️ **Beta (`0.1.0-beta.x`) · Android-only.** ML Kit Face Mesh Detection has no
+> iOS SDK (there is no `GoogleMLKit/FaceMeshDetection` pod), so this package only
+> links on Android — see [Platform status](#platform-status).
 
 High-performance, on-device **face mesh detection** for React Native, built with
 [Nitro Modules](https://github.com/mrousavy/nitro) (JSI, no bridge).
@@ -15,8 +16,12 @@ primary face. **All on-device.**
 npm install @nitro-mlkit/face-mesh@beta react-native-nitro-modules
 ```
 
-No config plugin (autolinked Expo module). Install and `npx expo prebuild`.
-Not available in Expo Go.
+No config plugin (autolinked Expo module, **Android-only**). Install and
+`npx expo prebuild`. Not available in Expo Go.
+
+On iOS the module is not linked. `NitroFaceMesh` is still importable (so shared
+code compiles), but any access throws an `Android-only` error — guard with
+`isFaceMeshSupported` before use.
 
 ## Usage
 
@@ -31,15 +36,24 @@ const results = await NitroFaceMesh.detectBatch(uris, 4 /* concurrency */);
 NitroFaceMesh.isAvailable(); // boolean
 ```
 
+```ts
+import { isFaceMeshSupported } from "@nitro-mlkit/face-mesh";
+
+if (isFaceMeshSupported) {
+  const points = await NitroFaceMesh.detect(imageUri);
+}
+```
+
 ## Platform status
 
 | Platform | Min | Status |
 | -------- | --- | ------ |
 | Android  | API 21+ | ✅ Verified on-device (Pixel 9, API 36): 468 points in ~180 ms |
-| iOS      | 15.5+   | ⚠️ Builds & links (GoogleMLKit); device run pending¹ |
-| tvOS/macOS | — | 🔜 Planned |
+| iOS      | —   | ❌ Not supported — Google ships no ML Kit Face Mesh SDK for iOS |
+| tvOS/macOS | — | ❌ Not supported |
 
-¹ ML Kit's iOS pods ship no `arm64` Simulator slice; validate on a physical device.
+ML Kit Face Mesh Detection is an Android-only API. There is no
+`GoogleMLKit/FaceMeshDetection` CocoaPod, so the package is not linked on iOS.
 
 ## Part of `nitro-mlkit`
 

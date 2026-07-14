@@ -1,8 +1,5 @@
 {
-  "platforms": ["ios", "android"],
-  "ios": {
-    "modules": []
-  },
+  "platforms": ["android"],
   "android": {
     "modules": ["com.nitromlkit.mesh.NitroMLKitMeshPackage"]
   }
