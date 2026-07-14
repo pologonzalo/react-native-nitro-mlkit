@@ -1,46 +1,49 @@
-import { NitroFaceMesh } from "@nitro-mlkit/face-mesh";
-import { Directory, File, Paths } from "expo-file-system";
+import { NitroFaceMesh, isFaceMeshSupported } from "@nitro-mlkit/face-mesh";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View } from "react-native";
+import { FACES } from "../src/samples";
+import { C, T } from "../src/theme";
+import { AnnotatedImage, Card, Pill, SamplePicker, TitleBlock, imageSize } from "../src/ui";
 
-const SAMPLE = "https://randomuser.me/api/portraits/women/44.jpg";
-const dir = new Directory(Paths.document, "facemesh");
-
-async function download(): Promise<string> {
-  if (!dir.exists) dir.create();
-  const dest = new File(dir, "sample.jpg");
-  if (dest.exists) dest.delete();
-  await File.downloadFileAsync(SAMPLE, dest);
-  return dest.uri;
-}
+const ACCENT = "#f43f5e";
 
 export default function FaceMeshScreen() {
-  const [imageUri, setImageUri] = useState<string | null>(null);
+  // ML Kit Face Mesh Detection is Android-only (no iOS SDK). Platform.OS is
+  // constant, so this early return keeps hook order consistent per platform.
+  if (!isFaceMeshSupported) {
+    return (
+      <ScrollView style={s.container} contentContainerStyle={s.content}>
+        <TitleBlock name="@nitro-mlkit/face-mesh" tagline="Android-only · ML Kit has no iOS SDK" />
+        <Card>
+          <View style={s.head}>
+            <Text style={T.label}>Not available on iOS</Text>
+            <Pill accent={ACCENT}>Android-only</Pill>
+          </View>
+          <Text style={T.sub}>
+            Google ML Kit ships no iOS SDK for Face Mesh Detection. Run this demo on an Android device.
+          </Text>
+        </Card>
+      </ScrollView>
+    );
+  }
+
+  const [uri, setUri] = useState<string | null>(null);
+  const [size, setSize] = useState({ w: 0, h: 0 });
   const [points, setPoints] = useState<any[]>([]);
-  const [status, setStatus] = useState("Detect a sample");
+  const [status, setStatus] = useState("Pick a face");
   const [loading, setLoading] = useState(false);
 
-  async function detect() {
-    setLoading(true);
+  async function run(u: string) {
+    setUri(u);
     setPoints([]);
-    setStatus("Downloading…");
+    setLoading(true);
+    setStatus("Detecting…");
     try {
-      const uri = await download();
-      setImageUri(uri);
-      setStatus("Detecting…");
+      setSize(await imageSize(u));
       const t = Date.now();
-      const found = await NitroFaceMesh.detect(uri);
+      const found = await NitroFaceMesh.detect(u);
       setPoints(found);
-      setStatus(`${found.length} mesh point(s) in ${Date.now() - t} ms`);
+      setStatus(`${found.length} mesh points · ${Date.now() - t} ms`);
     } catch (e: any) {
       setStatus("Error ❌");
       Alert.alert("Error", e.message);
@@ -48,41 +51,43 @@ export default function FaceMeshScreen() {
     setLoading(false);
   }
 
+  // Downsample for a clean overlay (drawing all 468 tiny views is heavy).
+  const dots = points.filter((_, i) => i % 3 === 0);
+
   return (
     <ScrollView style={s.container} contentContainerStyle={s.content}>
-      <Text style={s.title}>@nitro-mlkit/face-mesh</Text>
-      <Text style={s.subtitle}>On-device • 468 3D points • Nitro batch</Text>
-      <Pressable style={s.btn} onPress={detect} disabled={loading}>
-        <Text style={s.btnText}>Detect sample</Text>
-      </Pressable>
-      {imageUri && <Image source={{ uri: imageUri }} style={s.preview} resizeMode="contain" />}
+      <TitleBlock name="@nitro-mlkit/face-mesh" tagline="Up to 468 3D points · mesh overlay" />
+      <SamplePicker samples={FACES} accent={ACCENT} onPick={run} disabled={loading} />
+
+      {uri && (
+        <AnnotatedImage uri={uri} imageW={size.w} imageH={size.h} accent={ACCENT} points={dots} dotSize={3} />
+      )}
+
       <View style={s.statusRow}>
-        {loading && <ActivityIndicator color="#e11d48" />}
+        {loading && <ActivityIndicator color={ACCENT} />}
         <Text style={s.status}>{status}</Text>
       </View>
-      {points.slice(0, 6).map((p, i) => (
-        <View key={i} style={s.row}>
-          <Text style={s.rowLabel}>point {p.index}</Text>
-          <Text style={s.rowValue}>
-            ({p.x.toFixed(1)}, {p.y.toFixed(1)}, {p.z.toFixed(1)})
+
+      {points.length > 0 && (
+        <Card>
+          <View style={s.head}>
+            <Text style={T.label}>Mesh</Text>
+            <Pill accent={ACCENT}>{points.length} points</Pill>
+          </View>
+          <Text style={T.sub}>
+            Sample point 0: ({points[0].x.toFixed(1)}, {points[0].y.toFixed(1)}, {points[0].z.toFixed(1)})
           </Text>
-        </View>
-      ))}
+          <Text style={T.faint}>Overlay shows every 3rd point for clarity.</Text>
+        </Card>
+      )}
     </ScrollView>
   );
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0A0A1A" },
-  content: { padding: 20, paddingTop: 60, paddingBottom: 40 },
-  title: { fontSize: 20, fontWeight: "bold", color: "#fff", textAlign: "center" },
-  subtitle: { fontSize: 13, color: "#888", textAlign: "center", marginBottom: 20 },
-  btn: { backgroundColor: "#e11d48", padding: 14, borderRadius: 10, alignItems: "center" },
-  btnText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  preview: { width: "100%", height: 260, borderRadius: 12, marginVertical: 16 },
-  statusRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginVertical: 16 },
-  status: { color: "#ffd700", fontSize: 14 },
-  row: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#222" },
-  rowLabel: { color: "#fff", fontSize: 14 },
-  rowValue: { color: "#fb7185", fontSize: 13 },
+  container: { flex: 1, backgroundColor: C.bg },
+  content: { padding: 20, paddingTop: 16, paddingBottom: 40 },
+  statusRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginVertical: 14 },
+  status: { color: C.gold, fontSize: 14 },
+  head: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
 });

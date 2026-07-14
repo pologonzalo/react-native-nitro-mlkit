@@ -20,6 +20,7 @@
     "@nitro-mlkit/object-detection": "workspace:*",
     "@nitro-mlkit/pose-detection": "workspace:*",
     "@nitro-mlkit/selfie-segmentation": "workspace:*",
+    "@nitro-mlkit/smart-reply": "workspace:*",
     "@nitro-mlkit/text-recognition": "workspace:*",
     "@react-native-ml-kit/face-detection": "2.0.1",
     "expo": "~55.0.0",

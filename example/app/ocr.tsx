@@ -1,52 +1,31 @@
 import { NitroText } from "@nitro-mlkit/text-recognition";
-import { Directory, File, Paths } from "expo-file-system";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { TEXTS } from "../src/samples";
+import { C, R, T, tint } from "../src/theme";
+import { Card, Pill, SamplePicker, TitleBlock } from "../src/ui";
 
-// Deterministic text image (downloaded once, then OCR'd). Known content:
-// "Hello Nitro MLKit".
-const SAMPLE = "https://dummyimage.com/1000x300/ffffff/000000.png&text=Hello+Nitro+MLKit";
-
-const dir = new Directory(Paths.document, "ocr");
-
-async function download(name: string, url: string): Promise<string> {
-  if (!dir.exists) dir.create();
-  const dest = new File(dir, name);
-  if (dest.exists) dest.delete();
-  await File.downloadFileAsync(url, dest);
-  return dest.uri;
-}
+const ACCENT = "#ec4899";
 
 export default function OcrScreen() {
-  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [uri, setUri] = useState<string | null>(null);
   const [text, setText] = useState("");
   const [meta, setMeta] = useState("");
-  const [status, setStatus] = useState("Recognize a sample");
+  const [status, setStatus] = useState("Pick an image");
   const [loading, setLoading] = useState(false);
 
-  async function recognize() {
-    setLoading(true);
+  async function run(u: string) {
+    setUri(u);
     setText("");
     setMeta("");
-    setStatus("Downloading…");
+    setLoading(true);
+    setStatus("Recognizing…");
     try {
-      const uri = await download("sample.png", SAMPLE);
-      setImageUri(uri);
-      setStatus("Recognizing…");
       const t = Date.now();
-      const result = await NitroText.recognize(uri);
+      const result = await NitroText.recognize(u);
       const lines = result.blocks.reduce((n, b) => n + b.lines.length, 0);
       setText(result.text);
-      setMeta(`${result.blocks.length} block(s), ${lines} line(s) · ${Date.now() - t} ms`);
+      setMeta(`${result.blocks.length} blocks · ${lines} lines · ${Date.now() - t} ms`);
       setStatus("Done ✅");
     } catch (e: any) {
       setStatus("Error ❌");
@@ -56,20 +35,15 @@ export default function OcrScreen() {
   }
 
   async function batch() {
+    if (!uri) return;
     setLoading(true);
     setStatus("Batch 20×…");
     try {
-      const uri = await download("sample.png", SAMPLE);
-      setImageUri(uri);
       const uris = Array(20).fill(uri);
       const t = Date.now();
       const results = await NitroText.recognizeBatch(uris, 4);
       const ok = results.filter((r) => r.success).length;
-      Alert.alert(
-        "Batch complete",
-        `20 images, ${ok} recognized — ONE bridge call, ${Date.now() - t} ms`,
-      );
-      setStatus(`Batch: ${ok}/20 in ${Date.now() - t} ms`);
+      setStatus(`Batch: ${ok}/20 · ${Date.now() - t} ms · one bridge call`);
     } catch (e: any) {
       setStatus("Error ❌");
       Alert.alert("Error", e.message);
@@ -79,50 +53,52 @@ export default function OcrScreen() {
 
   return (
     <ScrollView style={s.container} contentContainerStyle={s.content}>
-      <Text style={s.title}>@nitro-mlkit/text-recognition</Text>
-      <Text style={s.subtitle}>On-device OCR • blocks/lines • Nitro batch</Text>
+      <TitleBlock name="@nitro-mlkit/text-recognition" tagline="On-device OCR · blocks & lines · native batch" />
+      <SamplePicker samples={TEXTS} accent={ACCENT} onPick={run} disabled={loading} />
 
-      <View style={s.actions}>
-        <Pressable style={s.btnPrimary} onPress={recognize} disabled={loading}>
-          <Text style={s.btnText}>Recognize sample</Text>
-        </Pressable>
-        <Pressable style={s.btnAccent} onPress={batch} disabled={loading}>
-          <Text style={s.btnText}>Batch (20×) 🚀</Text>
-        </Pressable>
-      </View>
-
-      {imageUri && (
-        <Image source={{ uri: imageUri }} style={s.preview} resizeMode="contain" />
-      )}
+      {uri && <Image source={{ uri }} style={s.preview} resizeMode="contain" />}
 
       <View style={s.statusRow}>
-        {loading && <ActivityIndicator color="#db2777" />}
+        {loading && <ActivityIndicator color={ACCENT} />}
         <Text style={s.status}>{status}</Text>
       </View>
 
+      {uri && (
+        <Pressable style={s.batch} onPress={batch} disabled={loading}>
+          <Text style={s.batchText}>Batch 20× 🚀</Text>
+        </Pressable>
+      )}
+
       {!!text && (
-        <View style={s.card}>
-          <Text style={s.meta}>{meta}</Text>
+        <Card>
+          <View style={s.head}>
+            <Text style={T.label}>Recognized</Text>
+            <Pill accent={ACCENT}>OCR</Pill>
+          </View>
           <Text style={s.recognized}>{text}</Text>
-        </View>
+          <Text style={{ ...T.faint, marginTop: 10 }}>{meta}</Text>
+        </Card>
       )}
     </ScrollView>
   );
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0A0A1A" },
-  content: { padding: 20, paddingTop: 60, paddingBottom: 40 },
-  title: { fontSize: 20, fontWeight: "bold", color: "#fff", textAlign: "center" },
-  subtitle: { fontSize: 13, color: "#888", textAlign: "center", marginBottom: 20 },
-  actions: { gap: 8 },
-  btnPrimary: { backgroundColor: "#db2777", padding: 14, borderRadius: 10, alignItems: "center" },
-  btnAccent: { backgroundColor: "#22c55e", padding: 14, borderRadius: 10, alignItems: "center" },
-  btnText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  preview: { width: "100%", height: 160, borderRadius: 12, marginVertical: 16, backgroundColor: "#fff" },
-  statusRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginVertical: 16 },
-  status: { color: "#ffd700", fontSize: 14 },
-  card: { backgroundColor: "#1a1a2e", padding: 14, borderRadius: 8 },
-  meta: { color: "#60a5fa", fontSize: 12, marginBottom: 8 },
-  recognized: { color: "#fff", fontSize: 18, fontWeight: "600" },
+  container: { flex: 1, backgroundColor: C.bg },
+  content: { padding: 20, paddingTop: 16, paddingBottom: 40 },
+  preview: { width: "100%", height: 150, borderRadius: R.lg, marginTop: 16, backgroundColor: "#fff" },
+  statusRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginVertical: 14 },
+  status: { color: C.gold, fontSize: 14 },
+  batch: {
+    backgroundColor: tint(ACCENT, 0.16),
+    borderColor: tint(ACCENT, 0.5),
+    borderWidth: 1,
+    paddingVertical: 12,
+    borderRadius: R.md,
+    alignItems: "center",
+    marginBottom: 14,
+  },
+  batchText: { color: ACCENT, fontWeight: "700", fontSize: 14 },
+  head: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
+  recognized: { color: C.text, fontSize: 20, fontWeight: "700" },
 });

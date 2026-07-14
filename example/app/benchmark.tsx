@@ -227,7 +227,7 @@ export default function BenchmarkScreen() {
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#0A0A1A" },
-  content: { padding: 20, paddingTop: 60, paddingBottom: 40 },
+  content: { padding: 20, paddingTop: 16, paddingBottom: 40 },
   title: { fontSize: 22, fontWeight: "bold", color: "#fff", textAlign: "center" },
   subtitle: { fontSize: 12, color: "#888", textAlign: "center", marginBottom: 20 },
   btn: { backgroundColor: "#1a6dff", padding: 16, borderRadius: 10, alignItems: "center" },
