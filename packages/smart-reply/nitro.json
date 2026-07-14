@@ -1,0 +1,15 @@
+{
+  "cxxNamespace": ["mlkit", "smartreply"],
+  "ios": {
+    "iosModuleName": "NitroMLKitSmartReply"
+  },
+  "android": {
+    "androidNamespace": ["nitromlkit", "smartreply"],
+    "androidCxxLibName": "NitroMLKitSmartReply"
+  },
+  "autolinking": {
+    "SmartReplyGenerator": {
+      "android": { "language": "kotlin", "implementationClassName": "HybridSmartReplyGenerator" }
+    }
+  }
+}
