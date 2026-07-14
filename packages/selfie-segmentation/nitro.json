@@ -1,0 +1,16 @@
+{
+  "cxxNamespace": ["mlkit", "selfieseg"],
+  "ios": {
+    "iosModuleName": "NitroMLKitSelfieSeg"
+  },
+  "android": {
+    "androidNamespace": ["nitromlkit", "selfieseg"],
+    "androidCxxLibName": "NitroMLKitSelfieSeg"
+  },
+  "autolinking": {
+    "SelfieSegmenter": {
+      "ios": { "language": "swift", "implementationClassName": "HybridSelfieSegmenter" },
+      "android": { "language": "kotlin", "implementationClassName": "HybridSelfieSegmenter" }
+    }
+  }
+}

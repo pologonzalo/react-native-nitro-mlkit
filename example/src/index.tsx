@@ -131,6 +131,18 @@ export default function HomeScreen() {
         </Pressable>
       </Link>
 
+      <Link href="/facemesh" asChild>
+        <Pressable style={s.btnMesh}>
+          <Text style={s.btnText}>🕸️ Face Mesh</Text>
+        </Pressable>
+      </Link>
+
+      <Link href="/selfieseg" asChild>
+        <Pressable style={s.btnSeg}>
+          <Text style={s.btnText}>✂️ Selfie Segmentation</Text>
+        </Pressable>
+      </Link>
+
       {imageUri && (
         <Image
           source={{ uri: imageUri }}
@@ -272,6 +284,20 @@ const s = StyleSheet.create({
   },
   btnLangId: {
     backgroundColor: "#0ea5e9",
+    padding: 14,
+    borderRadius: 10,
+    alignItems: "center",
+    marginVertical: 6,
+  },
+  btnMesh: {
+    backgroundColor: "#e11d48",
+    padding: 14,
+    borderRadius: 10,
+    alignItems: "center",
+    marginVertical: 6,
+  },
+  btnSeg: {
+    backgroundColor: "#0d9488",
     padding: 14,
     borderRadius: 10,
     alignItems: "center",
