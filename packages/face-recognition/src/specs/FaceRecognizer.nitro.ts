@@ -33,6 +33,16 @@ export interface FaceSearchResult {
 }
 
 /**
+ * Options for batch photo scanning.
+ */
+export interface FindPeopleOptions {
+  /** Max concurrent native operations (default: 4) */
+  concurrency?: number;
+  /** Minimum similarity to count as a match (0..1). Default: 0.6 */
+  minSimilarity?: number;
+}
+
+/**
  * Result of scanning a photo for known people.
  */
 export interface PhotoPersonResult {
@@ -114,7 +124,7 @@ export interface FaceRecognizer extends HybridObject<{
    */
   findPeopleInPhotos(
     imageUris: string[],
-    options?: { concurrency?: number; minSimilarity?: number },
+    options?: FindPeopleOptions,
   ): Promise<PhotoPersonResult[]>;
 
   /**

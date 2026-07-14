@@ -7,5 +7,10 @@
     "androidNamespace": ["nitromlkit", "face"],
     "androidCxxLibName": "NitroMLKitFace"
   },
-  "autolinking": {}
+  "autolinking": {
+    "FaceDetector": {
+      "ios": { "language": "swift", "implementationClassName": "HybridFaceDetector" },
+      "android": { "language": "kotlin", "implementationClassName": "HybridFaceDetector" }
+    }
+  }
 }

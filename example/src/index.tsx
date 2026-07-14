@@ -1,6 +1,6 @@
-import { NitroFace } from "@nitro-mlkit/face-detection";
-import { PerformanceMode } from "@nitro-mlkit/face-detection/src/specs/FaceDetector.nitro";
+import { NitroFace, PerformanceMode } from "@nitro-mlkit/face-detection";
 import * as ImagePicker from "expo-image-picker";
+import { Link } from "expo-router";
 import { useState } from "react";
 import {
   Alert,
@@ -88,6 +88,12 @@ export default function HomeScreen() {
       <Pressable style={s.btn} onPress={pickImage}>
         <Text style={s.btnText}>Pick Image</Text>
       </Pressable>
+
+      <Link href="/benchmark" asChild>
+        <Pressable style={s.btnBench}>
+          <Text style={s.btnText}>⏱️ Benchmark vs RN-ML-Kit</Text>
+        </Pressable>
+      </Link>
 
       {imageUri && (
         <Image
@@ -186,6 +192,13 @@ const s = StyleSheet.create({
   },
   btnPrimary: { backgroundColor: "#1a6dff" },
   btnAccent: { backgroundColor: "#22c55e" },
+  btnBench: {
+    backgroundColor: "#7c3aed",
+    padding: 14,
+    borderRadius: 10,
+    alignItems: "center",
+    marginVertical: 6,
+  },
   btnText: { color: "#fff", fontSize: 16, fontWeight: "600" },
   preview: { width: "100%", height: 300, borderRadius: 12, marginVertical: 16 },
   actions: { gap: 8 },

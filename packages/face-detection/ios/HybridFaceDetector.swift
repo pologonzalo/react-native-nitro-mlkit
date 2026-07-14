@@ -11,7 +11,6 @@ import MLKitVision
 class HybridFaceDetector: HybridFaceDetectorSpec {
     
     // MARK: - HybridObject boilerplate
-    var hybridContext = margelo.nitro.HybridContext()
     var memorySize: Int { MemoryLayout<HybridFaceDetector>.size }
     
     // MARK: - Lazy MLKit detectors

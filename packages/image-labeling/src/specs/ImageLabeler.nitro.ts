@@ -57,6 +57,14 @@ export interface BatchLabelOptions extends LabelingOptions {
 }
 
 /**
+ * Options for batch safety checking.
+ */
+export interface BatchSafetyOptions {
+  /** Max concurrent native operations (default: 4) */
+  concurrency?: number;
+}
+
+/**
  * The main Image Labeler Nitro HybridObject.
  *
  * Uses MLKit Image Labeling (on-device, free, 400+ labels).
@@ -95,7 +103,7 @@ export interface ImageLabeler extends HybridObject<{
    */
   checkSafetyBatch(
     imageUris: string[],
-    options?: { concurrency?: number },
+    options?: BatchSafetyOptions,
   ): Promise<SafetyResult[]>;
 
   /**

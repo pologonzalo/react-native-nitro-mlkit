@@ -8,11 +8,35 @@
       "bundleIdentifier": "com.nitromlkit.example"
     },
     "android": {
-      "package": "com.nitromlkit.example"
+      "package": "com.nitromlkit.example",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
-    "plugins": ["expo-router", "expo-camera", "@nitro-mlkit/face-detection"],
+    "plugins": [
+      "expo-router",
+      "expo-camera",
+      "@nitro-mlkit/face-detection",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "15.5"
+          }
+        }
+      ],
+      "expo-image"
+    ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "639895f7-44ad-48d8-b234-2c87b0ab85ba"
+      }
+    },
+    "owner": "black-sun-studios"
   }
 }
