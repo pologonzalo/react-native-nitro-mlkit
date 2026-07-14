@@ -113,6 +113,24 @@ export default function HomeScreen() {
         </Pressable>
       </Link>
 
+      <Link href="/objects" asChild>
+        <Pressable style={s.btnObjects}>
+          <Text style={s.btnText}>📦 Object Detection</Text>
+        </Pressable>
+      </Link>
+
+      <Link href="/pose" asChild>
+        <Pressable style={s.btnPose}>
+          <Text style={s.btnText}>🧍 Pose Detection</Text>
+        </Pressable>
+      </Link>
+
+      <Link href="/langid" asChild>
+        <Pressable style={s.btnLangId}>
+          <Text style={s.btnText}>🌐 Language ID</Text>
+        </Pressable>
+      </Link>
+
       {imageUri && (
         <Image
           source={{ uri: imageUri }}
@@ -233,6 +251,27 @@ const s = StyleSheet.create({
   },
   btnOcr: {
     backgroundColor: "#db2777",
+    padding: 14,
+    borderRadius: 10,
+    alignItems: "center",
+    marginVertical: 6,
+  },
+  btnObjects: {
+    backgroundColor: "#16a34a",
+    padding: 14,
+    borderRadius: 10,
+    alignItems: "center",
+    marginVertical: 6,
+  },
+  btnPose: {
+    backgroundColor: "#7c3aed",
+    padding: 14,
+    borderRadius: 10,
+    alignItems: "center",
+    marginVertical: 6,
+  },
+  btnLangId: {
+    backgroundColor: "#0ea5e9",
     padding: 14,
     borderRadius: 10,
     alignItems: "center",

@@ -1,0 +1,16 @@
+{
+  "cxxNamespace": ["mlkit", "langid"],
+  "ios": {
+    "iosModuleName": "NitroMLKitLangId"
+  },
+  "android": {
+    "androidNamespace": ["nitromlkit", "langid"],
+    "androidCxxLibName": "NitroMLKitLangId"
+  },
+  "autolinking": {
+    "LanguageIdentifier": {
+      "ios": { "language": "swift", "implementationClassName": "HybridLanguageIdentifier" },
+      "android": { "language": "kotlin", "implementationClassName": "HybridLanguageIdentifier" }
+    }
+  }
+}
