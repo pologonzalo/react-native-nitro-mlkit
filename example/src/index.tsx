@@ -29,6 +29,9 @@ const FEATURES: Feature[] = [
   { href: "/pose", emoji: "🧍", title: "Pose Detection", tag: "33 landmarks", accent: "#8b5cf6" },
   { href: "/langid", emoji: "🌐", title: "Language ID", tag: "text → BCP-47", accent: "#0ea5e9" },
   { href: "/smartreply", emoji: "💬", title: "Smart Reply", tag: "chat replies", accent: "#f59e0b", android: true },
+  { href: "/translate", emoji: "🌍", title: "Translation", tag: "50+ languages", accent: "#6366f1" },
+  { href: "/entity", emoji: "🔍", title: "Entity Extraction", tag: "phones · dates · $", accent: "#a855f7", android: true },
+  { href: "/subjectseg", emoji: "🪄", title: "Subject Seg", tag: "cut out subject", accent: "#10b981", android: true },
 ];
 
 export default function HomeScreen() {
@@ -40,7 +43,7 @@ export default function HomeScreen() {
           The full Google ML Kit suite on Nitro — on-device, JSI, zero bridge.
         </Text>
         <View style={s.badges}>
-          <Badge>10 packages</Badge>
+          <Badge>13 packages</Badge>
           <Badge>on-device</Badge>
           <Badge>native batch</Badge>
         </View>
@@ -57,18 +60,19 @@ export default function HomeScreen() {
         </Pressable>
       </Link>
 
-      <View style={s.grid}>
+      <View style={s.list}>
         {FEATURES.map((f) => (
           <Link key={f.title} href={f.href} asChild>
-            <Pressable
-              style={{ ...s.card, borderColor: tint(f.accent, 0.45) }}
-            >
+            <Pressable style={{ ...s.row, borderColor: tint(f.accent, 0.45) }}>
               <View style={{ ...s.iconChip, backgroundColor: tint(f.accent, 0.18) }}>
                 <Text style={s.icon}>{f.emoji}</Text>
               </View>
-              <Text style={s.cardTitle}>{f.title}</Text>
-              <Text style={s.cardTag}>{f.tag}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={s.rowTitle}>{f.title}</Text>
+                <Text style={s.rowTag}>{f.tag}</Text>
+              </View>
               {f.android && <Text style={{ ...s.androidTag, color: f.accent }}>Android</Text>}
+              <Text style={s.chevron}>›</Text>
             </Pressable>
           </Link>
         ))}
@@ -114,27 +118,28 @@ const s = StyleSheet.create({
     marginBottom: 18,
   },
   benchEmoji: { fontSize: 26 },
-  chevron: { color: C.faint, fontSize: 26, fontWeight: "300" },
-  grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 12 },
-  card: {
-    width: "48%",
+  chevron: { color: C.faint, fontSize: 24, fontWeight: "300" },
+  list: { gap: 8 },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
     backgroundColor: C.surface,
-    borderRadius: R.lg,
+    borderRadius: R.md,
     borderWidth: StyleSheet.hairlineWidth,
-    padding: 14,
-    minHeight: 128,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
   },
   iconChip: {
-    width: 44,
-    height: 44,
-    borderRadius: R.md,
+    width: 38,
+    height: 38,
+    borderRadius: R.sm,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 12,
   },
-  icon: { fontSize: 24 },
-  cardTitle: { color: C.text, fontSize: 16, fontWeight: "700", letterSpacing: -0.3 },
-  cardTag: { color: C.dim, fontSize: 12, marginTop: 3 },
-  androidTag: { fontSize: 10, fontWeight: "800", marginTop: 8, letterSpacing: 0.5 },
+  icon: { fontSize: 20 },
+  rowTitle: { color: C.text, fontSize: 15, fontWeight: "700", letterSpacing: -0.3 },
+  rowTag: { color: C.dim, fontSize: 12, marginTop: 2 },
+  androidTag: { fontSize: 10, fontWeight: "800", letterSpacing: 0.5 },
   footer: { color: C.faint, fontSize: 12, textAlign: "center", marginTop: 28 },
 });

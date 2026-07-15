@@ -42,6 +42,9 @@ importers:
       '@nitro-mlkit/barcode-scanning':
         specifier: workspace:*
         version: link:../packages/barcode-scanning
+      '@nitro-mlkit/entity-extraction':
+        specifier: workspace:*
+        version: link:../packages/entity-extraction
       '@nitro-mlkit/face-detection':
         specifier: workspace:*
         version: link:../packages/face-detection
@@ -66,9 +69,15 @@ importers:
       '@nitro-mlkit/smart-reply':
         specifier: workspace:*
         version: link:../packages/smart-reply
+      '@nitro-mlkit/subject-segmentation':
+        specifier: workspace:*
+        version: link:../packages/subject-segmentation
       '@nitro-mlkit/text-recognition':
         specifier: workspace:*
         version: link:../packages/text-recognition
+      '@nitro-mlkit/translation':
+        specifier: workspace:*
+        version: link:../packages/translation
       '@react-native-ml-kit/face-detection':
         specifier: 2.0.1
         version: 2.0.1(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0)
@@ -120,6 +129,28 @@ importers:
         version: 5.9.3
 
   packages/barcode-scanning:
+    dependencies:
+      react:
+        specifier: 19.2.0
+        version: 19.2.0
+      react-native:
+        specifier: 0.83.6
+        version: 0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.0)
+    devDependencies:
+      expo-modules-core:
+        specifier: '*'
+        version: 55.0.25(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0)
+      nitro-codegen:
+        specifier: '*'
+        version: 0.29.4
+      react-native-nitro-modules:
+        specifier: '*'
+        version: 0.36.1(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0)
+      typescript:
+        specifier: ~5.9.0
+        version: 5.9.3
+
+  packages/entity-extraction:
     dependencies:
       react:
         specifier: 19.2.0
@@ -339,7 +370,51 @@ importers:
         specifier: ~5.9.0
         version: 5.9.3
 
+  packages/subject-segmentation:
+    dependencies:
+      react:
+        specifier: 19.2.0
+        version: 19.2.0
+      react-native:
+        specifier: 0.83.6
+        version: 0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.0)
+    devDependencies:
+      expo-modules-core:
+        specifier: '*'
+        version: 55.0.25(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0)
+      nitro-codegen:
+        specifier: '*'
+        version: 0.29.4
+      react-native-nitro-modules:
+        specifier: '*'
+        version: 0.36.1(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0)
+      typescript:
+        specifier: ~5.9.0
+        version: 5.9.3
+
   packages/text-recognition:
+    dependencies:
+      react:
+        specifier: 19.2.0
+        version: 19.2.0
+      react-native:
+        specifier: 0.83.6
+        version: 0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.0)
+    devDependencies:
+      expo-modules-core:
+        specifier: '*'
+        version: 55.0.25(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0)
+      nitro-codegen:
+        specifier: '*'
+        version: 0.29.4
+      react-native-nitro-modules:
+        specifier: '*'
+        version: 0.36.1(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0)
+      typescript:
+        specifier: ~5.9.0
+        version: 5.9.3
+
+  packages/translation:
     dependencies:
       react:
         specifier: 19.2.0

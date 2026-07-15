@@ -13,6 +13,9 @@ const SCREENS: { name: string; title: string; accent: string }[] = [
   { name: "facemesh", title: "Face Mesh", accent: "#f43f5e" },
   { name: "selfieseg", title: "Selfie Segmentation", accent: "#14b8a6" },
   { name: "smartreply", title: "Smart Reply", accent: "#f59e0b" },
+  { name: "translate", title: "Translation", accent: "#6366f1" },
+  { name: "entity", title: "Entity Extraction", accent: "#a855f7" },
+  { name: "subjectseg", title: "Subject Segmentation", accent: "#10b981" },
 ];
 
 export default function RootLayout() {
