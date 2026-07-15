@@ -22,6 +22,14 @@
       "expo-camera",
       "@nitro-mlkit/face-detection",
       [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow NitroMLKit to scan your photo library on-device to build your Gallery Wrapped.",
+          "savePhotosPermission": "Allow NitroMLKit to save photos.",
+          "isAccessMediaLocationEnabled": false
+        }
+      ],
+      [
         "expo-build-properties",
         {
           "ios": {

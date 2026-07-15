@@ -111,6 +111,9 @@ importers:
       expo-linking:
         specifier: ~55.0.16
         version: 55.0.16(expo@55.0.27)(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0)
+      expo-media-library:
+        specifier: ~55.0.19
+        version: 55.0.19(expo@55.0.27)(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.0))
       expo-router:
         specifier: ~55.0.16
         version: 55.0.16(@expo/log-box@55.0.12)(@expo/metro-runtime@55.0.11)(@types/react@19.2.17)(expo-constants@55.0.16)(expo-font@55.0.8)(expo-linking@55.0.16)(expo@55.0.27)(react-dom@18.3.1(react@19.2.0))(react-native-safe-area-context@5.6.2(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0))(react-native-screens@4.23.0(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0))(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0)
@@ -2168,6 +2171,12 @@ packages:
     resolution: {integrity: sha512-O+Idexholc5rlr6Z4W/+TewTLQVnbEXztoLgLEbJwh5/A1SsJ+eq9yGGPwd4rcQ+fEBDiExr6qZxbUArnUGHfw==}
     peerDependencies:
       react: 19.2.0
+      react-native: 0.83.6
+
+  expo-media-library@55.0.19:
+    resolution: {integrity: sha512-IfRLfUkqdGx5grEuy4leWB2Gaa7fRP7RJ+VioluLglYTlZYQ/p0ugE0yypXzavv6UapgNEmIogGJhR+nPBjljQ==}
+    peerDependencies:
+      expo: '*'
       react-native: 0.83.6
 
   expo-modules-autolinking@55.0.24:
@@ -5588,6 +5597,11 @@ snapshots:
     transitivePeerDependencies:
       - expo
       - supports-color
+
+  expo-media-library@55.0.19(expo@55.0.27)(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.0)):
+    dependencies:
+      expo: 55.0.27(@babel/core@7.29.7)(@expo/dom-webview@55.0.6)(@expo/metro-runtime@55.0.11)(expo-router@55.0.16)(react-dom@18.3.1(react@19.2.0))(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0)(typescript@5.9.3)
+      react-native: 0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.0)
 
   expo-modules-autolinking@55.0.24(typescript@5.9.3):
     dependencies:

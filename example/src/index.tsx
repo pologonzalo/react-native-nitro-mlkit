@@ -52,6 +52,19 @@ export default function HomeScreen() {
         </View>
       </View>
 
+      <Link href="/gallery" asChild>
+        <Pressable style={s.wrapped}>
+          <Text style={s.wrappedEmoji}>✨</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={s.wrappedTitle}>Gallery Wrapped</Text>
+            <Text style={s.wrappedSub}>
+              Scan your whole camera roll on-device · themes, faces & smiles
+            </Text>
+          </View>
+          <Text style={s.wrappedGo}>›</Text>
+        </Pressable>
+      </Link>
+
       <Link href="/benchmark" asChild>
         <Pressable style={s.bench}>
           <Text style={s.benchEmoji}>⏱️</Text>
@@ -121,6 +134,21 @@ const s = StyleSheet.create({
     marginBottom: 18,
   },
   benchEmoji: { fontSize: 26 },
+  wrapped: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    backgroundColor: tint("#a78bfa", 0.16),
+    borderColor: tint("#a78bfa", 0.55),
+    borderWidth: 1,
+    borderRadius: R.lg,
+    padding: 16,
+    marginBottom: 10,
+  },
+  wrappedEmoji: { fontSize: 30 },
+  wrappedTitle: { color: C.text, fontSize: 17, fontWeight: "800", letterSpacing: -0.3 },
+  wrappedSub: { color: C.dim, fontSize: 12, marginTop: 2 },
+  wrappedGo: { color: "#a78bfa", fontSize: 26, fontWeight: "400" },
   chevron: { color: C.faint, fontSize: 24, fontWeight: "300" },
   list: { gap: 8 },
   row: {
