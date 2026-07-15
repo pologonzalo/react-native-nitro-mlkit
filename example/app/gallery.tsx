@@ -1,10 +1,9 @@
 import { NitroFace } from "@nitro-mlkit/face-detection";
-import { type BatchLabelResult, NitroLabeler } from "@nitro-mlkit/image-labeling";
+import { NitroLabeler } from "@nitro-mlkit/image-labeling";
 import * as MediaLibrary from "expo-media-library";
 import { type ReactNode, useState } from "react";
 import {
   ActivityIndicator,
-  Image,
   Platform,
   Pressable,
   ScrollView,
@@ -12,13 +11,20 @@ import {
   Text,
   View,
 } from "react-native";
-import { buildInsights, type Insights } from "../src/gallery-insights";
+import {
+  buildInsights,
+  buildStories,
+  type FacedPhoto,
+  type Insights,
+  type LabeledPhoto,
+} from "../src/gallery-insights";
+import { StoryPlayer } from "../src/StoryPlayer";
 import { C, R, T, tint } from "../src/theme";
 import { Card, Meter } from "../src/ui";
 
 const ACCENT = "#a78bfa";
 // How many photos we scan at most, and how many go in one native batch call.
-const SCAN_CAP = 500;
+const SCAN_CAP = 1000;
 const CHUNK = 40;
 const CONCURRENCY = 6;
 
@@ -32,6 +38,7 @@ export default function GalleryScreen() {
   const [elapsed, setElapsed] = useState(0);
   const [insights, setInsights] = useState<Insights | null>(null);
   const [note, setNote] = useState<string | null>(null);
+  const [showStories, setShowStories] = useState(false);
 
   async function scan() {
     setNote(null);
@@ -77,9 +84,11 @@ export default function GalleryScreen() {
     }
 
     // 3) Scan chunk-by-chunk so we can show progress; each chunk is TWO native
-    //    batch calls (labels + faces) that run concurrently.
-    const labelResults: BatchLabelResult[] = [];
-    const faceResults: { faces: { smilingProbability: number }[] }[] = [];
+    //    batch calls (labels + faces) that run concurrently. We keep each
+    //    photo's uri (via the chunk-local result index) so Stories can show the
+    //    real thumbnails per theme.
+    const labeled: LabeledPhoto[] = [];
+    const faced: FacedPhoto[] = [];
     const t0 = Date.now();
     for (let i = 0; i < uris.length; i += CHUNK) {
       const chunk = uris.slice(i, i + CHUNK);
@@ -91,15 +100,21 @@ export default function GalleryScreen() {
         }),
         NitroFace.detectBatch(chunk, CONCURRENCY),
       ]);
-      labelResults.push(...labels);
-      for (const r of faces) faceResults.push({ faces: r.faces });
+      for (const r of labels) {
+        const uri = chunk[r.index];
+        if (uri) labeled.push({ uri, labels: r.labels });
+      }
+      for (const r of faces) {
+        const uri = chunk[r.index];
+        if (uri) faced.push({ uri, faces: r.faces });
+      }
       const done = Math.min(i + CHUNK, uris.length);
       setScanned(done);
       setProgress(done / uris.length);
     }
     const ms = Date.now() - t0;
     setElapsed(ms);
-    setInsights(buildInsights(labelResults, faceResults, uris.length));
+    setInsights(buildInsights(labeled, faced, uris.length));
     setPhase("done");
   }
 
@@ -107,6 +122,7 @@ export default function GalleryScreen() {
     insights && elapsed > 0 ? (insights.scanned / (elapsed / 1000)) : 0;
 
   return (
+    <>
     <ScrollView style={s.container} contentContainerStyle={s.content}>
       <View style={s.header}>
         <Text style={s.emoji}>✨</Text>
@@ -161,6 +177,15 @@ export default function GalleryScreen() {
               <HeroStat value="0" label="bytes uploaded" />
             </View>
           </View>
+
+          {/* Memories / Stories CTA */}
+          <Pressable style={s.stories} onPress={() => setShowStories(true)}>
+            <Text style={s.storiesEmoji}>▶</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={s.storiesTitle}>Play your memories</Text>
+              <Text style={s.storiesSub}>A Google-Photos-style recap, built on-device</Text>
+            </View>
+          </Pressable>
 
           {/* Persona */}
           <View style={s.persona}>
@@ -231,6 +256,14 @@ export default function GalleryScreen() {
 
       {note && <Text style={s.note}>{note}</Text>}
     </ScrollView>
+
+    {showStories && insights && (
+      <StoryPlayer
+        slides={buildStories(insights, elapsed)}
+        onClose={() => setShowStories(false)}
+      />
+    )}
+    </>
   );
 }
 
@@ -284,6 +317,31 @@ const s = StyleSheet.create({
 
   scanRow: { flexDirection: "row", alignItems: "center", gap: 10, marginTop: 14 },
   scanText: { color: C.gold, fontSize: 14, fontVariant: ["tabular-nums"] },
+
+  stories: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    backgroundColor: ACCENT,
+    borderRadius: R.lg,
+    padding: 16,
+    marginBottom: 14,
+  },
+  storiesEmoji: {
+    color: "#0A0A16",
+    fontSize: 20,
+    fontWeight: "900",
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: "#ffffff88",
+    textAlign: "center",
+    textAlignVertical: "center",
+    lineHeight: 34,
+    overflow: "hidden",
+  },
+  storiesTitle: { color: "#0A0A16", fontSize: 17, fontWeight: "800", letterSpacing: -0.3 },
+  storiesSub: { color: "#0A0A16CC", fontSize: 12, marginTop: 1 },
 
   hero: {
     backgroundColor: tint(ACCENT, 0.14),

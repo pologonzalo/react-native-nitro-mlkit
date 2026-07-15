@@ -1,15 +1,18 @@
-// Turns raw ML Kit batch output (labels + faces) into a fun "Gallery Wrapped".
-// Everything here is pure aggregation — no native calls, so it's trivial to
-// reason about and test.
+// Turns raw ML Kit batch output (labels + faces, each carrying its photo uri)
+// into a fun "Gallery Wrapped" + a Google-Photos-style set of Story slides.
+// Pure aggregation — no native calls — so it's trivial to reason about.
 
-import type { BatchLabelResult } from "@nitro-mlkit/image-labeling";
+/** One labelled photo coming out of the batch scan. */
+export type LabeledPhoto = { uri: string; labels: { text: string }[] };
+/** One face-detected photo coming out of the batch scan. */
+export type FacedPhoto = { uri: string; faces: { smilingProbability: number }[] };
 
 /** One "theme" bucket a photo can fall into (a photo may hit several). */
 type BucketDef = { key: string; emoji: string; label: string; match: string[] };
 
 // Ordered by how "headline-worthy" a theme is when it ties on count.
 const BUCKETS: BucketDef[] = [
-  { key: "food", emoji: "🍕", label: "Food & Drink", match: ["food", "dish", "cuisine", "dessert", "drink", "coffee", "breakfast", "brunch", "meal", "baking", "fruit", "junk", "fast food", "recipe", "tableware", "plate", "cake", "pizza", "wine", "cocktail", "beer", "sushi", "bread", "snack"] },
+  { key: "food", emoji: "🍕", label: "Food & Drink", match: ["food", "dish", "cuisine", "dessert", "drink", "coffee", "breakfast", "brunch", "meal", "baking", "fruit", "junk", "fast food", "recipe", "tableware", "plate", "cake", "pizza", "wine", "cocktail", "beer", "sushi", "bread", "snack", "burger"] },
   { key: "people", emoji: "🎉", label: "People & Parties", match: ["person", "people", "selfie", "crowd", "party", "event", "wedding", "fun", "team", "ceremony", "portrait", "child", "bride", "smile", "facial", "friendship", "toddler", "dance"] },
   { key: "animals", emoji: "🐾", label: "Animals", match: ["dog", "cat", "pet", "wildlife", "bird", "animal", "horse", "zoo", "fish", "puppy", "kitten", "paw", "mammal", "reptile"] },
   { key: "nature", emoji: "🌿", label: "Nature", match: ["plant", "tree", "grass", "flower", "sky", "cloud", "mountain", "landscape", "garden", "forest", "leaf", "sunlight", "nature", "meadow", "hill", "petal", "botany", "flora"] },
@@ -22,16 +25,17 @@ const BUCKETS: BucketDef[] = [
   { key: "art", emoji: "🎨", label: "Art & Style", match: ["art", "fashion", "drawing", "painting", "pattern", "design", "craft", "hairstyle", "eyewear", "jewellery", "beauty", "textile"] },
 ];
 
-// Emoji for a raw label when it isn't inside a bucket (nice touch on the list).
 const LABEL_EMOJI: Record<string, string> = {
   sky: "☁️", cloud: "☁️", tree: "🌳", plant: "🌱", flower: "🌸", grass: "🌿",
   water: "💧", sea: "🌊", beach: "🏖️", mountain: "⛰️", sunset: "🌅", night: "🌙",
   food: "🍽️", coffee: "☕", drink: "🥤", dessert: "🍰", fruit: "🍓",
-  dog: "🐕", cat: "🐈", bird: "🐦", pet: "🐾", flower_2: "🌺",
+  dog: "🐕", cat: "🐈", bird: "🐦", pet: "🐾",
   car: "🚗", building: "🏢", city: "🏙️", room: "🛋️", furniture: "🪑",
   person: "🧑", people: "👥", selfie: "🤳", smile: "😄", fun: "🎉",
   font: "🔤", text: "🔤", art: "🎨", fashion: "👗", light: "💡",
 };
+
+const MAX_PHOTOS_PER_BUCKET = 40;
 
 export type Bucket = { key: string; emoji: string; label: string; count: number };
 export type FaceStats = {
@@ -47,6 +51,11 @@ export type Insights = {
   topLabels: { text: string; emoji: string; count: number }[];
   faces: FaceStats;
   persona: { emoji: string; title: string; blurb: string };
+  bucketPhotos: Record<string, string[]>;
+  smilePhotos: string[];
+  peoplePhotos: string[];
+  biggestGroupPhoto?: string;
+  allPhotos: string[];
 };
 
 const PERSONA: Record<string, { emoji: string; title: string; blurb: string }> = {
@@ -75,27 +84,24 @@ function bucketsFor(labels: string[]): Set<string> {
   return hit;
 }
 
-/**
- * Aggregate one native scan pass into insights.
- * @param labelResults  BatchLabelResult[] from NitroLabeler.labelBatch
- * @param faceResults   { faces: {smilingProbability:number}[] }[] from face detect
- * @param scanned       how many photos were actually scanned
- */
+/** Aggregate one native scan pass (each photo carries its uri) into insights. */
 export function buildInsights(
-  labelResults: BatchLabelResult[],
-  faceResults: { faces: { smilingProbability: number }[] }[],
+  labeled: LabeledPhoto[],
+  faced: FacedPhoto[],
   scanned: number,
 ): Insights {
   const bucketCount = new Map<string, number>();
   const labelCount = new Map<string, number>();
+  const bucketPhotos: Record<string, string[]> = {};
 
-  for (const r of labelResults) {
-    if (!r?.success || !r.labels?.length) continue;
-    const texts = r.labels.map((x) => x.text);
+  for (const p of labeled) {
+    if (!p.labels?.length) continue;
+    const texts = p.labels.map((x) => x.text);
     for (const key of bucketsFor(texts)) {
       bucketCount.set(key, (bucketCount.get(key) ?? 0) + 1);
+      const list = (bucketPhotos[key] ??= []);
+      if (list.length < MAX_PHOTOS_PER_BUCKET) list.push(p.uri);
     }
-    // Raw label popularity (photo-level de-dup already: one label per image).
     for (const t of texts) {
       const k = t.toLowerCase();
       labelCount.set(k, (labelCount.get(k) ?? 0) + 1);
@@ -114,11 +120,7 @@ export function buildInsights(
   const topLabels = [...labelCount.entries()]
     .sort((a, b) => b[1] - a[1])
     .slice(0, 12)
-    .map(([text, count]) => ({
-      text,
-      emoji: LABEL_EMOJI[text] ?? "•",
-      count,
-    }));
+    .map(([text, count]) => ({ text, emoji: LABEL_EMOJI[text] ?? "•", count }));
 
   // Faces
   let photosWithFaces = 0;
@@ -126,18 +128,33 @@ export function buildInsights(
   let smiles = 0;
   let biggestGroup = 0;
   let soloShots = 0;
-  for (const r of faceResults) {
-    const n = r?.faces?.length ?? 0;
-    if (n > 0) photosWithFaces++;
+  let biggestGroupPhoto: string | undefined;
+  const smilePhotos: string[] = [];
+  const peoplePhotos: string[] = [];
+  for (const p of faced) {
+    const n = p.faces?.length ?? 0;
+    if (n > 0) {
+      photosWithFaces++;
+      if (peoplePhotos.length < MAX_PHOTOS_PER_BUCKET) peoplePhotos.push(p.uri);
+    }
     if (n === 1) soloShots++;
     totalFaces += n;
-    if (n > biggestGroup) biggestGroup = n;
-    for (const f of r?.faces ?? []) {
-      if (f.smilingProbability > 0.6) smiles++;
+    if (n > biggestGroup) {
+      biggestGroup = n;
+      biggestGroupPhoto = p.uri;
     }
+    let smiled = false;
+    for (const f of p.faces ?? []) {
+      if (f.smilingProbability > 0.6) {
+        smiles++;
+        smiled = true;
+      }
+    }
+    if (smiled && smilePhotos.length < MAX_PHOTOS_PER_BUCKET) smilePhotos.push(p.uri);
   }
 
   const persona = PERSONA[buckets[0]?.key ?? "mixed"] ?? PERSONA.mixed;
+  const allPhotos = labeled.map((p) => p.uri);
 
   return {
     scanned,
@@ -145,5 +162,119 @@ export function buildInsights(
     topLabels,
     faces: { photosWithFaces, totalFaces, smiles, biggestGroup, soloShots },
     persona,
+    bucketPhotos,
+    smilePhotos,
+    peoplePhotos,
+    biggestGroupPhoto,
+    allPhotos,
   };
+}
+
+// ─── Stories (Google-Photos-style highlight reel) ──────────────────────────
+
+export type Slide = {
+  key: string;
+  emoji: string;
+  title: string;
+  subtitle: string;
+  accent: string;
+  photos: string[]; // photos[0] = hero; the rest form a montage
+};
+
+const ACCENTS = ["#a78bfa", "#f472b6", "#34d399", "#60a5fa", "#fbbf24", "#fb7185", "#22d3ee"];
+
+/** Evenly sample up to `n` items from an array (keeps variety across the roll). */
+function sample<T>(arr: T[], n: number): T[] {
+  if (arr.length <= n) return arr;
+  const step = arr.length / n;
+  const out: T[] = [];
+  for (let i = 0; i < n; i++) out.push(arr[Math.floor(i * step)]);
+  return out;
+}
+
+/** Build the swipeable Story slides from insights + timing. */
+export function buildStories(insights: Insights, elapsedMs: number): Slide[] {
+  const slides: Slide[] = [];
+  const perSec = elapsedMs > 0 ? Math.round(insights.scanned / (elapsedMs / 1000)) : 0;
+
+  // Intro
+  slides.push({
+    key: "intro",
+    emoji: "✨",
+    title: "Your gallery, wrapped",
+    subtitle: `${insights.scanned} photos · analysed on-device`,
+    accent: "#a78bfa",
+    photos: sample(insights.allPhotos, 9),
+  });
+
+  // Speed flex
+  slides.push({
+    key: "speed",
+    emoji: "⚡",
+    title: `${insights.scanned} photos in ${(elapsedMs / 1000).toFixed(1)}s`,
+    subtitle: `~${perSec} photos/sec · 0 bytes left your phone`,
+    accent: "#22d3ee",
+    photos: sample(insights.allPhotos, 6),
+  });
+
+  // Top themes (one slide each)
+  insights.buckets.slice(0, 5).forEach((b, i) => {
+    const photos = insights.bucketPhotos[b.key] ?? [];
+    if (photos.length === 0) return;
+    const pct = Math.round((b.count / insights.scanned) * 100);
+    slides.push({
+      key: `theme-${b.key}`,
+      emoji: b.emoji,
+      title: b.label,
+      subtitle: `${b.count} photos · ${pct}% of your roll`,
+      accent: ACCENTS[i % ACCENTS.length],
+      photos: sample(photos, 9),
+    });
+  });
+
+  // Smiles
+  if (insights.faces.smiles > 0) {
+    slides.push({
+      key: "smiles",
+      emoji: "😄",
+      title: `${insights.faces.smiles} smiles`,
+      subtitle: "caught across your photos",
+      accent: "#fbbf24",
+      photos: sample(insights.smilePhotos, 9),
+    });
+  }
+
+  // People
+  if (insights.faces.totalFaces > 0) {
+    slides.push({
+      key: "people",
+      emoji: "👥",
+      title: `${insights.faces.totalFaces} faces`,
+      subtitle: `across ${insights.faces.photosWithFaces} photos · biggest group: ${insights.faces.biggestGroup}`,
+      accent: "#f472b6",
+      photos: sample(insights.peoplePhotos, 9),
+    });
+  }
+
+  // Persona
+  slides.push({
+    key: "persona",
+    emoji: insights.persona.emoji,
+    title: insights.persona.title,
+    subtitle: insights.persona.blurb,
+    accent: "#a78bfa",
+    photos: sample(insights.allPhotos, 6),
+  });
+
+  // Outro
+  slides.push({
+    key: "outro",
+    emoji: "🔒",
+    title: "That's a wrap",
+    subtitle: "Every photo analysed on-device with Nitro ML Kit — nothing uploaded.",
+    accent: "#34d399",
+    photos: sample(insights.allPhotos, 9),
+  });
+
+  return slides;
 }
