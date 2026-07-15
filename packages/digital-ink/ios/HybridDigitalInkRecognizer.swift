@@ -35,15 +35,17 @@ class HybridDigitalInkRecognizer: HybridDigitalInkRecognizerSpec {
 
     /// Build a `Ink` from the Nitro InkStroke array.
     private func buildInk(from strokes: [InkStroke]) -> Ink {
-        let mlStrokes: [Ink.Stroke] = strokes.map { stroke in
-            let points: [Ink.Point] = stroke.points.map { p in
+        // On iOS these are top-level types (NS_SWIFT_NAME): StrokePoint / Stroke /
+        // Ink — NOT nested Ink.Point / Ink.Stroke (that's the Android spelling).
+        let mlStrokes: [Stroke] = strokes.map { stroke in
+            let points: [StrokePoint] = stroke.points.map { p in
                 if let t = p.t {
-                    return Ink.Point(x: Float(p.x), y: Float(p.y), t: Int(t))
+                    return StrokePoint(x: Float(p.x), y: Float(p.y), t: Int(t))
                 } else {
-                    return Ink.Point(x: Float(p.x), y: Float(p.y))
+                    return StrokePoint(x: Float(p.x), y: Float(p.y))
                 }
             }
-            return Ink.Stroke(points: points)
+            return Stroke(points: points)
         }
         return Ink(strokes: mlStrokes)
     }
