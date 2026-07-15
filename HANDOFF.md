@@ -216,11 +216,44 @@ download — slower/flakier to verify on emulator); `digital-ink` (stroke input,
 not an image); `document-scanner` (full-screen Activity flow, not a still-image
 API — wrap differently or skip).
 
-**Still pending (needs the user):** publish the 8 committed betas to npm
-(`npm publish --access public --tag beta` per pkg dir — needs npm login);
-run face-detection's signed `.ipa` on the physical iPhone (all iOS impls build
-but were never run on-device; newer packages have no Swift impl yet); merge the
-branch to `main` + tag.
+## Session 5 — suite complete (15 packages) + iOS Swift port + demo redesign
+
+**Android suite is COMPLETE: 15 packages, every one verified live on the Pixel 9
+emulator.** Added since session 4: `smart-reply` (Android-only; "Sure!/Sure/Yes!"
+58ms), `translation` (en→es "Hola, ¿cómo estás hoy?" 2.5s incl. model dl),
+`entity-extraction` (Android-only; phone+email 480ms), `subject-segmentation`
+(Android-only GMS; native path verified, optional model dl slow on emulator),
+`digital-ink` (canvas strokes → 9 candidates 10.5s), `document-scanner`
+(Android-only GMS; launches full-screen scanner Activity → returns 1 page + PDF,
+verified end-to-end via an Activity-result↔Promise coroutine bridge).
+
+**iOS Swift port written (commit e291803) — NOT compiled.** The 9 cross-platform
+packages now have `ios/Hybrid<X>.swift` (barcode, labeling, text, objects, pose,
+selfie-seg, language-id, translation, digital-ink), each conforming to the
+generated `Hybrid<X>Spec`. GoogleMLKit has no arm64 Simulator slice, so they must
+be built on a physical iPhone; the commit message lists the exact MLKit-iOS API
+points likely to need a fix on first device build. The 4 Android-only APIs
+(smart-reply, face-mesh, entity-extraction, subject-segmentation) have no iOS.
+
+**Demo app redesigned:** native expo-router headers + back button, launcher-grid
+home, `SamplePicker` (camera/gallery + ~10 curated stock thumbnails, download on
+tap), on-image overlays (pose landmarks, object/barcode boxes, face mesh),
+confidence meters. `src/theme.ts` + `src/ui.tsx` + `src/samples.ts`.
+
+**Build gotchas (this session):** entity-extraction needs `minSdkVersion 26`
+(set via `expo-build-properties` in app.json); subject-segmentation +
+document-scanner are GMS artifacts (`com.google.android.gms:play-services-mlkit-*`)
+needing a `com.google.mlkit.vision.DEPENDENCIES` manifest meta-data; digital-ink
+classes live under `...vision.digitalink.recognition.*`; run `expo run:android`
+WITHOUT `| tail` (it buffers); stale Gradle daemons with a node-less PATH →
+`./gradlew --stop` then rebuild with Node 22.
+
+**Still pending (needs the user / a physical device):**
+- **iOS on device:** compile + verify all iOS impls on a physical iPhone
+  (face-detection `.ipa` already exists); fix the MLKit-iOS API punch-list.
+- **npm:** publish the 14 committed betas (`npm publish --access public --tag beta`
+  per pkg dir — needs npm login). Only face-detection is published so far.
+- **git:** merge `session/face-detection-beta-prep` → `main` + tag.
 
 ## Context: Remin (the app that will use this)
 
