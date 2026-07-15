@@ -249,11 +249,35 @@ WITHOUT `| tail` (it buffers); stale Gradle daemons with a node-less PATH →
 `./gradlew --stop` then rebuild with Node 22.
 
 **Still pending (needs the user / a physical device):**
-- **iOS on device:** compile + verify all iOS impls on a physical iPhone
-  (face-detection `.ipa` already exists); fix the MLKit-iOS API punch-list.
-- **npm:** publish the 14 committed betas (`npm publish --access public --tag beta`
+- **iOS on device:** the full-suite `.ipa` now **compiles + signs** (see Session 6);
+  still needs to be **run + verified on a physical iPhone** (runtime behaviour of the
+  9 cross-platform packages on-device is unconfirmed). Install
+  `example/build-1784122316608.ipa` via Expo Orbit or
+  `xcrun devicectl device install app --device <UDID> example/build-*.ipa`.
+- **npm:** publish the committed betas (`npm publish --access public --tag beta`
   per pkg dir — needs npm login). Only face-detection is published so far.
 - **git:** merge `session/face-detection-beta-prep` → `main` + tag.
+- **v0.2:** face-recognition iOS (TFLite embedding path — was made Android-only) +
+  the `FaceModel` enum.
+
+## Session 6 (2026-07-15)
+
+- **Gallery Wrapped demo** (`example/app/gallery.tsx` + `src/gallery-insights.ts` +
+  home banner): asks photo permission, scans up to 500 gallery photos in native
+  batch (image-labeling + face-detection concurrently, chunked), shows a fun
+  "wrapped" (speed hero photos/s, persona, theme buckets, faces/smiles, top labels).
+  Added `expo-media-library`. **Verified live on Pixel 9: 31 photos in 0.6 s (~53/s).**
+  iOS: resolves `ph://` → `localUri` before scanning.
+- **iOS build is GREEN** — first full-suite `.ipa` (`example/build-1784122316608.ipa`,
+  82.7 MB, ad-hoc, includes the user's iPhone UDID). Built via
+  `eas build -p ios --profile device --local` (headless). Fixes: podspecs now use
+  Nitrogen `add_nitrogen_files` + `s.module_name` (fixed `'<regex>' file not found`);
+  4 Swift fixes (barcode `.driversLicense`, selfie-seg `CVPixelBufferGetWidth/Height`,
+  digital-ink failable init + `t: Int` + top-level `StrokePoint`/`Stroke`);
+  face-recognition → **Android-only** (its TFLite podspec broke `pod install`).
+- **Env:** created `~/.zshenv` so the Claude Bash tool (non-login zsh) resolves
+  node22/pnpm/adb/fastlane/eas; the harness clobbers PATH so prefix commands with
+  `source ~/.zshenv`.
 
 ## Context: Remin (the app that will use this)
 
