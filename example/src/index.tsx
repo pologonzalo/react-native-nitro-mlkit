@@ -21,7 +21,7 @@ type Feature = {
 const FEATURES: Feature[] = [
   { href: "/faces", emoji: "🙂", title: "Face Detection", tag: "smile · eyes · crop", accent: "#3b82f6" },
   { href: "/recognition", emoji: "🧑‍🤝‍🧑", title: "Face Recognition", tag: "register → find people", accent: "#ef4444", android: true },
-  { href: "/facemesh", emoji: "🕸️", title: "Face Mesh", tag: "468 3D points", accent: "#f43f5e" },
+  { href: "/facemesh", emoji: "🕸️", title: "Face Mesh", tag: "468 3D points", accent: "#f43f5e", android: true },
   { href: "/selfieseg", emoji: "✂️", title: "Selfie Seg", tag: "foreground mask", accent: "#14b8a6" },
   { href: "/labeling", emoji: "🏷️", title: "Image Labeling", tag: "400+ labels", accent: "#06b6d4" },
   { href: "/objects", emoji: "📦", title: "Object Detection", tag: "boxes + labels", accent: "#22c55e" },

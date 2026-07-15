@@ -1,11 +1,12 @@
 import { NitroSubjectSegmenter } from "@nitro-mlkit/subject-segmentation";
 import { useState } from "react";
-import { ActivityIndicator, Alert, Image, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Image, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SCENES } from "../src/samples";
 import { C, R, T } from "../src/theme";
 import { Card, Pill, SamplePicker, TitleBlock } from "../src/ui";
 
 const ACCENT = "#10b981";
+const SUPPORTED = Platform.OS === "android";
 
 export default function SubjectSegScreen() {
   const [uri, setUri] = useState<string | null>(null);
@@ -34,8 +35,18 @@ export default function SubjectSegScreen() {
 
   return (
     <ScrollView style={s.container} contentContainerStyle={s.content}>
-      <TitleBlock name="@nitro-mlkit/subject-segmentation" tagline="Cut out the main subject · compare input & cutout" />
-      <SamplePicker samples={SCENES} accent={ACCENT} onPick={run} disabled={loading} />
+      <TitleBlock name="@nitro-mlkit/subject-segmentation" tagline="Cut out the main subject · Android-only" />
+
+      {!SUPPORTED && (
+        <Card style={{ marginBottom: 14 }}>
+          <Text style={T.sub}>
+            Google ML Kit ships Subject Segmentation on Android only, so this
+            screen is inert on iOS.
+          </Text>
+        </Card>
+      )}
+
+      <SamplePicker samples={SCENES} accent={ACCENT} onPick={run} disabled={loading || !SUPPORTED} />
 
       {uri && (
         <View style={s.compare}>
