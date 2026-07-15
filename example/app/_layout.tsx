@@ -16,6 +16,7 @@ const SCREENS: { name: string; title: string; accent: string }[] = [
   { name: "translate", title: "Translation", accent: "#6366f1" },
   { name: "entity", title: "Entity Extraction", accent: "#a855f7" },
   { name: "subjectseg", title: "Subject Segmentation", accent: "#10b981" },
+  { name: "digitalink", title: "Digital Ink", accent: "#d946ef" },
 ];
 
 export default function RootLayout() {
