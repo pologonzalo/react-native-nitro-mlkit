@@ -5,6 +5,7 @@ import { type ReactNode, useState } from "react";
 import {
   ActivityIndicator,
   Image,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -58,7 +59,22 @@ export default function GalleryScreen() {
       setNote("No photos found in this gallery.");
       return;
     }
-    const uris = assets.map((a) => a.uri);
+
+    // On Android a MediaLibrary asset.uri (file://content://) is directly
+    // readable by the native side. On iOS it's a "ph://" PhotosKit id that
+    // ML Kit can't decode — we must resolve each asset's on-disk localUri.
+    let uris: string[];
+    if (Platform.OS === "ios") {
+      uris = [];
+      for (let i = 0; i < assets.length; i += 25) {
+        const info = await Promise.all(
+          assets.slice(i, i + 25).map((a) => MediaLibrary.getAssetInfoAsync(a)),
+        );
+        uris.push(...info.map((x) => x.localUri ?? x.uri));
+      }
+    } else {
+      uris = assets.map((a) => a.uri);
+    }
 
     // 3) Scan chunk-by-chunk so we can show progress; each chunk is TWO native
     //    batch calls (labels + faces) that run concurrently.
