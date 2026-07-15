@@ -1,11 +1,11 @@
 {
   "name": "@nitro-mlkit/face-recognition",
-  "version": "0.1.0",
-  "description": "On-device face recognition for React Native — register people, find them in photos. MLKit detection + MobileFaceNet embeddings (Apache 2.0).",
+  "version": "0.1.0-beta.0",
+  "description": "On-device face recognition for React Native — register people, find them in photos. ML Kit detection + a TensorFlow Lite face-embedding model (bring your own, e.g. MobileFaceNet). Nitro/JSI, native batch.",
   "main": "src/index.ts",
   "types": "src/index.ts",
   "scripts": {
-    "codegen": "nitro-codegen",
+    "codegen": "nitrogen",
     "build": "tsc --noEmit"
   },
   "keywords": [
@@ -15,11 +15,10 @@
     "face-recognition",
     "face-identification",
     "face-embeddings",
-    "person-detection",
-    "machine-learning",
+    "mobilefacenet",
+    "tensorflow-lite",
     "on-device",
-    "expo",
-    "expo-plugin"
+    "expo"
   ],
   "author": "pologonzalo",
   "license": "MIT",
@@ -29,23 +28,28 @@
     "directory": "packages/face-recognition"
   },
   "peerDependencies": {
+    "expo-modules-core": "*",
     "react": ">=18",
     "react-native": ">=0.76",
     "react-native-nitro-modules": ">=0.20"
   },
   "devDependencies": {
+    "expo-modules-core": "*",
     "nitro-codegen": "*",
     "react-native-nitro-modules": "*",
     "typescript": "~5.9.0"
   },
   "files": [
     "src",
-    "ios",
-    "android",
-    "plugin",
+    "ios/**/*.swift",
+    "android/src",
+    "android/build.gradle",
+    "android/CMakeLists.txt",
+    "expo-module.config.json",
     "nitrogen/generated",
     "*.podspec",
     "nitro.json",
-    "app.plugin.js"
+    "README.md",
+    "LICENSE"
   ]
 }

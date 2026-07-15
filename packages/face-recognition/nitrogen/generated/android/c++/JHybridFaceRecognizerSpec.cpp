@@ -67,6 +67,43 @@ namespace margelo::nitro::mlkit::recognition {
   
 
   // Methods
+  std::shared_ptr<Promise<bool>> JHybridFaceRecognizerSpec::downloadModel(const std::string& url) {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JPromise::javaobject>(jni::alias_ref<jni::JString> /* url */)>("downloadModel");
+    auto __result = method(_javaPart, jni::make_jstring(url));
+    return [&]() {
+      auto __promise = Promise<bool>::create();
+      __result->cthis()->addOnResolvedListener([=](const jni::alias_ref<jni::JObject>& __boxedResult) {
+        auto __result = jni::static_ref_cast<jni::JBoolean>(__boxedResult);
+        __promise->resolve(static_cast<bool>(__result->value()));
+      });
+      __result->cthis()->addOnRejectedListener([=](const jni::alias_ref<jni::JThrowable>& __throwable) {
+        jni::JniException __jniError(__throwable);
+        __promise->reject(std::make_exception_ptr(__jniError));
+      });
+      return __promise;
+    }();
+  }
+  std::shared_ptr<Promise<bool>> JHybridFaceRecognizerSpec::loadModel(const std::string& fileUri) {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JPromise::javaobject>(jni::alias_ref<jni::JString> /* fileUri */)>("loadModel");
+    auto __result = method(_javaPart, jni::make_jstring(fileUri));
+    return [&]() {
+      auto __promise = Promise<bool>::create();
+      __result->cthis()->addOnResolvedListener([=](const jni::alias_ref<jni::JObject>& __boxedResult) {
+        auto __result = jni::static_ref_cast<jni::JBoolean>(__boxedResult);
+        __promise->resolve(static_cast<bool>(__result->value()));
+      });
+      __result->cthis()->addOnRejectedListener([=](const jni::alias_ref<jni::JThrowable>& __throwable) {
+        jni::JniException __jniError(__throwable);
+        __promise->reject(std::make_exception_ptr(__jniError));
+      });
+      return __promise;
+    }();
+  }
+  bool JHybridFaceRecognizerSpec::isModelReady() {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jboolean()>("isModelReady");
+    auto __result = method(_javaPart);
+    return static_cast<bool>(__result);
+  }
   std::shared_ptr<Promise<bool>> JHybridFaceRecognizerSpec::registerPerson(const std::string& id, const std::string& name, const std::string& imageUri) {
     static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JPromise::javaobject>(jni::alias_ref<jni::JString> /* id */, jni::alias_ref<jni::JString> /* name */, jni::alias_ref<jni::JString> /* imageUri */)>("registerPerson");
     auto __result = method(_javaPart, jni::make_jstring(id), jni::make_jstring(name), jni::make_jstring(imageUri));

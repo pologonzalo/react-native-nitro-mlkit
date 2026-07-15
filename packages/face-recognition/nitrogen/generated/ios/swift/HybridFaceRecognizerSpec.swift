@@ -13,6 +13,9 @@ public protocol HybridFaceRecognizerSpec_protocol: HybridObject {
   
 
   // Methods
+  func downloadModel(url: String) throws -> Promise<Bool>
+  func loadModel(fileUri: String) throws -> Promise<Bool>
+  func isModelReady() throws -> Bool
   func registerPerson(id: String, name: String, imageUri: String) throws -> Promise<Bool>
   func addReference(id: String, imageUri: String) throws -> Promise<Bool>
   func removePerson(id: String) throws -> Void

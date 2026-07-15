@@ -31,6 +31,18 @@ abstract class HybridFaceRecognizerSpec: HybridObject() {
   // Methods
   @DoNotStrip
   @Keep
+  abstract fun downloadModel(url: String): Promise<Boolean>
+  
+  @DoNotStrip
+  @Keep
+  abstract fun loadModel(fileUri: String): Promise<Boolean>
+  
+  @DoNotStrip
+  @Keep
+  abstract fun isModelReady(): Boolean
+  
+  @DoNotStrip
+  @Keep
   abstract fun registerPerson(id: String, name: String, imageUri: String): Promise<Boolean>
   
   @DoNotStrip

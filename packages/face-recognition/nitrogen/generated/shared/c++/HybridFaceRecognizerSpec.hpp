@@ -65,6 +65,9 @@ namespace margelo::nitro::mlkit::recognition {
 
     public:
       // Methods
+      virtual std::shared_ptr<Promise<bool>> downloadModel(const std::string& url) = 0;
+      virtual std::shared_ptr<Promise<bool>> loadModel(const std::string& fileUri) = 0;
+      virtual bool isModelReady() = 0;
       virtual std::shared_ptr<Promise<bool>> registerPerson(const std::string& id, const std::string& name, const std::string& imageUri) = 0;
       virtual std::shared_ptr<Promise<bool>> addReference(const std::string& id, const std::string& imageUri) = 0;
       virtual void removePerson(const std::string& id) = 0;

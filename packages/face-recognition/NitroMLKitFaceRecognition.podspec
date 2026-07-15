@@ -11,7 +11,7 @@ Pod::Spec.new do |s|
   s.authors      = package["author"]
   s.source       = { :git => "https://github.com/pologonzalo/react-native-nitro-mlkit.git", :tag => s.version }
 
-  s.platforms    = { :ios => "17.0" }
+  s.platforms    = { :ios => "15.5" }
 
   s.source_files = [
     "ios/**/*.{swift,h,m,mm,cpp}",
@@ -19,14 +19,10 @@ Pod::Spec.new do |s|
     "nitrogen/generated/shared/**/*.{hpp,cpp,h}"
   ]
 
-  # Uses face-detection for MLKit face finding
-  s.dependency "NitroMLKitFaceDetection"
+  # ML Kit face detection + TensorFlow Lite for the embedding model.
+  s.dependency "GoogleMLKit/FaceDetection", "~> 7.0"
+  s.dependency "TensorFlowLiteObjC"
   s.dependency "NitroModules"
-
-  # MobileFaceNet model (Apache 2.0, ~5MB)
-  s.resource_bundles = {
-    "NitroMLKitFaceRecognitionModels" => ["ios/models/*.tflite"]
-  }
 
   s.pod_target_xcconfig = {
     "SWIFT_VERSION" => "5.9",

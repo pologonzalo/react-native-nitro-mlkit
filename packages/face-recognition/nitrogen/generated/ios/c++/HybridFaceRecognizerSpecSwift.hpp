@@ -83,6 +83,30 @@ namespace margelo::nitro::mlkit::recognition {
 
   public:
     // Methods
+    inline std::shared_ptr<Promise<bool>> downloadModel(const std::string& url) override {
+      auto __result = _swiftPart.downloadModel(url);
+      if (__result.hasError()) [[unlikely]] {
+        std::rethrow_exception(__result.error());
+      }
+      auto __value = std::move(__result.value());
+      return __value;
+    }
+    inline std::shared_ptr<Promise<bool>> loadModel(const std::string& fileUri) override {
+      auto __result = _swiftPart.loadModel(fileUri);
+      if (__result.hasError()) [[unlikely]] {
+        std::rethrow_exception(__result.error());
+      }
+      auto __value = std::move(__result.value());
+      return __value;
+    }
+    inline bool isModelReady() override {
+      auto __result = _swiftPart.isModelReady();
+      if (__result.hasError()) [[unlikely]] {
+        std::rethrow_exception(__result.error());
+      }
+      auto __value = std::move(__result.value());
+      return __value;
+    }
     inline std::shared_ptr<Promise<bool>> registerPerson(const std::string& id, const std::string& name, const std::string& imageUri) override {
       auto __result = _swiftPart.registerPerson(id, name, imageUri);
       if (__result.hasError()) [[unlikely]] {

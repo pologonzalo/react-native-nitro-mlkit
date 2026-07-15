@@ -14,6 +14,9 @@ namespace margelo::nitro::mlkit::recognition {
     HybridObject::loadHybridMethods();
     // load custom methods/properties
     registerHybrids(this, [](Prototype& prototype) {
+      prototype.registerHybridMethod("downloadModel", &HybridFaceRecognizerSpec::downloadModel);
+      prototype.registerHybridMethod("loadModel", &HybridFaceRecognizerSpec::loadModel);
+      prototype.registerHybridMethod("isModelReady", &HybridFaceRecognizerSpec::isModelReady);
       prototype.registerHybridMethod("registerPerson", &HybridFaceRecognizerSpec::registerPerson);
       prototype.registerHybridMethod("addReference", &HybridFaceRecognizerSpec::addReference);
       prototype.registerHybridMethod("removePerson", &HybridFaceRecognizerSpec::removePerson);
