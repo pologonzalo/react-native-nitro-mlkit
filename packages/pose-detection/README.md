@@ -41,7 +41,7 @@ found; joints outside the frame come back with a low `inFrameLikelihood`.
 | Platform | Min | Status |
 | -------- | --- | ------ |
 | Android  | API 21+ | ✅ Verified on-device (Pixel 9, API 36): 33 landmarks in ~430 ms (nose 96%, shoulders ~73%, out-of-frame hips 0%) |
-| iOS      | 15.5+   | ⚠️ Builds & links (GoogleMLKit); device run pending¹ |
+| iOS      | 15.5+   | ⚠️ Swift impl written; on-device build & run pending¹ |
 | tvOS/macOS | — | 🔜 Planned |
 
 ¹ ML Kit's iOS pods ship no `arm64` Simulator slice; validate on a physical device.

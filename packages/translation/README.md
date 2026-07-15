@@ -50,7 +50,7 @@ Wi-Fi via the `requireWifi` flag.
 | Platform | Min | Status |
 | -------- | --- | ------ |
 | Android  | API 26+ | ✅ Verified on-device (Pixel 9, API 36): en→es in ~2.5 s (incl. first-run model download) |
-| iOS      | 15.5+   | ⚠️ Builds & links (GoogleMLKit); device run pending¹ |
+| iOS      | 15.5+   | ⚠️ Swift impl written; on-device build & run pending¹ |
 | tvOS/macOS | — | 🔜 Planned |
 
 ¹ ML Kit's iOS pods ship no `arm64` Simulator slice; validate on a physical device.

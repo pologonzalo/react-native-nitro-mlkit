@@ -39,7 +39,7 @@ NitroSelfieSegmenter.isAvailable(); // boolean
 | Platform | Min | Status |
 | -------- | --- | ------ |
 | Android  | API 21+ | ✅ Verified on-device (Pixel 9, API 36): 128×128 mask, ~54% foreground, in ~76 ms |
-| iOS      | 15.5+   | ⚠️ Builds & links (GoogleMLKit); device run pending¹ |
+| iOS      | 15.5+   | ⚠️ Swift impl written; on-device build & run pending¹ |
 | tvOS/macOS | — | 🔜 Planned |
 
 ¹ ML Kit's iOS pods ship no `arm64` Simulator slice; validate on a physical device.

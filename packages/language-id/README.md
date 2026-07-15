@@ -37,7 +37,7 @@ NitroLanguageId.isAvailable(); // boolean
 | Platform | Min | Status |
 | -------- | --- | ------ |
 | Android  | API 21+ | ✅ Verified on-device (Pixel 9, API 36): en 100%, es 99% in ~70 ms |
-| iOS      | 15.5+   | ⚠️ Builds & links (GoogleMLKit); device run pending¹ |
+| iOS      | 15.5+   | ⚠️ Swift impl written; on-device build & run pending¹ |
 | tvOS/macOS | — | 🔜 Planned |
 
 ¹ ML Kit's iOS pods ship no `arm64` Simulator slice; validate on a physical device.

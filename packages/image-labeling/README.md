@@ -73,7 +73,7 @@ safety guarantee. A proper safety model is a possible future addition.
 | Platform     | Min version | Status                                                            |
 | ------------ | ----------- | ----------------------------------------------------------------- |
 | Android      | API 21+     | ✅ Verified on-device (Pixel 9 emulator, API 36): `label` 8 labels in ~430 ms; `labelBatch` 20 imgs / 160 labels in one call |
-| iOS          | 15.5+       | ⚠️ Builds & links (GoogleMLKit via CocoaPods); device run pending¹ |
+| iOS          | 15.5+       | ⚠️ Swift impl written; on-device build & run pending¹ |
 | tvOS / macOS | —           | 🔜 Planned                                                        |
 
 ¹ Google ML Kit's iOS pods ship no `arm64` **Simulator** slice, so iOS must be

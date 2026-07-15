@@ -51,7 +51,7 @@ Language tags follow ML Kit's identifiers (e.g. `"en-US"`, `"es-ES"`, `"fr-FR"`,
 | Platform | Min | Status |
 | -------- | --- | ------ |
 | Android  | API 26+ | ✅ Verified on-device (Pixel 9, API 36) |
-| iOS      | 15.5+   | ⚠️ Builds & links (GoogleMLKit); device run pending¹ |
+| iOS      | 15.5+   | ⚠️ Swift impl written; on-device build & run pending¹ |
 | tvOS/macOS | — | 🔜 Planned |
 
 ¹ ML Kit's iOS pods ship no `arm64` Simulator slice; validate on a physical device.

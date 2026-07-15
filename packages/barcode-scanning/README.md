@@ -63,7 +63,7 @@ NitroBarcode.isAvailable(); // boolean
 | Platform     | Min version | Status                                                                                   |
 | ------------ | ----------- | ---------------------------------------------------------------------------------------- |
 | Android      | API 21+     | ✅ Verified on-device (Pixel 9 emulator, API 36): QR→URL in ~117 ms, EAN-13→PRODUCT in ~11 ms, batch 20 imgs in one call (~200 ms) |
-| iOS          | 15.5+       | ⚠️ Builds & links (GoogleMLKit via CocoaPods); device run pending¹                        |
+| iOS          | 15.5+       | ⚠️ Swift impl written; on-device build & run pending¹                        |
 | tvOS / macOS | —           | 🔜 Planned                                                                               |
 
 ¹ Google ML Kit's iOS pods ship no `arm64` **Simulator** slice, so iOS must be
