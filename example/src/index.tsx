@@ -20,6 +20,7 @@ type Feature = {
 
 const FEATURES: Feature[] = [
   { href: "/faces", emoji: "🙂", title: "Face Detection", tag: "smile · eyes · crop", accent: "#3b82f6" },
+  { href: "/recognition", emoji: "🧑‍🤝‍🧑", title: "Face Recognition", tag: "register → find people", accent: "#ef4444" },
   { href: "/facemesh", emoji: "🕸️", title: "Face Mesh", tag: "468 3D points", accent: "#f43f5e" },
   { href: "/selfieseg", emoji: "✂️", title: "Selfie Seg", tag: "foreground mask", accent: "#14b8a6" },
   { href: "/labeling", emoji: "🏷️", title: "Image Labeling", tag: "400+ labels", accent: "#06b6d4" },
@@ -45,7 +46,7 @@ export default function HomeScreen() {
           The full Google ML Kit suite on Nitro — on-device, JSI, zero bridge.
         </Text>
         <View style={s.badges}>
-          <Badge>15 packages</Badge>
+          <Badge>16 packages</Badge>
           <Badge>on-device</Badge>
           <Badge>native batch</Badge>
         </View>

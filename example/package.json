@@ -18,6 +18,7 @@
     "@nitro-mlkit/entity-extraction": "workspace:*",
     "@nitro-mlkit/face-detection": "workspace:*",
     "@nitro-mlkit/face-mesh": "workspace:*",
+    "@nitro-mlkit/face-recognition": "workspace:*",
     "@nitro-mlkit/image-labeling": "workspace:*",
     "@nitro-mlkit/language-id": "workspace:*",
     "@nitro-mlkit/object-detection": "workspace:*",

@@ -57,6 +57,9 @@ importers:
       '@nitro-mlkit/face-mesh':
         specifier: workspace:*
         version: link:../packages/face-mesh
+      '@nitro-mlkit/face-recognition':
+        specifier: workspace:*
+        version: link:../packages/face-recognition
       '@nitro-mlkit/image-labeling':
         specifier: workspace:*
         version: link:../packages/image-labeling
@@ -278,6 +281,9 @@ importers:
         specifier: 0.83.6
         version: 0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.0)
     devDependencies:
+      expo-modules-core:
+        specifier: '*'
+        version: 55.0.25(react-native@0.83.6(@babel/core@7.29.7)(@types/react@19.2.17)(react@19.2.0))(react@19.2.0)
       nitro-codegen:
         specifier: '*'
         version: 0.29.4

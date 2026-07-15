@@ -3,6 +3,7 @@ import { Stack } from "expo-router";
 // Friendly header title + accent (tints the native back arrow) per screen.
 const SCREENS: { name: string; title: string; accent: string }[] = [
   { name: "faces", title: "Face Detection", accent: "#3b82f6" },
+  { name: "recognition", title: "Face Recognition", accent: "#ef4444" },
   { name: "benchmark", title: "Benchmark", accent: "#8b5cf6" },
   { name: "labeling", title: "Image Labeling", accent: "#06b6d4" },
   { name: "barcode", title: "Barcode Scanning", accent: "#d97706" },
