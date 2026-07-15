@@ -33,6 +33,7 @@ const FEATURES: Feature[] = [
   { href: "/entity", emoji: "🔍", title: "Entity Extraction", tag: "phones · dates · $", accent: "#a855f7", android: true },
   { href: "/subjectseg", emoji: "🪄", title: "Subject Seg", tag: "cut out subject", accent: "#10b981", android: true },
   { href: "/digitalink", emoji: "✍️", title: "Digital Ink", tag: "handwriting → text", accent: "#d946ef" },
+  { href: "/docscanner", emoji: "📄", title: "Document Scanner", tag: "scan → JPEG + PDF", accent: "#f97316", android: true },
 ];
 
 export default function HomeScreen() {
@@ -44,7 +45,7 @@ export default function HomeScreen() {
           The full Google ML Kit suite on Nitro — on-device, JSI, zero bridge.
         </Text>
         <View style={s.badges}>
-          <Badge>14 packages</Badge>
+          <Badge>15 packages</Badge>
           <Badge>on-device</Badge>
           <Badge>native batch</Badge>
         </View>
