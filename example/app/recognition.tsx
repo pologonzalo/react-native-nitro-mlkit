@@ -24,7 +24,8 @@ const PERSON_A = FACES[0]; // Woman 1
 const PERSON_B = FACES[1]; // Man 1
 
 export default function RecognitionScreen() {
-  const [modelReady, setModelReady] = useState(NitroRecognizer.isModelReady());
+  const supported = NitroRecognizer.isSupported();
+  const [modelReady, setModelReady] = useState(supported ? NitroRecognizer.isModelReady() : false);
   const [registered, setRegistered] = useState<string[]>([]);
   const [results, setResults] = useState<{ id: string; name: string; sim: number }[]>([]);
   const [status, setStatus] = useState("Step 1: load the embedding model");
@@ -84,8 +85,18 @@ export default function RecognitionScreen() {
     <ScrollView style={s.container} contentContainerStyle={s.content}>
       <TitleBlock name="@nitro-mlkit/face-recognition" tagline="Register faces → find people · TFLite embeddings" />
 
+      {!supported && (
+        <Card style={{ marginBottom: 14 }}>
+          <Text style={T.sub}>
+            Face recognition is Android-only for now — the iOS TensorFlow Lite
+            embedding path isn't implemented yet (planned for v0.2). This screen
+            is inert on iOS.
+          </Text>
+        </Card>
+      )}
+
       <Step n={1} label="Load model" done={modelReady}>
-        <Pressable style={btn(modelReady)} onPress={loadModel} disabled={loading || modelReady}>
+        <Pressable style={btn(modelReady)} onPress={loadModel} disabled={loading || modelReady || !supported}>
           <Text style={s.btnText}>{modelReady ? "✓ Model ready" : "Download model"}</Text>
         </Pressable>
       </Step>

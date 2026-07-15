@@ -87,8 +87,10 @@ class HybridSelfieSegmenter: HybridSelfieSegmenterSpec {
 
         let mask = try await segmenter.process(visionImage)
 
-        let width = mask.width
-        let height = mask.height
+        // iOS SegmentationMask exposes only `buffer` (a CVPixelBuffer); read the
+        // dimensions from it (the width/height members exist only on Android).
+        let width = CVPixelBufferGetWidth(mask.buffer)
+        let height = CVPixelBufferGetHeight(mask.buffer)
         let total = width * height
         guard total > 0 else {
             throw RuntimeError.error(withMessage: "Empty segmentation mask")

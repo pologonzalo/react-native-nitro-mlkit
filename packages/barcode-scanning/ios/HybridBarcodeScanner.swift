@@ -135,7 +135,7 @@ class HybridBarcodeScanner: HybridBarcodeScannerSpec {
         case .wiFi: return "WIFI"
         case .geographicCoordinates: return "GEO"
         case .calendarEvent: return "CALENDAR_EVENT"
-        case .driverLicense: return "DRIVER_LICENSE"
+        case .driversLicense: return "DRIVER_LICENSE"
         default: return "UNKNOWN"
         }
     }

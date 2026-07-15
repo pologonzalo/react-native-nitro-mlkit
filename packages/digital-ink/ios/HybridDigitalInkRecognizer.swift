@@ -25,10 +25,9 @@ class HybridDigitalInkRecognizer: HybridDigitalInkRecognizerSpec {
 
     /// Resolve a BCP-47 language tag to a `DigitalInkRecognitionModel`, or throw.
     private func model(for languageTag: String) throws -> DigitalInkRecognitionModel {
-        let identifier: DigitalInkRecognitionModelIdentifier
-        do {
-            identifier = try DigitalInkRecognitionModelIdentifier(forLanguageTag: languageTag)
-        } catch {
+        // `modelIdentifierForLanguageTag:` is a failable (non-throwing) init on
+        // iOS — it returns nil for an unsupported tag.
+        guard let identifier = DigitalInkRecognitionModelIdentifier(forLanguageTag: languageTag) else {
             throw RuntimeError.error(withMessage: "Unsupported language tag: \(languageTag)")
         }
         return DigitalInkRecognitionModel(modelIdentifier: identifier)
@@ -39,7 +38,7 @@ class HybridDigitalInkRecognizer: HybridDigitalInkRecognizerSpec {
         let mlStrokes: [Ink.Stroke] = strokes.map { stroke in
             let points: [Ink.Point] = stroke.points.map { p in
                 if let t = p.t {
-                    return Ink.Point(x: Float(p.x), y: Float(p.y), t: t)
+                    return Ink.Point(x: Float(p.x), y: Float(p.y), t: Int(t))
                 } else {
                     return Ink.Point(x: Float(p.x), y: Float(p.y))
                 }

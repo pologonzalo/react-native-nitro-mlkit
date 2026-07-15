@@ -70,7 +70,6 @@ export interface PhotoPersonResult {
  * 3. Get results → "Photo 42 has Marcos (92% confidence)"
  */
 export interface FaceRecognizer extends HybridObject<{
-  ios: "swift";
   android: "kotlin";
 }> {
   // ─── Model ────────────────────────────────────────────────────────────────
