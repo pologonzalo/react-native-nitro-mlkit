@@ -1,0 +1,16 @@
+{
+  "cxxNamespace": ["mlkit", "translate"],
+  "ios": {
+    "iosModuleName": "NitroMLKitTranslate"
+  },
+  "android": {
+    "androidNamespace": ["nitromlkit", "translate"],
+    "androidCxxLibName": "NitroMLKitTranslate"
+  },
+  "autolinking": {
+    "Translator": {
+      "ios": { "language": "swift", "implementationClassName": "HybridTranslator" },
+      "android": { "language": "kotlin", "implementationClassName": "HybridTranslator" }
+    }
+  }
+}
