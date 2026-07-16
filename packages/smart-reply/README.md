@@ -1,4 +1,6 @@
-# @nitro-mlkit/smart-reply
+# React Native ML Kit — Smart Reply
+
+**`@nitro-mlkit/smart-reply`** · on-device Google ML Kit via [Nitro Modules](https://github.com/mrousavy/nitro) — JSI, no bridge.
 
 > ⚠️ **Beta (`0.1.0-beta.x`).** Android verified on-device. **Android-only** —
 > see [Platform status](#platform-status).

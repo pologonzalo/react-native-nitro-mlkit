@@ -1,4 +1,6 @@
-# @nitro-mlkit/document-scanner
+# React Native ML Kit — Document Scanner
+
+**`@nitro-mlkit/document-scanner`** · on-device Google ML Kit via [Nitro Modules](https://github.com/mrousavy/nitro) — JSI, no bridge.
 
 > ⚠️ **Beta (`0.1.0-beta.x`).** **Android-only** — Google ML Kit provides the
 > Document Scanner on Android only. See [Platform status](#platform-status).

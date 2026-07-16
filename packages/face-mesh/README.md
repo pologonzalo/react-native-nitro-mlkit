@@ -1,4 +1,6 @@
-# @nitro-mlkit/face-mesh
+# React Native ML Kit — Face Mesh
+
+**`@nitro-mlkit/face-mesh`** · on-device Google ML Kit via [Nitro Modules](https://github.com/mrousavy/nitro) — JSI, no bridge.
 
 > ⚠️ **Beta (`0.1.0-beta.x`) · Android-only.** ML Kit Face Mesh Detection has no
 > iOS SDK (there is no `GoogleMLKit/FaceMeshDetection` pod), so this package only

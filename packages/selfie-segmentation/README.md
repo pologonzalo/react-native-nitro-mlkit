@@ -1,4 +1,6 @@
-# @nitro-mlkit/selfie-segmentation
+# React Native ML Kit — Selfie Segmentation
+
+**`@nitro-mlkit/selfie-segmentation`** · on-device Google ML Kit via [Nitro Modules](https://github.com/mrousavy/nitro) — JSI, no bridge.
 
 > ⚠️ **Beta (`0.1.0-beta.x`).** Android verified on-device; iOS builds & links but
 > device runtime is pending — see [Platform status](#platform-status).

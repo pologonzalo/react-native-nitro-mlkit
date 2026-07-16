@@ -1,4 +1,6 @@
-# @nitro-mlkit/entity-extraction
+# React Native ML Kit — Entity Extraction
+
+**`@nitro-mlkit/entity-extraction`** · on-device Google ML Kit via [Nitro Modules](https://github.com/mrousavy/nitro) — JSI, no bridge.
 
 > ⚠️ **Beta (`0.1.0-beta.x`).** **Android-only** — Google ML Kit has **no**
 > Entity Extraction SDK on iOS. See [Platform status](#platform-status).

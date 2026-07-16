@@ -1,4 +1,6 @@
-# @nitro-mlkit/face-recognition
+# React Native ML Kit — Face Recognition
+
+**`@nitro-mlkit/face-recognition`** · on-device Google ML Kit via [Nitro Modules](https://github.com/mrousavy/nitro) — JSI, no bridge.
 
 > ⚠️ **Beta (`0.1.0-beta.x`).** Android verified on-device; iOS impl pending
 > (see [Platform status](#platform-status)). **You provide the embedding model.**

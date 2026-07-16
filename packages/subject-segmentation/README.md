@@ -1,4 +1,6 @@
-# @nitro-mlkit/subject-segmentation
+# React Native ML Kit — Subject Segmentation
+
+**`@nitro-mlkit/subject-segmentation`** · on-device Google ML Kit via [Nitro Modules](https://github.com/mrousavy/nitro) — JSI, no bridge.
 
 > ⚠️ **Beta (`0.1.0-beta.x`).** **Android-only.** Native path verified on-device;
 > the full run needs the Google Play optional model, which downloads on first use

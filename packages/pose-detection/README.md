@@ -1,4 +1,6 @@
-# @nitro-mlkit/pose-detection
+# React Native ML Kit — Pose Detection
+
+**`@nitro-mlkit/pose-detection`** · on-device Google ML Kit via [Nitro Modules](https://github.com/mrousavy/nitro) — JSI, no bridge.
 
 > ⚠️ **Beta (`0.1.0-beta.x`).** Android verified on-device; iOS builds & links but
 > device runtime is pending — see [Platform status](#platform-status).
