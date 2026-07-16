@@ -73,17 +73,15 @@ export function wash(hex: string, amount: number, base: string = C.surface): str
 }
 
 /**
- * The signature hard-bottom "keycap" shadow (no blur → looks like a physical
- * key). Spread it onto any card/button. `depth` is how tall the key sits.
+ * The signature hard-bottom "keycap" shadow: a solid, no-blur, ink-coloured
+ * drop straight down, so every surface looks like a physical key. Uses the
+ * cross-platform `boxShadow` style (RN 0.76+, New Architecture) — identical on
+ * iOS and Android. The old shadow/elevation combo only gave Android a soft,
+ * grey Material shadow (generic, off-brand); boxShadow keeps it crisp on both.
+ * `depth` is how tall the key sits.
  */
 export function keycap(depth = 6, color = C.ink) {
-  return {
-    shadowColor: color,
-    shadowOffset: { width: 0, height: depth },
-    shadowOpacity: 0.18,
-    shadowRadius: 0,
-    elevation: Math.round(depth / 1.5),
-  } as const;
+  return { boxShadow: `0px ${depth}px 0px ${color}` } as const;
 }
 
 export const T = StyleSheet.create({
