@@ -13,6 +13,7 @@
     "@expo-google-fonts/nunito": "^0.4.2",
     "@expo-google-fonts/space-mono": "^0.4.2",
     "@expo/metro-runtime": "~55.0.11",
+    "@expo/vector-icons": "^15.1.1",
     "@infinitered/react-native-mlkit-core": "^5.0.0",
     "@infinitered/react-native-mlkit-face-detection": "^5.0.0",
     "@nitro-mlkit/barcode-scanning": "workspace:*",

@@ -2,6 +2,7 @@ import { type Href, Link } from "expo-router";
 import type { ReactNode } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { FEATURES } from "./features";
+import { PlatformBadge } from "./PlatformBadge";
 import { C, F, keycap, R, tint, wash } from "./theme";
 
 const href = (route: string) => ("/" + route) as unknown as Href;
@@ -60,7 +61,9 @@ export default function HomeScreen() {
               </View>
               <Text style={s.tileTitle} numberOfLines={1}>{f.title}</Text>
               <Text style={s.tileTag} numberOfLines={1}>{f.tag}</Text>
-              {f.android && <Text style={s.tileAnd}>🤖</Text>}
+              <View style={s.tileBadge}>
+                <PlatformBadge androidOnly={f.android} size={14} />
+              </View>
             </Pressable>
           </Link>
         ))}
@@ -111,7 +114,7 @@ const s = StyleSheet.create({
   tileEmoji: { fontSize: 21 },
   tileTitle: { fontFamily: F.display, fontSize: 15, color: C.ink },
   tileTag: { fontFamily: F.body, fontSize: 11.5, color: C.dim, marginTop: 1 },
-  tileAnd: { position: "absolute", top: 11, right: 12, fontSize: 15 },
+  tileBadge: { position: "absolute", top: 12, right: 12 },
 
   footer: { fontFamily: F.mono, fontSize: 11, color: C.faint, textAlign: "center", marginTop: 26 },
 });

@@ -16,6 +16,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { DrawerContentComponentProps } from "@react-navigation/drawer";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { FEATURES, SHELVES } from "../src/features";
+import { PlatformBadge } from "../src/PlatformBadge";
 import { C, F, keycap, R, T, tint, wash } from "../src/theme";
 
 SplashScreen.preventAutoHideAsync();
@@ -95,7 +96,7 @@ function ToyShelf(props: DrawerContentComponentProps) {
                 key={f.route}
                 emoji={f.emoji}
                 title={f.title}
-                android={f.android}
+                platform={f.android ? "android" : "both"}
                 accent={f.accent}
                 active={active === f.route}
                 onPress={() => go(f.route)}
@@ -103,7 +104,7 @@ function ToyShelf(props: DrawerContentComponentProps) {
             ))}
           </View>
         ))}
-        <Text style={s.foot}>16 packages · 🤖 = Android-only</Text>
+        <Text style={s.foot}>16 packages · marks show iOS / Android support</Text>
       </ScrollView>
     </View>
   );
@@ -120,14 +121,14 @@ function Chip({ children, mint }: { children: React.ReactNode; mint?: boolean })
 function Row({
   emoji,
   title,
-  android,
+  platform,
   accent,
   active,
   onPress,
 }: {
   emoji: string;
   title: string;
-  android?: boolean;
+  platform?: "both" | "android";
   accent: string;
   active?: boolean;
   onPress: () => void;
@@ -145,7 +146,7 @@ function Row({
         <Text style={s.rowEmoji}>{emoji}</Text>
       </View>
       <Text style={s.rowTitle} numberOfLines={1}>{title}</Text>
-      {android && <Text style={s.and}>🤖</Text>}
+      {platform && <PlatformBadge androidOnly={platform === "android"} size={15} />}
     </Pressable>
   );
 }
