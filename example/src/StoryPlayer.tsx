@@ -19,8 +19,16 @@ const TICK = 50;
  * top, auto-advance, tap left/right to go back/forward, and a montage of the
  * real photos behind each slide's headline.
  */
-export function StoryPlayer({ slides, onClose }: { slides: Slide[]; onClose: () => void }) {
-  const [index, setIndex] = useState(0);
+export function StoryPlayer({
+  slides,
+  onClose,
+  startIndex = 0,
+}: {
+  slides: Slide[];
+  onClose: () => void;
+  startIndex?: number;
+}) {
+  const [index, setIndex] = useState(startIndex);
   const [progress, setProgress] = useState(0);
   const [paused, setPaused] = useState(false);
   const slide = slides[index];

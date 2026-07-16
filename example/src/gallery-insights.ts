@@ -1,43 +1,161 @@
-// Turns raw ML Kit batch output (labels + faces, each carrying its photo uri)
-// into a fun "Gallery Wrapped" + a Google-Photos-style set of Story slides.
-// Pure aggregation — no native calls — so it's trivial to reason about.
+// Turns raw ML Kit batch output into a smart, Google-Photos-style set of
+// "Memories". Each photo carries its labels + face stats + capture time; a
+// rule engine (multi-signal, not just single labels) sorts them into ~20
+// curated memories. Only memories that actually have photos are surfaced, so
+// nothing shows up empty on a real camera roll. Pure aggregation, no native.
 
-/** One labelled photo coming out of the batch scan. */
-export type LabeledPhoto = { uri: string; labels: { text: string }[] };
-/** One face-detected photo coming out of the batch scan. */
-export type FacedPhoto = { uri: string; faces: { smilingProbability: number }[] };
+import { C } from "./theme";
 
-/** One "theme" bucket a photo can fall into (a photo may hit several). */
-type BucketDef = { key: string; emoji: string; label: string; match: string[] };
-
-// Ordered by how "headline-worthy" a theme is when it ties on count.
-const BUCKETS: BucketDef[] = [
-  { key: "food", emoji: "🍕", label: "Food & Drink", match: ["food", "dish", "cuisine", "dessert", "drink", "coffee", "breakfast", "brunch", "meal", "baking", "fruit", "junk", "fast food", "recipe", "tableware", "plate", "cake", "pizza", "wine", "cocktail", "beer", "sushi", "bread", "snack", "burger"] },
-  { key: "people", emoji: "🎉", label: "People & Parties", match: ["person", "people", "selfie", "crowd", "party", "event", "wedding", "fun", "team", "ceremony", "portrait", "child", "bride", "smile", "facial", "friendship", "toddler", "dance"] },
-  { key: "animals", emoji: "🐾", label: "Animals", match: ["dog", "cat", "pet", "wildlife", "bird", "animal", "horse", "zoo", "fish", "puppy", "kitten", "paw", "mammal", "reptile"] },
-  { key: "nature", emoji: "🌿", label: "Nature", match: ["plant", "tree", "grass", "flower", "sky", "cloud", "mountain", "landscape", "garden", "forest", "leaf", "sunlight", "nature", "meadow", "hill", "petal", "botany", "flora"] },
-  { key: "beach", emoji: "🏖️", label: "Beach & Water", match: ["beach", "sea", "water", "ocean", "wave", "coast", "sand", "swimming", "pool", "lake", "river", "shore", "surf", "boat"] },
-  { key: "city", emoji: "🏙️", label: "City & Places", match: ["building", "city", "street", "architecture", "urban", "house", "landmark", "monument", "skyline", "town", "bridge", "tower", "downtown", "facade", "window", "road"] },
-  { key: "vehicles", emoji: "🚗", label: "Vehicles", match: ["car", "vehicle", "wheel", "motorcycle", "bicycle", "truck", "transport", "automotive", "tire", "traffic"] },
-  { key: "screens", emoji: "📱", label: "Screens & Text", match: ["font", "text", "screenshot", "document", "paper", "newspaper", "menu", "poster", "brand", "logo", "number", "receipt", "screen", "web page", "diagram"] },
-  { key: "night", emoji: "🌙", label: "Night & Lights", match: ["night", "moon", "star", "darkness", "fireworks", "light", "neon", "sunset", "dusk", "dawn"] },
-  { key: "sports", emoji: "🏀", label: "Sports & Fitness", match: ["sport", "ball", "muscle", "gym", "fitness", "running", "football", "basketball", "soccer", "athlete", "yoga", "cycling", "skiing"] },
-  { key: "art", emoji: "🎨", label: "Art & Style", match: ["art", "fashion", "drawing", "painting", "pattern", "design", "craft", "hairstyle", "eyewear", "jewellery", "beauty", "textile"] },
-];
-
-const LABEL_EMOJI: Record<string, string> = {
-  sky: "☁️", cloud: "☁️", tree: "🌳", plant: "🌱", flower: "🌸", grass: "🌿",
-  water: "💧", sea: "🌊", beach: "🏖️", mountain: "⛰️", sunset: "🌅", night: "🌙",
-  food: "🍽️", coffee: "☕", drink: "🥤", dessert: "🍰", fruit: "🍓",
-  dog: "🐕", cat: "🐈", bird: "🐦", pet: "🐾",
-  car: "🚗", building: "🏢", city: "🏙️", room: "🛋️", furniture: "🪑",
-  person: "🧑", people: "👥", selfie: "🤳", smile: "😄", fun: "🎉",
-  font: "🔤", text: "🔤", art: "🎨", fashion: "👗", light: "💡",
+/** One photo after the native scan: labels + faces + capture time, merged. */
+export type ScannedPhoto = {
+  uri: string;
+  time: number; // creationTime, ms epoch (0 if unknown)
+  labels: string[]; // lowercased ML Kit label texts
+  faces: number; // face count
+  smiles: number; // faces with smilingProbability > 0.6
 };
 
-const MAX_PHOTOS_PER_BUCKET = 40;
+// ─── Memory rule engine ─────────────────────────────────────────────────────
 
-export type Bucket = { key: string; emoji: string; label: string; count: number };
+type Ctx = { hour: number }; // derived per-photo signals
+type MemoryDef = {
+  key: string;
+  emoji: string;
+  title: string;
+  accent: string;
+  /** Playful one-liner; gets the memory's photo count. */
+  blurb: (n: number) => string;
+  /** Does this photo belong to this memory? (a photo can match several) */
+  match: (p: ScannedPhoto, c: Ctx) => boolean;
+};
+
+const has = (p: ScannedPhoto, ...words: string[]) =>
+  p.labels.some((l) => words.some((w) => l.includes(w)));
+
+/** Ordered by how headline-worthy a memory is when counts tie. */
+const MEMORIES: MemoryDef[] = [
+  {
+    key: "babies", emoji: "👶", title: "Tiny humans", accent: "#F59E0B",
+    blurb: (n) => `${n} baby moments — the cutest corner of your roll.`,
+    match: (p) => has(p, "baby", "infant", "toddler", "child", "kid"),
+  },
+  {
+    key: "party", emoji: "🎉", title: "Party mode", accent: C.orange,
+    blurb: (n) => `${n} nights out — we spotted the drinks and the crowd.`,
+    match: (p, c) =>
+      has(p, "party", "bar", "nightclub", "disco", "dance", "cocktail", "wine", "beer", "drink", "champagne", "toast") &&
+      (p.faces >= 2 || c.hour >= 21 || c.hour <= 3),
+  },
+  {
+    key: "squad", emoji: "👯", title: "The squad", accent: "#EC4899",
+    blurb: (n) => `${n} group shots — you + the whole crew.`,
+    match: (p) => p.faces >= 3,
+  },
+  {
+    key: "smiles", emoji: "😄", title: "Say cheese", accent: C.yellow,
+    blurb: (n) => `${n} smiles caught in the act.`,
+    match: (p) => p.smiles >= 1,
+  },
+  {
+    key: "selfies", emoji: "🤳", title: "Selfie season", accent: "#8B5CF6",
+    blurb: (n) => `${n} selfies. Absolutely iconic.`,
+    match: (p) => has(p, "selfie") || (p.faces === 1 && has(p, "portrait", "face")),
+  },
+  {
+    key: "duo", emoji: "💑", title: "Just us two", accent: "#F472B6",
+    blurb: (n) => `${n} two-person moments.`,
+    match: (p) => p.faces === 2,
+  },
+  {
+    key: "foodie", emoji: "🍽️", title: "Foodie files", accent: "#EF4444",
+    blurb: (n) => `${n} plates photographed before the first bite.`,
+    match: (p) => has(p, "food", "dish", "dessert", "cuisine", "meal", "breakfast", "brunch", "cake", "pizza", "sushi", "burger", "fruit", "coffee", "baking", "snack"),
+  },
+  {
+    key: "sweet", emoji: "🍰", title: "Sweet tooth", accent: "#F9A8D4",
+    blurb: (n) => `${n} desserts, documented.`,
+    match: (p) => has(p, "dessert", "cake", "ice cream", "chocolate", "pastry", "candy", "cupcake", "cookie"),
+  },
+  {
+    key: "pets", emoji: "🐾", title: "Team pet", accent: "#22C55E",
+    blurb: (n) => `${n} very good bois & girls.`,
+    match: (p) => has(p, "dog", "cat", "pet", "puppy", "kitten", "bird", "rabbit", "animal"),
+  },
+  {
+    key: "golden", emoji: "🌅", title: "Golden hour", accent: "#FB923C",
+    blurb: (n) => `${n} skies worth stopping for.`,
+    match: (p, c) => has(p, "sunset", "sunrise", "dusk", "dawn") || ((c.hour >= 18 && c.hour <= 20) && has(p, "sky", "cloud")),
+  },
+  {
+    key: "night", emoji: "🌙", title: "After dark", accent: "#6366F1",
+    blurb: (n) => `${n} late-night captures.`,
+    // Content-anchored (a real night label, optionally boosted by a late hour)
+    // so it doesn't swallow every evening photo.
+    match: (p, c) =>
+      has(p, "night", "neon", "fireworks", "moon", "concert", "stage", "nightlife") ||
+      ((c.hour >= 22 || c.hour <= 4) && has(p, "light", "city", "bar", "party", "crowd")),
+  },
+  {
+    key: "beach", emoji: "🏖️", title: "Beach days", accent: "#06B6D4",
+    blurb: (n) => `${n} reasons you already miss summer.`,
+    match: (p) => has(p, "beach", "sea", "ocean", "wave", "coast", "sand", "pool", "swimming", "surf"),
+  },
+  {
+    key: "outdoors", emoji: "🏔️", title: "Great outdoors", accent: "#10B981",
+    blurb: (n) => `${n} escapes into nature.`,
+    match: (p) => has(p, "mountain", "forest", "tree", "trail", "hiking", "landscape", "valley", "waterfall", "snow", "meadow"),
+  },
+  {
+    key: "flowers", emoji: "🌸", title: "Flower power", accent: "#F472B6",
+    blurb: (n) => `${n} times you stopped for flowers.`,
+    match: (p) => has(p, "flower", "petal", "blossom", "bouquet", "garden", "rose"),
+  },
+  {
+    key: "city", emoji: "🏙️", title: "City lights", accent: "#3B82F6",
+    blurb: (n) => `${n} urban wanders.`,
+    match: (p) => has(p, "building", "city", "street", "architecture", "skyline", "urban", "bridge", "tower", "downtown"),
+  },
+  {
+    key: "road", emoji: "🚗", title: "On the road", accent: "#0EA5E9",
+    blurb: (n) => `${n} journeys, big and small.`,
+    match: (p) => has(p, "car", "vehicle", "motorcycle", "bicycle", "road", "traffic", "train", "airplane", "boat"),
+  },
+  {
+    key: "sports", emoji: "🏀", title: "Game on", accent: "#84CC16",
+    blurb: (n) => `${n} moments of motion.`,
+    match: (p) => has(p, "sport", "ball", "football", "basketball", "soccer", "stadium", "gym", "fitness", "running", "athlete"),
+  },
+  {
+    key: "art", emoji: "🎨", title: "Art & design", accent: "#A855F7",
+    blurb: (n) => `${n} things that caught your eye.`,
+    match: (p) => has(p, "art", "painting", "sculpture", "museum", "pattern", "drawing", "design", "mural", "graffiti"),
+  },
+  {
+    key: "screens", emoji: "📱", title: "Screenshots", accent: "#64748B",
+    blurb: (n) => `${n} screenshots & text. We won't tell.`,
+    match: (p) => has(p, "screenshot", "text", "font", "document", "poster", "menu", "receipt", "web page", "number", "paper"),
+  },
+  {
+    key: "pretty", emoji: "☁️", title: "Sky watch", accent: "#38BDF8",
+    blurb: (n) => `${n} skies, clouds and daydreams.`,
+    match: (p) => has(p, "sky", "cloud") && !has(p, "building", "car"),
+  },
+];
+
+const MAX_PHOTOS_PER_MEMORY = 40;
+/** A memory needs at least this many photos to be worth showing. */
+const MIN_PHOTOS = 4;
+
+export type Memory = {
+  key: string;
+  emoji: string;
+  title: string;
+  accent: string;
+  blurb: string;
+  count: number;
+  photos: string[]; // photos[0] = cover
+};
+
 export type FaceStats = {
   photosWithFaces: number;
   totalFaces: number;
@@ -45,127 +163,85 @@ export type FaceStats = {
   biggestGroup: number;
   soloShots: number;
 };
+
 export type Insights = {
   scanned: number;
-  buckets: Bucket[];
-  topLabels: { text: string; emoji: string; count: number }[];
+  elapsedMs: number;
+  memories: Memory[];
   faces: FaceStats;
   persona: { emoji: string; title: string; blurb: string };
-  bucketPhotos: Record<string, string[]>;
-  smilePhotos: string[];
-  peoplePhotos: string[];
-  biggestGroupPhoto?: string;
   allPhotos: string[];
 };
 
+/** Persona headline derived from the top memory. */
 const PERSONA: Record<string, { emoji: string; title: string; blurb: string }> = {
-  food: { emoji: "🍕", title: "Certified Foodie", blurb: "Your camera eats first. Every dish gets a portrait." },
-  people: { emoji: "🥂", title: "People Person", blurb: "You collect faces, not things. The party lives in your gallery." },
-  animals: { emoji: "🐾", title: "Pet Paparazzi", blurb: "Cutest subjects on the planet — and you know it." },
-  nature: { emoji: "🌿", title: "Nature Lover", blurb: "You touch grass, then photograph it. Golden hour is your happy place." },
+  babies: { emoji: "👶", title: "Family Historian", blurb: "Your roll is full of tiny humans and big moments." },
+  party: { emoji: "🥂", title: "Life of the Party", blurb: "The night out lives on in your camera roll." },
+  squad: { emoji: "👯", title: "People Person", blurb: "You collect faces, not things — the crew is always in frame." },
+  smiles: { emoji: "😄", title: "Joy Collector", blurb: "Your gallery is basically a smile archive." },
+  selfies: { emoji: "🤳", title: "Main Character", blurb: "Front camera, front and centre. As it should be." },
+  foodie: { emoji: "🍕", title: "Certified Foodie", blurb: "Your camera eats first. Every dish gets a portrait." },
+  pets: { emoji: "🐾", title: "Pet Paparazzi", blurb: "Cutest subjects on the planet — and you know it." },
+  golden: { emoji: "🌅", title: "Golden Hour Chaser", blurb: "You stop the car for a good sky." },
+  night: { emoji: "🌙", title: "Night Owl", blurb: "Neon, moonlight and long exposures — you shoot after dark." },
   beach: { emoji: "🏝️", title: "Beach Bum", blurb: "Salt water, blue skies, and a camera roll to prove it." },
+  outdoors: { emoji: "🏔️", title: "Trailblazer", blurb: "The great outdoors is your favourite studio." },
   city: { emoji: "🏙️", title: "Urban Explorer", blurb: "Skylines, streets and architecture — the city is your muse." },
-  vehicles: { emoji: "🚗", title: "Gearhead", blurb: "If it has wheels, it has a spot in your gallery." },
-  screens: { emoji: "📱", title: "Screenshot Archivist", blurb: "Half your gallery is receipts, menus and memes. No regrets." },
-  night: { emoji: "🌙", title: "Night Owl", blurb: "Neon, moonlight and long exposures. You shoot after dark." },
+  road: { emoji: "🚗", title: "Always Going Somewhere", blurb: "If it moves, it's in your gallery." },
+  sweet: { emoji: "🍰", title: "Sweet Tooth", blurb: "Dessert always makes the cut." },
+  duo: { emoji: "💑", title: "Better Together", blurb: "Your gallery is full of two-person moments." },
+  flowers: { emoji: "🌸", title: "Flower Whisperer", blurb: "You never walk past a good bloom." },
   sports: { emoji: "🏀", title: "Always in Motion", blurb: "Game day, gym, or trail — you capture the action." },
+  pretty: { emoji: "☁️", title: "Sky Gazer", blurb: "You look up, a lot. And you photograph it." },
   art: { emoji: "🎨", title: "Aesthete", blurb: "Patterns, style and design catch your eye everywhere." },
+  screens: { emoji: "📱", title: "Screenshot Archivist", blurb: "Half your gallery is receipts, menus and memes. No regrets." },
   mixed: { emoji: "👁️", title: "Eclectic Eye", blurb: "A little bit of everything — your gallery refuses to be boxed in." },
 };
 
-function bucketsFor(labels: string[]): Set<string> {
-  const hit = new Set<string>();
-  for (const raw of labels) {
-    const l = raw.toLowerCase();
-    for (const b of BUCKETS) {
-      if (b.match.some((m) => l.includes(m))) hit.add(b.key);
-    }
-  }
-  return hit;
-}
+/** Aggregate the merged scan into memories + face stats + persona. */
+export function buildInsights(photos: ScannedPhoto[], elapsedMs = 0): Insights {
+  const scanned = photos.length;
+  const counts = new Map<string, number>();
+  const covers: Record<string, string[]> = {};
 
-/** Aggregate one native scan pass (each photo carries its uri) into insights. */
-export function buildInsights(
-  labeled: LabeledPhoto[],
-  faced: FacedPhoto[],
-  scanned: number,
-): Insights {
-  const bucketCount = new Map<string, number>();
-  const labelCount = new Map<string, number>();
-  const bucketPhotos: Record<string, string[]> = {};
+  // Face stats
+  let photosWithFaces = 0, totalFaces = 0, smiles = 0, biggestGroup = 0, soloShots = 0;
 
-  for (const p of labeled) {
-    if (!p.labels?.length) continue;
-    const texts = p.labels.map((x) => x.text);
-    for (const key of bucketsFor(texts)) {
-      bucketCount.set(key, (bucketCount.get(key) ?? 0) + 1);
-      const list = (bucketPhotos[key] ??= []);
-      if (list.length < MAX_PHOTOS_PER_BUCKET) list.push(p.uri);
-    }
-    for (const t of texts) {
-      const k = t.toLowerCase();
-      labelCount.set(k, (labelCount.get(k) ?? 0) + 1);
-    }
-  }
-
-  const buckets: Bucket[] = BUCKETS.map((b) => ({
-    key: b.key,
-    emoji: b.emoji,
-    label: b.label,
-    count: bucketCount.get(b.key) ?? 0,
-  }))
-    .filter((b) => b.count > 0)
-    .sort((a, b) => b.count - a.count);
-
-  const topLabels = [...labelCount.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 12)
-    .map(([text, count]) => ({ text, emoji: LABEL_EMOJI[text] ?? "•", count }));
-
-  // Faces
-  let photosWithFaces = 0;
-  let totalFaces = 0;
-  let smiles = 0;
-  let biggestGroup = 0;
-  let soloShots = 0;
-  let biggestGroupPhoto: string | undefined;
-  const smilePhotos: string[] = [];
-  const peoplePhotos: string[] = [];
-  for (const p of faced) {
-    const n = p.faces?.length ?? 0;
-    if (n > 0) {
-      photosWithFaces++;
-      if (peoplePhotos.length < MAX_PHOTOS_PER_BUCKET) peoplePhotos.push(p.uri);
-    }
-    if (n === 1) soloShots++;
-    totalFaces += n;
-    if (n > biggestGroup) {
-      biggestGroup = n;
-      biggestGroupPhoto = p.uri;
-    }
-    let smiled = false;
-    for (const f of p.faces ?? []) {
-      if (f.smilingProbability > 0.6) {
-        smiles++;
-        smiled = true;
+  for (const p of photos) {
+    const c: Ctx = { hour: p.time > 0 ? new Date(p.time).getHours() : -1 };
+    for (const m of MEMORIES) {
+      if (m.match(p, c)) {
+        counts.set(m.key, (counts.get(m.key) ?? 0) + 1);
+        const list = (covers[m.key] ??= []);
+        if (list.length < MAX_PHOTOS_PER_MEMORY) list.push(p.uri);
       }
     }
-    if (smiled && smilePhotos.length < MAX_PHOTOS_PER_BUCKET) smilePhotos.push(p.uri);
+    if (p.faces > 0) photosWithFaces++;
+    if (p.faces === 1) soloShots++;
+    totalFaces += p.faces;
+    smiles += p.smiles;
+    if (p.faces > biggestGroup) biggestGroup = p.faces;
   }
 
-  const persona = PERSONA[buckets[0]?.key ?? "mixed"] ?? PERSONA.mixed;
-  const allPhotos = labeled.map((p) => p.uri);
+  const memories: Memory[] = MEMORIES.map((m) => {
+    const count = counts.get(m.key) ?? 0;
+    return {
+      key: m.key, emoji: m.emoji, title: m.title, accent: m.accent,
+      count, blurb: m.blurb(count), photos: covers[m.key] ?? [],
+    };
+  })
+    .filter((m) => m.count >= MIN_PHOTOS)
+    .sort((a, b) => b.count - a.count);
+
+  const persona = PERSONA[memories[0]?.key ?? "mixed"] ?? PERSONA.mixed;
+  const allPhotos = photos.map((p) => p.uri);
 
   return {
     scanned,
-    buckets,
-    topLabels,
+    elapsedMs,
+    memories,
     faces: { photosWithFaces, totalFaces, smiles, biggestGroup, soloShots },
     persona,
-    bucketPhotos,
-    smilePhotos,
-    peoplePhotos,
-    biggestGroupPhoto,
     allPhotos,
   };
 }
@@ -181,9 +257,7 @@ export type Slide = {
   photos: string[]; // photos[0] = hero; the rest form a montage
 };
 
-const ACCENTS = ["#a78bfa", "#f472b6", "#34d399", "#60a5fa", "#fbbf24", "#fb7185", "#22d3ee"];
-
-/** Evenly sample up to `n` items from an array (keeps variety across the roll). */
+/** Evenly sample up to `n` items (keeps variety across the roll). */
 function sample<T>(arr: T[], n: number): T[] {
   if (arr.length <= n) return arr;
   const step = arr.length / n;
@@ -192,88 +266,52 @@ function sample<T>(arr: T[], n: number): T[] {
   return out;
 }
 
-/** Build the swipeable Story slides from insights + timing. */
-export function buildStories(insights: Insights, elapsedMs: number): Slide[] {
+/** Build the swipeable Story slides from insights. */
+export function buildStories(insights: Insights): Slide[] {
+  const { scanned, elapsedMs } = insights;
+  const perSec = elapsedMs > 0 ? Math.round(scanned / (elapsedMs / 1000)) : 0;
   const slides: Slide[] = [];
-  const perSec = elapsedMs > 0 ? Math.round(insights.scanned / (elapsedMs / 1000)) : 0;
 
-  // Intro
   slides.push({
-    key: "intro",
-    emoji: "✨",
-    title: "Your gallery, wrapped",
-    subtitle: `${insights.scanned} photos · analysed on-device`,
-    accent: "#a78bfa",
-    photos: sample(insights.allPhotos, 9),
+    key: "intro", emoji: "✨", title: "Your gallery, wrapped",
+    subtitle: `${scanned} photos · analysed on-device`,
+    accent: C.orange, photos: sample(insights.allPhotos, 9),
   });
 
-  // Speed flex
   slides.push({
-    key: "speed",
-    emoji: "⚡",
-    title: `${insights.scanned} photos in ${(elapsedMs / 1000).toFixed(1)}s`,
-    subtitle: `~${perSec} photos/sec · 0 bytes left your phone`,
-    accent: "#22d3ee",
-    photos: sample(insights.allPhotos, 6),
+    key: "speed", emoji: "⚡", title: `${scanned} photos in ${(elapsedMs / 1000).toFixed(1)}s`,
+    subtitle: `~${perSec}/sec · 0 bytes left your phone`,
+    accent: C.blue, photos: sample(insights.allPhotos, 6),
   });
 
-  // Top themes (one slide each)
-  insights.buckets.slice(0, 5).forEach((b, i) => {
-    const photos = insights.bucketPhotos[b.key] ?? [];
-    if (photos.length === 0) return;
-    const pct = Math.round((b.count / insights.scanned) * 100);
+  // One slide per top memory
+  insights.memories.slice(0, 8).forEach((m) => {
+    if (m.photos.length === 0) return;
+    const pct = Math.round((m.count / scanned) * 100);
     slides.push({
-      key: `theme-${b.key}`,
-      emoji: b.emoji,
-      title: b.label,
-      subtitle: `${b.count} photos · ${pct}% of your roll`,
-      accent: ACCENTS[i % ACCENTS.length],
-      photos: sample(photos, 9),
+      key: `mem-${m.key}`, emoji: m.emoji, title: m.title,
+      subtitle: `${m.count} photos · ${pct}% of your roll`,
+      accent: m.accent, photos: sample(m.photos, 9),
     });
   });
 
-  // Smiles
-  if (insights.faces.smiles > 0) {
-    slides.push({
-      key: "smiles",
-      emoji: "😄",
-      title: `${insights.faces.smiles} smiles`,
-      subtitle: "caught across your photos",
-      accent: "#fbbf24",
-      photos: sample(insights.smilePhotos, 9),
-    });
-  }
-
-  // People
   if (insights.faces.totalFaces > 0) {
     slides.push({
-      key: "people",
-      emoji: "👥",
-      title: `${insights.faces.totalFaces} faces`,
-      subtitle: `across ${insights.faces.photosWithFaces} photos · biggest group: ${insights.faces.biggestGroup}`,
-      accent: "#f472b6",
-      photos: sample(insights.peoplePhotos, 9),
+      key: "people", emoji: "👥", title: `${insights.faces.totalFaces} faces`,
+      subtitle: `${insights.faces.smiles} smiling · biggest group: ${insights.faces.biggestGroup}`,
+      accent: C.mint, photos: sample(insights.allPhotos, 9),
     });
   }
 
-  // Persona
   slides.push({
-    key: "persona",
-    emoji: insights.persona.emoji,
-    title: insights.persona.title,
-    subtitle: insights.persona.blurb,
-    accent: "#a78bfa",
-    photos: sample(insights.allPhotos, 6),
+    key: "persona", emoji: insights.persona.emoji, title: insights.persona.title,
+    subtitle: insights.persona.blurb, accent: C.orange, photos: sample(insights.allPhotos, 6),
   });
 
-  // Outro
   slides.push({
-    key: "outro",
-    emoji: "🔒",
-    title: "That's a wrap",
+    key: "outro", emoji: "🔒", title: "That's a wrap",
     subtitle: "Every photo analysed on-device with Nitro ML Kit — nothing uploaded.",
-    accent: "#34d399",
-    photos: sample(insights.allPhotos, 9),
+    accent: C.mint, photos: sample(insights.allPhotos, 9),
   });
 
   return slides;
