@@ -2,7 +2,7 @@ import { NitroFaceMesh, isFaceMeshSupported } from "@nitro-mlkit/face-mesh";
 import { useState } from "react";
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 import { FACES } from "../src/samples";
-import { C, T } from "../src/theme";
+import { C, F, T } from "../src/theme";
 import { AnnotatedImage, Card, Pill, SamplePicker, TitleBlock, imageSize } from "../src/ui";
 
 const ACCENT = "#f43f5e";
@@ -88,6 +88,6 @@ const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.bg },
   content: { padding: 20, paddingTop: 16, paddingBottom: 40 },
   statusRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginVertical: 14 },
-  status: { color: C.gold, fontSize: 14 },
+  status: { fontFamily: F.bodySemi, color: C.gold, fontSize: 14, textAlign: "center" },
   head: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
 });

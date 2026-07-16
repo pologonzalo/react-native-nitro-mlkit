@@ -9,7 +9,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { C, R, T, tint } from "../src/theme";
+import { C, F, R, T, keycap, tint, wash } from "../src/theme";
 import { Card, Pill, TitleBlock } from "../src/ui";
 
 const ACCENT = "#a855f7";
@@ -98,17 +98,18 @@ const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.bg },
   content: { padding: 20, paddingTop: 16, paddingBottom: 40 },
   chip: {
-    backgroundColor: tint(ACCENT, 0.12),
-    borderColor: tint(ACCENT, 0.35),
-    borderWidth: 1,
+    backgroundColor: wash(ACCENT, 0.12),
+    borderColor: tint(ACCENT, 0.5),
+    borderWidth: 2,
     borderRadius: R.md,
     paddingVertical: 12,
     paddingHorizontal: 14,
     marginBottom: 8,
+    ...keycap(3),
   },
-  chipText: { color: C.text, fontSize: 13, fontWeight: "600" },
+  chipText: { color: C.text, fontFamily: F.bodySemi, fontSize: 13.5 },
   statusRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginVertical: 16 },
-  status: { color: C.gold, fontSize: 14 },
+  status: { fontFamily: F.bodySemi, color: C.gold, fontSize: 14, textAlign: "center" },
   entRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -118,5 +119,5 @@ const s = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: C.borderSoft,
   },
-  entText: { color: C.text, fontSize: 14, flex: 1, fontWeight: "600" },
+  entText: { color: C.text, fontFamily: F.bodySemi, fontSize: 14, flex: 1 },
 });

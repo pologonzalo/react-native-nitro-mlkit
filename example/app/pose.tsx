@@ -2,7 +2,7 @@ import { NitroPose } from "@nitro-mlkit/pose-detection";
 import { useState } from "react";
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 import { FACES } from "../src/samples";
-import { C, R, T } from "../src/theme";
+import { C, F, R, T } from "../src/theme";
 import { AnnotatedImage, Card, Pill, SamplePicker, TitleBlock, imageSize } from "../src/ui";
 
 const ACCENT = "#8b5cf6";
@@ -90,7 +90,7 @@ const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.bg },
   content: { padding: 20, paddingTop: 16, paddingBottom: 40 },
   statusRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginVertical: 14 },
-  status: { color: C.gold, fontSize: 14 },
+  status: { fontFamily: F.bodySemi, color: C.gold, fontSize: 14, textAlign: "center" },
   row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.borderSoft },
   rowRight: { flexDirection: "row", alignItems: "center", gap: 10 },
 });

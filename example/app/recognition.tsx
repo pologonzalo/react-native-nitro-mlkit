@@ -11,7 +11,7 @@ import {
   View,
 } from "react-native";
 import { FACES } from "../src/samples";
-import { C, R, T, tint } from "../src/theme";
+import { C, F, R, T, keycap, tint, wash } from "../src/theme";
 import { Card, Meter, Pill, TitleBlock } from "../src/ui";
 
 const ACCENT = "#ef4444";
@@ -165,29 +165,30 @@ function Step({ n, label, done, children }: { n: number; label: string; done: bo
 
 function btn(disabledLook: boolean) {
   return {
-    backgroundColor: disabledLook ? tint(ACCENT, 0.16) : ACCENT,
-    borderColor: tint(ACCENT, 0.5),
-    borderWidth: 1,
+    backgroundColor: disabledLook ? wash(ACCENT, 0.16) : ACCENT,
+    borderColor: C.ink,
+    borderWidth: 2,
     paddingVertical: 13,
     borderRadius: R.md,
     alignItems: "center" as const,
+    ...keycap(4),
   };
 }
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.bg },
   content: { padding: 20, paddingTop: 16, paddingBottom: 40 },
-  btnText: { color: "#fff", fontSize: 15, fontWeight: "700" },
+  btnText: { color: "#fff", fontFamily: F.display, fontSize: 16 },
   step: { marginBottom: 18 },
   stepHead: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 10 },
-  stepNum: { width: 24, height: 24, borderRadius: 12, alignItems: "center", justifyContent: "center" },
-  stepNumText: { color: "#fff", fontWeight: "800", fontSize: 12 },
+  stepNum: { width: 26, height: 26, borderRadius: 13, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: C.ink },
+  stepNumText: { color: "#fff", fontFamily: F.bodyBold, fontSize: 12 },
   people: { flexDirection: "row", gap: 10, marginBottom: 10 },
-  avatar: { width: 60, height: 60, borderRadius: 30, backgroundColor: C.surfaceAlt },
+  avatar: { width: 60, height: 60, borderRadius: 30, backgroundColor: C.surfaceAlt, borderWidth: 2, borderColor: C.ink },
   queryRow: { flexDirection: "row", gap: 12 },
-  queryImg: { width: 90, height: 90, borderRadius: R.md, backgroundColor: C.surfaceAlt },
-  queryLabel: { color: C.dim, fontSize: 11, textAlign: "center", marginTop: 4 },
+  queryImg: { width: 90, height: 90, borderRadius: R.md, backgroundColor: C.surfaceAlt, borderWidth: 2, borderColor: C.ink },
+  queryLabel: { color: C.dim, fontFamily: F.bodySemi, fontSize: 11, textAlign: "center", marginTop: 4 },
   statusRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginVertical: 14 },
-  status: { color: C.gold, fontSize: 14 },
+  status: { fontFamily: F.bodySemi, color: C.gold, fontSize: 14, textAlign: "center" },
   matchHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 5 },
 });

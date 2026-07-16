@@ -2,7 +2,7 @@ import { NitroText } from "@nitro-mlkit/text-recognition";
 import { useState } from "react";
 import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { TEXTS } from "../src/samples";
-import { C, R, T, tint } from "../src/theme";
+import { C, F, R, T, keycap, tint, wash } from "../src/theme";
 import { Card, Pill, SamplePicker, TitleBlock } from "../src/ui";
 
 const ACCENT = "#ec4899";
@@ -86,19 +86,20 @@ export default function OcrScreen() {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.bg },
   content: { padding: 20, paddingTop: 16, paddingBottom: 40 },
-  preview: { width: "100%", height: 150, borderRadius: R.lg, marginTop: 16, backgroundColor: "#fff" },
+  preview: { width: "100%", height: 150, borderRadius: R.lg, marginTop: 16, backgroundColor: "#fff", borderWidth: 2, borderColor: C.ink },
   statusRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginVertical: 14 },
-  status: { color: C.gold, fontSize: 14 },
+  status: { fontFamily: F.bodySemi, color: C.gold, fontSize: 14, textAlign: "center" },
   batch: {
-    backgroundColor: tint(ACCENT, 0.16),
-    borderColor: tint(ACCENT, 0.5),
-    borderWidth: 1,
+    backgroundColor: wash(ACCENT, 0.16),
+    borderColor: ACCENT,
+    borderWidth: 2,
     paddingVertical: 12,
     borderRadius: R.md,
     alignItems: "center",
     marginBottom: 14,
+    ...keycap(4),
   },
-  batchText: { color: ACCENT, fontWeight: "700", fontSize: 14 },
+  batchText: { color: ACCENT, fontFamily: F.bodyBold, fontSize: 14 },
   head: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 },
-  recognized: { color: C.text, fontSize: 20, fontWeight: "700" },
+  recognized: { color: C.text, fontFamily: F.bodyBold, fontSize: 18, lineHeight: 26 },
 });

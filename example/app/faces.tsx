@@ -11,7 +11,7 @@ import {
   View,
 } from "react-native";
 import { FACES } from "../src/samples";
-import { C, R, T, tint } from "../src/theme";
+import { C, F, R, T, keycap, tint, wash } from "../src/theme";
 import { Card, Meter, Pill, SamplePicker, TitleBlock } from "../src/ui";
 
 const ACCENT = "#3b82f6";
@@ -148,21 +148,22 @@ function MeterRow({ label, value, accent }: { label: string; value: number; acce
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.bg },
   content: { padding: 20, paddingTop: 16, paddingBottom: 40 },
-  preview: { width: "100%", height: 280, borderRadius: R.lg, marginTop: 16, backgroundColor: C.surfaceAlt },
+  preview: { width: "100%", height: 280, borderRadius: R.lg, marginTop: 16, backgroundColor: C.surfaceAlt, borderWidth: 2, borderColor: C.ink },
   statusRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginVertical: 14 },
-  status: { color: C.gold, fontSize: 14 },
+  status: { fontFamily: F.bodySemi, color: C.gold, fontSize: 14, textAlign: "center" },
   actions: { flexDirection: "row", gap: 10, marginBottom: 14 },
   action: {
     flex: 1,
-    backgroundColor: tint(ACCENT, 0.16),
-    borderColor: tint(ACCENT, 0.5),
-    borderWidth: 1,
+    backgroundColor: wash(ACCENT, 0.16),
+    borderColor: ACCENT,
+    borderWidth: 2,
     paddingVertical: 12,
     borderRadius: R.md,
     alignItems: "center",
+    ...keycap(4),
   },
-  actionText: { color: ACCENT, fontWeight: "700", fontSize: 14 },
-  crop: { width: 96, height: 96, borderRadius: R.md, marginRight: 10, backgroundColor: C.surfaceAlt },
+  actionText: { color: ACCENT, fontFamily: F.bodyBold, fontSize: 14 },
+  crop: { width: 96, height: 96, borderRadius: R.md, marginRight: 10, backgroundColor: C.surfaceAlt, borderWidth: 2, borderColor: C.ink },
   cardHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   meterHead: { flexDirection: "row", justifyContent: "space-between", marginBottom: 5 },
 });

@@ -2,7 +2,7 @@ import { NitroBarcode } from "@nitro-mlkit/barcode-scanning";
 import { useState } from "react";
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { CODES } from "../src/samples";
-import { C, R, T, tint } from "../src/theme";
+import { C, F, R, T, keycap, tint, wash } from "../src/theme";
 import { AnnotatedImage, Card, Pill, SamplePicker, TitleBlock, imageSize } from "../src/ui";
 
 const ACCENT = "#d97706";
@@ -102,17 +102,18 @@ const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.bg },
   content: { padding: 20, paddingTop: 16, paddingBottom: 40 },
   statusRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginVertical: 14 },
-  status: { color: C.gold, fontSize: 14, textAlign: "center" },
+  status: { fontFamily: F.bodySemi, color: C.gold, fontSize: 14, textAlign: "center" },
   batch: {
-    backgroundColor: tint(ACCENT, 0.16),
-    borderColor: tint(ACCENT, 0.5),
-    borderWidth: 1,
+    backgroundColor: wash(ACCENT, 0.16),
+    borderColor: ACCENT,
+    borderWidth: 2,
     paddingVertical: 12,
     borderRadius: R.md,
     alignItems: "center",
     marginBottom: 14,
+    ...keycap(4),
   },
-  batchText: { color: ACCENT, fontWeight: "700", fontSize: 14 },
+  batchText: { color: ACCENT, fontFamily: F.bodyBold, fontSize: 14 },
   head: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
-  raw: { color: C.text, fontSize: 14 },
+  raw: { color: C.text, fontFamily: F.body, fontSize: 14 },
 });

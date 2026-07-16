@@ -1,9 +1,11 @@
 import { Directory, File, Paths } from "expo-file-system";
+import { Image as ExpoImage } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Animated,
   Image,
   Pressable,
   ScrollView,
@@ -11,7 +13,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { C, R, T, tint } from "./theme";
+import { C, F, keycap, R, T, tint } from "./theme";
 
 export type Sample = { label: string; url: string; name?: string };
 
@@ -39,41 +41,29 @@ export function imageSize(uri: string): Promise<{ w: number; h: number }> {
 /** Package name + one-line tagline shown at the top of a screen. */
 export function TitleBlock({ name, tagline }: { name: string; tagline: string }) {
   return (
-    <View style={{ marginBottom: 14 }}>
+    <View style={{ marginBottom: 16 }}>
       <Text style={ui.pkg}>{name}</Text>
       <Text style={T.sub}>{tagline}</Text>
     </View>
   );
 }
 
-/** A rounded surface card. */
-export function Card({
-  children,
-  style,
-}: {
-  children: ReactNode;
-  style?: any;
-}) {
+/** A chunky keycap surface card. */
+export function Card({ children, style }: { children: ReactNode; style?: any }) {
   return <View style={{ ...ui.card, ...(style ?? {}) }}>{children}</View>;
 }
 
-/** A small labelled stat chip. */
-export function Pill({
-  children,
-  accent = C.dim,
-}: {
-  children: ReactNode;
-  accent?: string;
-}) {
+/** A small chunky stat chip. */
+export function Pill({ children, accent = C.orange }: { children: ReactNode; accent?: string }) {
   return (
-    <View style={{ ...ui.pill, backgroundColor: tint(accent, 0.16), borderColor: tint(accent, 0.5) }}>
+    <View style={{ ...ui.pill, backgroundColor: tint(accent, 0.14), borderColor: accent }}>
       <Text style={{ ...ui.pillText, color: accent }}>{children}</Text>
     </View>
   );
 }
 
-/** A 0..1 confidence meter. */
-export function Meter({ value, accent }: { value: number; accent: string }) {
+/** A 0..1 meter — chunky rounded track. */
+export function Meter({ value, accent = C.orange }: { value: number; accent?: string }) {
   const pct = Math.round(Math.max(0, Math.min(1, value)) * 100);
   return (
     <View style={ui.meterTrack}>
@@ -83,49 +73,57 @@ export function Meter({ value, accent }: { value: number; accent: string }) {
 }
 
 /**
- * Image-source picker: a horizontal strip with Camera + Gallery tiles followed
- * by ~10 curated stock thumbnails. Tapping a stock thumbnail downloads it and
- * calls `onPick(fileUri)`; camera/gallery return the captured/selected uri.
+ * Image-source picker: a fat segmented control (Gallery · Camera · Stock) with
+ * a springy sliding puck. Gallery/Camera launch immediately; Stock reveals a
+ * flickable strip of polaroid stock cards that download-on-tap.
  */
 export function SamplePicker({
   samples,
-  accent,
+  accent = C.orange,
   onPick,
   disabled,
 }: {
   samples: Sample[];
-  accent: string;
+  accent?: string;
   onPick: (uri: string) => void;
   disabled?: boolean;
 }) {
+  const [mode, setMode] = useState<0 | 1 | 2>(2); // default: Stock strip open
   const [selected, setSelected] = useState<number | null>(null);
   const [busy, setBusy] = useState<number | null>(null);
+  const [w, setW] = useState(0);
+  const puck = useRef(new Animated.Value(2)).current;
   const lock = disabled || busy !== null;
 
+  function slide(i: 0 | 1 | 2) {
+    setMode(i);
+    Animated.spring(puck, {
+      toValue: i,
+      useNativeDriver: true,
+      damping: 14,
+      stiffness: 180,
+      mass: 0.7,
+    }).start();
+  }
+
   async function fromCamera() {
+    slide(1);
     const perm = await ImagePicker.requestCameraPermissionsAsync();
-    if (!perm.granted) {
-      Alert.alert("Camera", "Camera permission is required to take a photo.");
-      return;
-    }
+    if (!perm.granted) return Alert.alert("Camera", "Camera permission is required.");
     const res = await ImagePicker.launchCameraAsync({ quality: 1 });
     if (!res.canceled && res.assets[0]) {
       setSelected(null);
       onPick(res.assets[0].uri);
     }
   }
-
   async function fromGallery() {
-    const res = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: "images",
-      quality: 1,
-    });
+    slide(0);
+    const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: "images", quality: 1 });
     if (!res.canceled && res.assets[0]) {
       setSelected(null);
       onPick(res.assets[0].uri);
     }
   }
-
   async function fromSample(i: number) {
     const sample = samples[i];
     setBusy(i);
@@ -139,46 +137,60 @@ export function SamplePicker({
     setBusy(null);
   }
 
+  const seg = w > 0 ? (w - 8) / 3 : 0;
+  const SEGS: { k: 0 | 1 | 2; label: string; emoji: string; onPress: () => void }[] = [
+    { k: 0, label: "Gallery", emoji: "🖼️", onPress: fromGallery },
+    { k: 1, label: "Camera", emoji: "📷", onPress: fromCamera },
+    { k: 2, label: "Stock", emoji: "🎞️", onPress: () => slide(2) },
+  ];
+
   return (
     <View>
-      <View style={ui.srcHead}>
-        <Text style={T.faint}>SOURCE</Text>
-      </View>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={ui.strip}
-      >
-        <ActionTile emoji="📷" label="Camera" accent={accent} onPress={fromCamera} disabled={lock} />
-        <ActionTile emoji="🖼️" label="Gallery" accent={accent} onPress={fromGallery} disabled={lock} />
-        <View style={ui.divider} />
-        {samples.map((sample, i) => (
-          <Pressable
-            key={i}
-            onPress={() => fromSample(i)}
-            disabled={lock}
+      <View style={ui.segwrap} onLayout={(e) => setW(e.nativeEvent.layout.width)}>
+        {seg > 0 && (
+          <Animated.View
             style={{
-              ...ui.thumbWrap,
-              borderColor: selected === i ? accent : "transparent",
+              ...ui.puck,
+              width: seg,
+              backgroundColor: accent,
+              transform: [{ translateX: Animated.multiply(puck, seg) }],
             }}
-          >
-            <Image source={{ uri: sample.url }} style={ui.thumb} resizeMode="cover" />
-            {busy === i && (
-              <View style={ui.thumbOverlay}>
-                <ActivityIndicator color="#fff" />
-              </View>
-            )}
-            {selected === i && (
-              <View style={{ ...ui.check, backgroundColor: accent }}>
-                <Text style={ui.checkMark}>✓</Text>
-              </View>
-            )}
-            <Text style={ui.thumbLabel} numberOfLines={1}>
-              {sample.label}
+          />
+        )}
+        {SEGS.map((s) => (
+          <Pressable key={s.k} style={ui.seg} onPress={s.onPress} disabled={lock}>
+            <Text style={{ ...ui.segText, color: mode === s.k ? "#fff" : C.dim }}>
+              {s.emoji} {s.label}
             </Text>
           </Pressable>
         ))}
-      </ScrollView>
+      </View>
+
+      {mode === 2 && (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={ui.strip}>
+          {samples.map((sample, i) => (
+            <Pressable
+              key={i}
+              onPress={() => fromSample(i)}
+              disabled={lock}
+              style={{ ...ui.polaroid, ...(selected === i ? { borderColor: accent } : {}), transform: [{ rotate: i % 2 ? "1.5deg" : "-1.5deg" }] }}
+            >
+              <ExpoImage source={{ uri: sample.url }} style={ui.polaroidImg} contentFit="cover" transition={150} />
+              {busy === i && (
+                <View style={ui.thumbOverlay}>
+                  <ActivityIndicator color="#fff" />
+                </View>
+              )}
+              {selected === i && (
+                <View style={{ ...ui.check, backgroundColor: accent }}>
+                  <Text style={ui.checkMark}>✓</Text>
+                </View>
+              )}
+              <Text style={ui.polaroidLabel} numberOfLines={1}>{sample.label}</Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+      )}
     </View>
   );
 }
@@ -186,25 +198,21 @@ export function SamplePicker({
 export type Mark = { x: number; y: number };
 export type Box = { x: number; y: number; width: number; height: number; label?: string };
 
-/**
- * An image with detection results drawn on top (points and/or boxes), scaled
- * from the original pixel space to the displayed size. Great for visually
- * comparing what the model found against the photo.
- */
+/** An image with detection results drawn on top (points and/or boxes). */
 export function AnnotatedImage({
   uri,
   imageW,
   imageH,
-  accent,
+  accent = C.yellow,
   points,
   boxes,
-  dotSize = 4,
+  dotSize = 5,
   maxHeight = 340,
 }: {
   uri: string;
   imageW: number;
   imageH: number;
-  accent: string;
+  accent?: string;
   points?: Mark[];
   boxes?: Box[];
   dotSize?: number;
@@ -222,17 +230,10 @@ export function AnnotatedImage({
   const sy = imageH > 0 ? dispH / imageH : 0;
 
   return (
-    <View
-      onLayout={(e) => setW(e.nativeEvent.layout.width)}
-      style={{ alignItems: "center", marginTop: 16 }}
-    >
+    <View onLayout={(e) => setW(e.nativeEvent.layout.width)} style={{ alignItems: "center", marginTop: 16 }}>
       {w > 0 && (
-        <View style={{ width: dispW, height: dispH }}>
-          <Image
-            source={{ uri }}
-            style={{ width: dispW, height: dispH, borderRadius: R.lg }}
-            resizeMode="cover"
-          />
+        <View style={{ width: dispW, height: dispH, transform: [{ rotate: "-1.2deg" }] }}>
+          <Image source={{ uri }} style={{ width: dispW, height: dispH, borderRadius: R.lg, borderWidth: 3, borderColor: "#fff" }} resizeMode="cover" />
           {points?.map((p, i) => (
             <View
               key={`p${i}`}
@@ -256,15 +257,13 @@ export function AnnotatedImage({
                 top: b.y * sy,
                 width: b.width * sx,
                 height: b.height * sy,
-                borderWidth: 2,
+                borderWidth: 3,
                 borderColor: accent,
-                borderRadius: 6,
+                borderRadius: 10,
               }}
             >
               {b.label ? (
-                <Text style={{ ...ui.boxLabel, backgroundColor: accent }} numberOfLines={1}>
-                  {b.label}
-                </Text>
+                <Text style={{ ...ui.boxLabel, backgroundColor: accent }} numberOfLines={1}>{b.label}</Text>
               ) : null}
             </View>
           ))}
@@ -274,112 +273,68 @@ export function AnnotatedImage({
   );
 }
 
-function ActionTile({
-  emoji,
-  label,
-  accent,
-  onPress,
-  disabled,
-}: {
-  emoji: string;
-  label: string;
-  accent: string;
-  onPress: () => void;
-  disabled?: boolean;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={disabled}
-      style={{ ...ui.actionTile, backgroundColor: tint(accent, 0.16), borderColor: tint(accent, 0.5) }}
-    >
-      <Text style={ui.actionEmoji}>{emoji}</Text>
-      <Text style={{ ...ui.actionLabel, color: accent }}>{label}</Text>
-    </Pressable>
-  );
-}
-
-const THUMB = 74;
-
 const ui = StyleSheet.create({
-  pkg: { fontSize: 15, fontWeight: "700", color: C.text, fontFamily: undefined },
+  pkg: { fontFamily: F.display, fontSize: 20, color: C.text, letterSpacing: -0.3 },
   card: {
     backgroundColor: C.surface,
     borderRadius: R.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: C.border,
-    padding: 14,
+    borderWidth: 2,
+    borderColor: C.ink,
+    padding: 16,
+    ...keycap(6),
   },
   pill: {
     paddingVertical: 4,
-    paddingHorizontal: 10,
+    paddingHorizontal: 11,
     borderRadius: R.pill,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: 2,
     alignSelf: "flex-start",
   },
-  pillText: { fontSize: 12, fontWeight: "700" },
-  meterTrack: {
-    height: 6,
-    borderRadius: R.pill,
-    backgroundColor: C.borderSoft,
-    overflow: "hidden",
-  },
-  meterFill: { height: 6, borderRadius: R.pill },
-  srcHead: { marginBottom: 8 },
-  strip: { gap: 10, paddingRight: 8, alignItems: "flex-start" },
-  divider: { width: StyleSheet.hairlineWidth, backgroundColor: C.border, marginHorizontal: 2, alignSelf: "stretch" },
-  actionTile: {
-    width: THUMB,
-    height: THUMB,
-    borderRadius: R.md,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 4,
-  },
-  actionEmoji: { fontSize: 24 },
-  actionLabel: { fontSize: 11, fontWeight: "700" },
-  thumbWrap: {
-    width: THUMB,
-    borderRadius: R.md,
+  pillText: { fontFamily: F.bodyBold, fontSize: 12 },
+  meterTrack: { height: 10, borderRadius: R.pill, backgroundColor: C.peg, borderWidth: 1.5, borderColor: C.ink, overflow: "hidden" },
+  meterFill: { height: "100%", borderRadius: R.pill },
+
+  segwrap: {
+    flexDirection: "row",
+    backgroundColor: C.surface,
     borderWidth: 2,
-    padding: 2,
+    borderColor: C.ink,
+    borderRadius: R.pill,
+    padding: 4,
+    position: "relative",
+    ...keycap(4),
   },
-  thumb: {
-    width: THUMB - 8,
-    height: THUMB - 8,
-    borderRadius: R.sm,
-    backgroundColor: C.surfaceAlt,
+  puck: { position: "absolute", top: 4, left: 4, bottom: 4, borderRadius: R.pill },
+  seg: { flex: 1, paddingVertical: 11, alignItems: "center", zIndex: 2 },
+  segText: { fontFamily: F.bodyBold, fontSize: 13 },
+
+  strip: { gap: 12, paddingTop: 14, paddingBottom: 6, paddingRight: 8 },
+  polaroid: {
+    width: 92,
+    backgroundColor: "#fff",
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: C.ink,
+    padding: 5,
+    paddingBottom: 8,
+    ...keycap(5),
   },
-  thumbOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#000A",
-    borderRadius: R.md,
-  },
-  check: {
-    position: "absolute",
-    top: 4,
-    right: 4,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  polaroidImg: { width: "100%", height: 78, borderRadius: 8, backgroundColor: C.surfaceAlt },
+  polaroidLabel: { fontFamily: F.bodySemi, color: C.dim, fontSize: 11, textAlign: "center", marginTop: 5 },
+  thumbOverlay: { ...StyleSheet.absoluteFillObject, alignItems: "center", justifyContent: "center", backgroundColor: "#000A", borderRadius: 14 },
+  check: { position: "absolute", top: 8, right: 8, width: 20, height: 20, borderRadius: 10, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: C.ink },
   checkMark: { color: "#fff", fontSize: 11, fontWeight: "900" },
-  thumbLabel: { color: C.dim, fontSize: 10, textAlign: "center", marginTop: 3 },
+
   boxLabel: {
     position: "absolute",
-    top: -18,
-    left: -2,
-    color: "#fff",
+    top: -20,
+    left: -3,
+    color: C.ink,
+    fontFamily: F.bodyBold,
     fontSize: 10,
-    fontWeight: "700",
-    paddingHorizontal: 5,
-    paddingVertical: 1,
-    borderRadius: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
     overflow: "hidden",
   },
 });

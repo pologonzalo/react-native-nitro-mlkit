@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 import type { Slide } from "./gallery-insights";
+import { F } from "./theme";
 
 const DURATION = 4500; // ms per slide
 const TICK = 50;
@@ -232,7 +233,7 @@ const s = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  closeText: { color: "#fff", fontSize: 20, fontWeight: "700" },
+  closeText: { color: "#fff", fontFamily: F.bodyBold, fontSize: 20 },
   content: {
     position: "absolute",
     left: 24,
@@ -241,8 +242,8 @@ const s = StyleSheet.create({
     zIndex: 8,
   },
   emoji: { fontSize: 64, marginBottom: 10 },
-  title: { color: "#fff", fontSize: 34, fontWeight: "900", letterSpacing: -0.8, lineHeight: 38 },
-  subtitle: { fontSize: 16, marginTop: 8, lineHeight: 22 },
+  title: { color: "#fff", fontFamily: F.display, fontSize: 36, letterSpacing: -0.8, lineHeight: 40 },
+  subtitle: { fontFamily: F.bodySemi, fontSize: 16, marginTop: 8, lineHeight: 22 },
   rule: { width: 48, height: 4, borderRadius: 2, marginTop: 16 },
   strip: { flexDirection: "row", gap: 8, marginTop: 20 },
   stripThumb: {

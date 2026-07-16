@@ -1,7 +1,7 @@
 import { NitroLanguageId } from "@nitro-mlkit/language-id";
 import { useState } from "react";
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { C, R, T, tint } from "../src/theme";
+import { C, F, R, T, keycap, tint, wash } from "../src/theme";
 import { Card, Meter, Pill, TitleBlock } from "../src/ui";
 
 const ACCENT = "#0ea5e9";
@@ -81,17 +81,18 @@ const s = StyleSheet.create({
   content: { padding: 20, paddingTop: 16, paddingBottom: 40 },
   chips: { gap: 8 },
   chip: {
-    backgroundColor: tint(ACCENT, 0.14),
-    borderColor: tint(ACCENT, 0.4),
-    borderWidth: 1,
+    backgroundColor: wash(ACCENT, 0.14),
+    borderColor: tint(ACCENT, 0.55),
+    borderWidth: 2,
     borderRadius: R.md,
     paddingVertical: 11,
     paddingHorizontal: 14,
+    ...keycap(3),
   },
-  chipText: { color: C.text, fontSize: 13, fontWeight: "600" },
+  chipText: { color: C.text, fontFamily: F.bodySemi, fontSize: 13.5 },
   statusRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginVertical: 16 },
-  status: { color: C.gold, fontSize: 14 },
+  status: { fontFamily: F.bodySemi, color: C.gold, fontSize: 14, textAlign: "center" },
   head: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 4 },
-  big: { color: ACCENT, fontSize: 26, fontWeight: "800", textTransform: "uppercase" },
+  big: { color: ACCENT, fontFamily: F.display, fontSize: 26, textTransform: "uppercase" },
   pRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 4 },
 });

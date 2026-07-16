@@ -2,53 +2,52 @@ import { NitroFace, PerformanceMode } from "@nitro-mlkit/face-detection";
 import { RNMLKitFaceDetector } from "@infinitered/react-native-mlkit-face-detection";
 import RNMLKitClassic from "@react-native-ml-kit/face-detection";
 import { Directory, File, Paths } from "expo-file-system";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import { C, F, keycap, R, tint, wash } from "../src/theme";
+import { Card } from "../src/ui";
 
 /**
- * Benchmark harness — three ML Kit face-detection wrappers, one engine.
- *
- *   • @nitro-mlkit/face-detection      Nitro / JSI + native batch (this repo)
- *   • @react-native-ml-kit/face-detection   classic bridge (NativeModules)
+ * THE RACE — three ML Kit face-detection wrappers, one engine, drag-strip UI.
+ *   • @nitro-mlkit/face-detection            Nitro / JSI + native batch (this repo)
+ *   • @react-native-ml-kit/face-detection    classic bridge (NativeModules)
  *   • @infinitered/react-native-mlkit-face-detection   Expo module
- *
- * All three wrap the SAME Google ML Kit face-detection with the SAME options
- * (fast mode, no landmarks/contours/classification), so the only variable is
- * the JS<->native architecture.
- *
- * Images are downloaded once into the app sandbox (documentDirectory), so this
- * runs identically on Android and a physical iOS device — no adb push needed.
+ * Same Google ML Kit + same options everywhere, so the only variable is the
+ * JS<->native architecture. The cars move at speeds proportional to the REAL
+ * measured sequential time — the race is a replay of the benchmark.
  */
 
-const IMAGE_COUNT = 50; // distinct faces
-const GALLERY_SIZE = 500; // simulated gallery to scan
-const SINGLE_ITERS = 40;
-const WARMUP = 12;
-const CONCURRENCIES = [1, 2, 4, 8, 16]; // batch sweep
+const IMAGE_COUNT = 40;
+const GALLERY_SIZE = 150; // snappy but real
+const SINGLE_ITERS = 24;
+const WARMUP = 10;
+const CONCURRENCIES = [2, 4, 8];
 
 const benchDir = new Directory(Paths.document, "bench");
+const fileName = (i: number) => `face_${String(i % IMAGE_COUNT).padStart(3, "0")}.jpg`;
+const now = () => (globalThis as any).performance?.now?.() ?? Date.now();
+const median = (n: number[]) => {
+  const s = [...n].sort((a, b) => a - b);
+  const m = Math.floor(s.length / 2);
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+};
 
-function fileName(i: number) {
-  return `face_${String(i % IMAGE_COUNT).padStart(3, "0")}.jpg`;
-}
-
-/** Download IMAGE_COUNT distinct real faces into the sandbox (idempotent). */
 async function ensureImages(onProgress: (n: number) => void): Promise<string[]> {
   if (!benchDir.exists) benchDir.create();
   const uris: string[] = [];
   for (let i = 0; i < IMAGE_COUNT; i++) {
     const dest = new File(benchDir, fileName(i));
     if (!dest.exists) {
-      const gender = Math.floor(i / 100) % 2 === 0 ? "men" : "women";
-      const half = i % 100;
-      const url = `https://randomuser.me/api/portraits/${gender}/${half}.jpg`;
+      const gender = i % 2 === 0 ? "men" : "women";
+      const url = `https://randomuser.me/api/portraits/${gender}/${i % 100}.jpg`;
       await File.downloadFileAsync(url, dest);
     }
     uris.push(dest.uri);
@@ -57,193 +56,204 @@ async function ensureImages(onProgress: (n: number) => void): Promise<string[]> 
   return uris;
 }
 
-const now = () => (globalThis as any).performance?.now?.() ?? Date.now();
-function median(nums: number[]): number {
-  const s = [...nums].sort((a, b) => a - b);
-  const m = Math.floor(s.length / 2);
-  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
-}
+const infineDetector = new RNMLKitFaceDetector({ performanceMode: "fast", landmarkMode: false, contourMode: false, classificationMode: false });
+const nitroDetect = (u: string) => NitroFace.detect(u, { performanceMode: PerformanceMode.FAST, landmarks: false, classifications: false, minFaceSize: 0.1, tracking: false });
+const classicDetect = (u: string) => RNMLKitClassic.detect(u, { performanceMode: "fast", landmarkMode: "none", classificationMode: "none" });
+const infineDetect = (u: string) => infineDetector.detectFaces(u);
 
-// ─── Adapters (identical options everywhere) ───────────────────────────────
+type Racer = { key: string; name: string; car: string; accent: string; bridge: boolean };
+const RACERS: Racer[] = [
+  { key: "nitro", name: "Nitro · JSI", car: "🏎️", accent: C.orange, bridge: false },
+  { key: "classic", name: "RN-ML-Kit · bridge", car: "🚗", accent: C.blue, bridge: true },
+  { key: "infinite", name: "InfiniteRed · Expo", car: "🚙", accent: "#8B5CF6", bridge: true },
+];
 
-const infineDetector = new RNMLKitFaceDetector({
-  performanceMode: "fast",
-  landmarkMode: false,
-  contourMode: false,
-  classificationMode: false,
-});
-
-const nitroDetect = (uri: string) =>
-  NitroFace.detect(uri, {
-    performanceMode: PerformanceMode.FAST,
-    landmarks: false,
-    classifications: false,
-    minFaceSize: 0.1,
-    tracking: false,
-  });
-
-const classicDetect = (uri: string) =>
-  RNMLKitClassic.detect(uri, {
-    performanceMode: "fast",
-    landmarkMode: "none",
-    classificationMode: "none",
-  });
-
-const infineDetect = (uri: string) => infineDetector.detectFaces(uri);
-
-type Row = { label: string; value: string; hi?: boolean };
+type Result = {
+  seq: Record<string, number>;
+  single: Record<string, number>;
+  bestBatch: number;
+  bestC: number;
+  speedup: number;
+};
 
 export default function BenchmarkScreen() {
-  const [running, setRunning] = useState(false);
-  const [status, setStatus] = useState("Idle");
-  const [rows, setRows] = useState<Row[]>([]);
+  const [phase, setPhase] = useState<"idle" | "running" | "done">("idle");
+  const [status, setStatus] = useState("Line up the engines and drop the flag.");
+  const [result, setResult] = useState<Result | null>(null);
+  const [trackW, setTrackW] = useState(0);
+  const lanes = useRef(RACERS.map(() => new Animated.Value(0))).current;
+
+  function animateRace(seq: Record<string, number>) {
+    const times = RACERS.map((r) => seq[r.key]);
+    const minT = Math.min(...times);
+    const base = 1500;
+    lanes.forEach((v) => v.setValue(0));
+    Animated.parallel(
+      RACERS.map((r, i) =>
+        Animated.timing(lanes[i], {
+          toValue: 1,
+          duration: base * (seq[r.key] / minT),
+          useNativeDriver: true,
+        }),
+      ),
+    ).start();
+  }
 
   async function run() {
-    setRunning(true);
-    setRows([]);
-    const out: Row[] = [];
-    const push = (label: string, value: string, hi = false) => {
-      out.push({ label, value, hi });
-      setRows([...out]);
-    };
-
+    setPhase("running");
+    setResult(null);
     try {
       setStatus("Downloading faces…");
-      const uris = await ensureImages((n) =>
-        setStatus(`Downloading faces… ${n}/${IMAGE_COUNT}`),
-      );
+      const uris = await ensureImages((n) => setStatus(`Downloading faces… ${n}/${IMAGE_COUNT}`));
       const gallery = Array.from({ length: GALLERY_SIZE }, (_, i) => uris[i % IMAGE_COUNT]);
 
-      setStatus("Initializing detectors…");
+      setStatus("Initializing…");
       await infineDetector.initialize();
-
-      // Warm-up (load model, JIT)
-      setStatus("Warming up…");
+      setStatus("Warming up the engines…");
       for (let i = 0; i < WARMUP; i++) {
         await nitroDetect(uris[i % IMAGE_COUNT]);
         await classicDetect(uris[i % IMAGE_COUNT]);
         await infineDetect(uris[i % IMAGE_COUNT]);
       }
 
-      // ── 1. Single-call latency (median) ──
-      setStatus("Single-call latency…");
-      const sN: number[] = [];
-      const sC: number[] = [];
-      const sI: number[] = [];
+      setStatus("Single-shot laps…");
+      const s: Record<string, number[]> = { nitro: [], classic: [], infinite: [] };
       for (let i = 0; i < SINGLE_ITERS; i++) {
         const u = uris[i % IMAGE_COUNT];
-        let t = now(); await nitroDetect(u); sN.push(now() - t);
-        t = now(); await classicDetect(u); sC.push(now() - t);
-        t = now(); await infineDetect(u); sI.push(now() - t);
+        let t = now(); await nitroDetect(u); s.nitro.push(now() - t);
+        t = now(); await classicDetect(u); s.classic.push(now() - t);
+        t = now(); await infineDetect(u); s.infinite.push(now() - t);
       }
-      const nMed = median(sN), cMed = median(sC), iMed = median(sI);
-      push("Single — Nitro", `${nMed.toFixed(2)} ms`, true);
-      push("Single — RN-ML-Kit (bridge)", `${cMed.toFixed(2)} ms`);
-      push("Single — InfiniteRed (Expo)", `${iMed.toFixed(2)} ms`);
+      const single = { nitro: median(s.nitro), classic: median(s.classic), infinite: median(s.infinite) };
 
-      // ── 2. Sequential scan of GALLERY_SIZE (all three) ──
-      setStatus(`Sequential ×${GALLERY_SIZE}…`);
-      let t = now();
-      for (const u of gallery) await nitroDetect(u);
-      const seqN = now() - t;
-      t = now();
-      for (const u of gallery) await classicDetect(u);
-      const seqC = now() - t;
-      t = now();
-      for (const u of gallery) await infineDetect(u);
-      const seqI = now() - t;
-      push(`Seq ×${GALLERY_SIZE} — Nitro`, `${seqN.toFixed(0)} ms`, true);
-      push(`Seq ×${GALLERY_SIZE} — RN-ML-Kit`, `${seqC.toFixed(0)} ms`);
-      push(`Seq ×${GALLERY_SIZE} — InfiniteRed`, `${seqI.toFixed(0)} ms`);
+      setStatus(`Endurance race · ${GALLERY_SIZE} photos…`);
+      const seq: Record<string, number> = {};
+      let t = now(); for (const u of gallery) await nitroDetect(u); seq.nitro = now() - t;
+      t = now(); for (const u of gallery) await classicDetect(u); seq.classic = now() - t;
+      t = now(); for (const u of gallery) await infineDetect(u); seq.infinite = now() - t;
 
-      // ── 3. Native batch, concurrency sweep (Nitro only) ──
+      setStatus("Nitro native-batch run…");
       const batch: Record<number, number> = {};
       for (const c of CONCURRENCIES) {
-        setStatus(`Batch ×${GALLERY_SIZE} @concurrency ${c}…`);
-        t = now();
-        await NitroFace.detectBatch(gallery, c);
-        batch[c] = now() - t;
-        push(`Batch ×${GALLERY_SIZE} — Nitro @${c}`, `${batch[c].toFixed(0)} ms`, true);
+        t = now(); await NitroFace.detectBatch(gallery, c); batch[c] = now() - t;
       }
       const bestBatch = Math.min(...Object.values(batch));
-      const bestC = CONCURRENCIES.find((c) => batch[c] === bestBatch);
-      push(
-        "Batch best vs fastest competitor",
-        `${(Math.min(seqC, seqI) / bestBatch).toFixed(2)}× (c=${bestC})`,
-        true,
-      );
+      const bestC = CONCURRENCIES.find((c) => batch[c] === bestBatch) ?? 4;
+      const speedup = Math.min(seq.classic, seq.infinite) / bestBatch;
 
-      console.log(
-        "BENCH_RESULT " +
-          JSON.stringify({
-            gallerySize: GALLERY_SIZE,
-            singleIters: SINGLE_ITERS,
-            single: { nitro: nMed, classic: cMed, infinite: iMed },
-            sequential: { nitro: seqN, classic: seqC, infinite: seqI },
-            batch,
-          }),
-      );
-      setStatus("Done ✅");
+      console.log("BENCH_RESULT " + JSON.stringify({ gallerySize: GALLERY_SIZE, single, seq, batch }));
+      setResult({ seq, single, bestBatch, bestC, speedup });
+      setPhase("done");
+      setStatus("Photo finish 🏁");
+      animateRace(seq);
     } catch (e: any) {
-      push("ERROR", String(e?.message ?? e));
-      console.log("BENCH_ERROR " + String(e?.message ?? e));
-      setStatus("Error ❌");
-    } finally {
-      setRunning(false);
+      setStatus("Spun out ❌ · " + String(e?.message ?? e));
+      setPhase("idle");
     }
   }
 
+  const winner = result
+    ? RACERS.reduce((a, b) => (result.seq[a.key] <= result.seq[b.key] ? a : b)).key
+    : null;
+
   return (
     <ScrollView style={s.container} contentContainerStyle={s.content}>
-      <Text style={s.title}>Face Detection Benchmark</Text>
-      <Text style={s.subtitle}>
-        Nitro vs bridge vs Expo · same ML Kit · {GALLERY_SIZE} images
+      <Text style={s.h1}>🏁 The Race</Text>
+      <Text style={s.sub}>
+        Same Google ML Kit, three JS↔native architectures, {GALLERY_SIZE} faces. Cars move at the real measured speed.
       </Text>
 
-      <Pressable
-        style={running ? s.btnDisabled : s.btn}
-        onPress={run}
-        disabled={running}
-      >
-        <Text style={s.btnText}>{running ? "Running…" : "Run Benchmark"}</Text>
+      {/* Track */}
+      <View style={s.track} onLayout={(e) => setTrackW(e.nativeEvent.layout.width)}>
+        {RACERS.map((r, i) => {
+          const carW = 40;
+          const x = lanes[i].interpolate({ inputRange: [0, 1], outputRange: [0, Math.max(0, trackW - carW - 8)] });
+          const won = winner === r.key;
+          return (
+            <View key={r.key} style={s.lane}>
+              <View style={s.laneHead}>
+                <Text style={s.laneName}>{r.name}</Text>
+                {r.bridge && <Text style={s.bridgeTag}>bridge</Text>}
+                {result && (
+                  <Text style={{ ...s.laneMs, color: r.accent }}>
+                    {(result.seq[r.key] / 1000).toFixed(2)}s{won ? "  🏆" : ""}
+                  </Text>
+                )}
+              </View>
+              <View style={{ ...s.laneTrack, borderColor: r.accent, backgroundColor: tint(r.accent, 0.1) }}>
+                <View style={s.finish} />
+                <Animated.Text style={{ ...s.car, transform: [{ translateX: x }] }}>{r.car}</Animated.Text>
+              </View>
+            </View>
+          );
+        })}
+      </View>
+
+      <Pressable style={{ ...s.flag, opacity: phase === "running" ? 0.6 : 1 }} onPress={run} disabled={phase === "running"}>
+        {phase === "running" && <ActivityIndicator color="#fff" style={{ marginRight: 8 }} />}
+        <Text style={s.flagText}>{phase === "running" ? "Racing…" : phase === "done" ? "Race again 🏁" : "Drop the flag 🏁"}</Text>
       </Pressable>
+      <Text style={s.status}>{status}</Text>
 
-      <View style={s.statusRow}>
-        {running && <ActivityIndicator color="#1a6dff" />}
-        <Text style={s.status}>{status}</Text>
-      </View>
-
-      <View style={s.results}>
-        {rows.map((r, i) => (
-          <View key={i} style={s.row}>
-            <Text style={s.rowLabel}>{r.label}</Text>
-            <Text style={r.hi ? s.rowValueHi : s.rowValue}>{r.value}</Text>
+      {result && (
+        <>
+          <View style={s.trophy}>
+            <Text style={s.trophyBig}>{result.speedup.toFixed(1)}×</Text>
+            <Text style={s.trophySub}>Nitro native-batch (c={result.bestC}) vs the fastest bridge, on {GALLERY_SIZE} photos</Text>
           </View>
-        ))}
-      </View>
+
+          <Card style={{ marginTop: 14 }}>
+            <Text style={s.cardTitle}>Lap times</Text>
+            {RACERS.map((r) => (
+              <View key={r.key} style={s.statRow}>
+                <View style={{ ...s.statDot, backgroundColor: r.accent }} />
+                <Text style={s.statName}>{r.name}</Text>
+                <Text style={s.statVal}>{result.single[r.key].toFixed(1)}ms<Text style={s.statUnit}> single</Text></Text>
+                <Text style={s.statVal}>{(result.seq[r.key] / 1000).toFixed(2)}s<Text style={s.statUnit}> ×{GALLERY_SIZE}</Text></Text>
+              </View>
+            ))}
+            <View style={{ ...s.statRow, borderTopWidth: 2, borderTopColor: C.ink, marginTop: 6, paddingTop: 10 }}>
+              <View style={{ ...s.statDot, backgroundColor: C.mint }} />
+              <Text style={s.statName}>Nitro · native batch</Text>
+              <Text style={{ ...s.statVal, color: C.mintInk }}>{(result.bestBatch / 1000).toFixed(2)}s<Text style={s.statUnit}> best</Text></Text>
+            </View>
+          </Card>
+          <Text style={s.foot}>Same engine · same options · the only variable is the bridge. 100% on-device.</Text>
+        </>
+      )}
     </ScrollView>
   );
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0A0A1A" },
-  content: { padding: 20, paddingTop: 16, paddingBottom: 40 },
-  title: { fontSize: 22, fontWeight: "bold", color: "#fff", textAlign: "center" },
-  subtitle: { fontSize: 12, color: "#888", textAlign: "center", marginBottom: 20 },
-  btn: { backgroundColor: "#1a6dff", padding: 16, borderRadius: 10, alignItems: "center" },
-  btnDisabled: { backgroundColor: "#1a6dff", opacity: 0.5, padding: 16, borderRadius: 10, alignItems: "center" },
-  btnText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  statusRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginVertical: 16 },
-  status: { color: "#ffd700", fontSize: 14 },
-  results: { marginTop: 8 },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 9,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#222",
-  },
-  rowLabel: { color: "#aaa", fontSize: 13, flex: 1, paddingRight: 8 },
-  rowValue: { color: "#fff", fontSize: 13, fontWeight: "600" },
-  rowValueHi: { color: "#4ade80", fontSize: 13, fontWeight: "700" },
+  container: { flex: 1, backgroundColor: C.bg },
+  content: { padding: 20, paddingTop: 12, paddingBottom: 44 },
+  h1: { fontFamily: F.display, fontSize: 30, color: C.ink },
+  sub: { fontFamily: F.body, fontSize: 13.5, color: C.dim, marginTop: 2, marginBottom: 20 },
+
+  track: { backgroundColor: C.surface, borderWidth: 2, borderColor: C.ink, borderRadius: R.lg, padding: 14, gap: 14, ...keycap(6) },
+  lane: { gap: 6 },
+  laneHead: { flexDirection: "row", alignItems: "center", gap: 8 },
+  laneName: { fontFamily: F.bodyBold, fontSize: 13, color: C.ink },
+  bridgeTag: { fontFamily: F.mono, fontSize: 9, color: C.dim, backgroundColor: C.peg, borderRadius: 5, paddingHorizontal: 5, paddingVertical: 1 },
+  laneMs: { fontFamily: F.mono, fontSize: 12, marginLeft: "auto", fontVariant: ["tabular-nums"] },
+  laneTrack: { height: 42, borderRadius: R.md, borderWidth: 2, borderStyle: "dashed", justifyContent: "center", overflow: "hidden" },
+  finish: { position: "absolute", right: 4, top: 0, bottom: 0, width: 8, backgroundColor: C.ink, opacity: 0.15 },
+  car: { position: "absolute", left: 4, fontSize: 26 },
+
+  flag: { flexDirection: "row", alignItems: "center", justifyContent: "center", backgroundColor: C.orange, borderWidth: 2, borderColor: C.ink, borderRadius: R.pill, paddingVertical: 15, marginTop: 18, ...keycap(6) },
+  flagText: { fontFamily: F.display, fontSize: 17, color: "#fff" },
+  status: { fontFamily: F.mono, fontSize: 12, color: C.gold, textAlign: "center", marginTop: 12 },
+
+  trophy: { alignItems: "center", backgroundColor: wash(C.mint, 0.22), borderWidth: 2, borderColor: C.mintInk, borderRadius: R.xl, padding: 18, marginTop: 18, ...keycap(5) },
+  trophyBig: { fontFamily: F.display, fontSize: 52, color: C.mintInk, lineHeight: 56 },
+  trophySub: { fontFamily: F.bodySemi, fontSize: 12.5, color: C.dim, textAlign: "center", marginTop: 2 },
+
+  cardTitle: { fontFamily: F.display, fontSize: 16, color: C.ink, marginBottom: 10 },
+  statRow: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 6 },
+  statDot: { width: 12, height: 12, borderRadius: 6, borderWidth: 1.5, borderColor: C.ink },
+  statName: { fontFamily: F.bodySemi, fontSize: 12.5, color: C.ink, flex: 1 },
+  statVal: { fontFamily: F.mono, fontSize: 12, color: C.ink, fontVariant: ["tabular-nums"], width: 92, textAlign: "right" },
+  statUnit: { fontFamily: F.mono, fontSize: 9, color: C.faint },
+  foot: { fontFamily: F.mono, fontSize: 10.5, color: C.faint, textAlign: "center", marginTop: 16, lineHeight: 15 },
 });

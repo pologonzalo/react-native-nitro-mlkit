@@ -12,7 +12,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { C, R, T, tint } from "../src/theme";
+import { C, F, R, T, keycap } from "../src/theme";
 import { Card, Pill, TitleBlock } from "../src/ui";
 
 const ACCENT = "#f97316";
@@ -99,10 +99,13 @@ const s = StyleSheet.create({
     borderRadius: R.lg,
     alignItems: "center",
     justifyContent: "center",
+    borderWidth: 2,
+    borderColor: C.ink,
+    ...keycap(6),
   },
-  scanText: { color: "#1a0f02", fontSize: 17, fontWeight: "800" },
+  scanText: { color: "#1a0f02", fontFamily: F.display, fontSize: 18 },
   statusRow: { alignItems: "center", marginVertical: 16 },
-  status: { color: C.gold, fontSize: 14 },
+  status: { fontFamily: F.bodySemi, color: C.gold, fontSize: 14, textAlign: "center" },
   head: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   page: {
     width: 150,
@@ -110,7 +113,7 @@ const s = StyleSheet.create({
     borderRadius: R.md,
     marginRight: 10,
     backgroundColor: C.surfaceAlt,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: C.border,
+    borderWidth: 2,
+    borderColor: C.ink,
   },
 });

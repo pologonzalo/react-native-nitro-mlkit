@@ -1,176 +1,117 @@
 import { type Href, Link } from "expo-router";
 import type { ReactNode } from "react";
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import { C, R, T, tint } from "./theme";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { FEATURES } from "./features";
+import { C, F, keycap, R, tint, wash } from "./theme";
 
-type Feature = {
-  href: Href;
-  emoji: string;
-  title: string;
-  tag: string;
-  accent: string;
-  android?: boolean;
-};
-
-const FEATURES: Feature[] = [
-  { href: "/faces", emoji: "🙂", title: "Face Detection", tag: "smile · eyes · crop", accent: "#3b82f6" },
-  { href: "/recognition", emoji: "🧑‍🤝‍🧑", title: "Face Recognition", tag: "register → find people", accent: "#ef4444", android: true },
-  { href: "/facemesh", emoji: "🕸️", title: "Face Mesh", tag: "468 3D points", accent: "#f43f5e", android: true },
-  { href: "/selfieseg", emoji: "✂️", title: "Selfie Seg", tag: "foreground mask", accent: "#14b8a6" },
-  { href: "/labeling", emoji: "🏷️", title: "Image Labeling", tag: "400+ labels", accent: "#06b6d4" },
-  { href: "/objects", emoji: "📦", title: "Object Detection", tag: "boxes + labels", accent: "#22c55e" },
-  { href: "/barcode", emoji: "🔳", title: "Barcode / QR", tag: "1D + 2D scan", accent: "#d97706" },
-  { href: "/ocr", emoji: "🔤", title: "Text (OCR)", tag: "blocks & lines", accent: "#ec4899" },
-  { href: "/pose", emoji: "🧍", title: "Pose Detection", tag: "33 landmarks", accent: "#8b5cf6" },
-  { href: "/langid", emoji: "🌐", title: "Language ID", tag: "text → BCP-47", accent: "#0ea5e9" },
-  { href: "/smartreply", emoji: "💬", title: "Smart Reply", tag: "chat replies", accent: "#f59e0b", android: true },
-  { href: "/translate", emoji: "🌍", title: "Translation", tag: "50+ languages", accent: "#6366f1" },
-  { href: "/entity", emoji: "🔍", title: "Entity Extraction", tag: "phones · dates · $", accent: "#a855f7", android: true },
-  { href: "/subjectseg", emoji: "🪄", title: "Subject Seg", tag: "cut out subject", accent: "#10b981", android: true },
-  { href: "/digitalink", emoji: "✍️", title: "Digital Ink", tag: "handwriting → text", accent: "#d946ef" },
-  { href: "/docscanner", emoji: "📄", title: "Document Scanner", tag: "scan → JPEG + PDF", accent: "#f97316", android: true },
-];
+const href = (route: string) => ("/" + route) as unknown as Href;
 
 export default function HomeScreen() {
   return (
     <ScrollView style={s.container} contentContainerStyle={s.content}>
-      <View style={s.hero}>
-        <Text style={s.brand}>nitro·mlkit</Text>
-        <Text style={T.sub}>
-          The full Google ML Kit suite on Nitro — on-device, JSI, zero bridge.
-        </Text>
-        <View style={s.badges}>
-          <Badge>16 packages</Badge>
-          <Badge>on-device</Badge>
-          <Badge>native batch</Badge>
-        </View>
+      {/* Cover */}
+      <Text style={s.logo}>
+        GIZM<Text style={s.logoO}>O</Text>
+      </Text>
+      <Text style={s.tagline}>The Nitro toy lab.</Text>
+      <View style={s.chips}>
+        <Chip>on-device</Chip>
+        <Chip>JSI · no bridge</Chip>
+        <Chip mint>0 bytes ↑</Chip>
       </View>
 
-      <Link href="/gallery" asChild>
-        <Pressable style={s.wrapped}>
-          <Text style={s.wrappedEmoji}>✨</Text>
-          <View style={{ flex: 1 }}>
-            <Text style={s.wrappedTitle}>Gallery Wrapped</Text>
-            <Text style={s.wrappedSub}>
-              Scan your whole camera roll on-device · themes, faces & smiles
-            </Text>
+      {/* Gallery Wrapped cartridge */}
+      <Link href={href("gallery")} asChild>
+        <Pressable style={s.cartridge}>
+          <View style={s.cartArt}>
+            <Text style={s.cartEmoji}>✨</Text>
+            <View style={[s.dot, { backgroundColor: C.orange, top: 12, left: 20 }]} />
+            <View style={[s.dot, { backgroundColor: C.blue, top: 30, right: 24 }]} />
+            <View style={[s.dot, { backgroundColor: C.mint, bottom: 14, left: 40 }]} />
           </View>
-          <Text style={s.wrappedGo}>›</Text>
+          <Text style={s.cartTitle}>Gallery Wrapped ✨</Text>
+          <Text style={s.cartSub}>Scan your whole camera roll on-device → a playful recap + Memories.</Text>
+          <View style={s.playPill}>
+            <Text style={s.playText}>▶ Play memories</Text>
+          </View>
         </Pressable>
       </Link>
 
-      <Link href="/benchmark" asChild>
-        <Pressable style={s.bench}>
-          <Text style={s.benchEmoji}>⏱️</Text>
+      {/* The Race */}
+      <Link href={href("benchmark")} asChild>
+        <Pressable style={s.race}>
+          <Text style={s.raceEmoji}>🏁</Text>
           <View style={{ flex: 1 }}>
-            <Text style={T.label}>Benchmark</Text>
-            <Text style={T.faint}>Nitro vs bridge vs Expo — same ML Kit engine</Text>
+            <Text style={s.raceTitle}>The Race</Text>
+            <Text style={s.raceSub}>Nitro-JSI vs the classic bridge — watch it run</Text>
           </View>
-          <Text style={s.chevron}>›</Text>
+          <Text style={s.raceGo}>›</Text>
         </Pressable>
       </Link>
 
-      <View style={s.list}>
+      {/* All gizmos */}
+      <Text style={s.section}>The toy box</Text>
+      <View style={s.grid}>
         {FEATURES.map((f) => (
-          <Link key={f.title} href={f.href} asChild>
-            <Pressable style={{ ...s.row, borderColor: tint(f.accent, 0.45) }}>
-              <View style={{ ...s.iconChip, backgroundColor: tint(f.accent, 0.18) }}>
-                <Text style={s.icon}>{f.emoji}</Text>
+          <Link key={f.route} href={href(f.route)} asChild>
+            <Pressable style={{ ...s.tile, borderColor: C.ink }}>
+              <View style={{ ...s.tileChip, backgroundColor: tint(f.accent, 0.18) }}>
+                <Text style={s.tileEmoji}>{f.emoji}</Text>
               </View>
-              <View style={{ flex: 1 }}>
-                <Text style={s.rowTitle}>{f.title}</Text>
-                <Text style={s.rowTag}>{f.tag}</Text>
-              </View>
-              {f.android && <Text style={{ ...s.androidTag, color: f.accent }}>Android</Text>}
-              <Text style={s.chevron}>›</Text>
+              <Text style={s.tileTitle} numberOfLines={1}>{f.title}</Text>
+              <Text style={s.tileTag} numberOfLines={1}>{f.tag}</Text>
+              {f.android && <Text style={s.tileAnd}>🤖</Text>}
             </Pressable>
           </Link>
         ))}
       </View>
 
-      <Text style={s.footer}>MIT © Gonzalo Polo · react-native-nitro-mlkit</Text>
+      <Text style={s.footer}>Swipe from the left edge or tap ☰ for the toy box.</Text>
     </ScrollView>
   );
 }
 
-function Badge({ children }: { children: ReactNode }) {
+function Chip({ children, mint }: { children: ReactNode; mint?: boolean }) {
   return (
-    <View style={s.badge}>
-      <Text style={s.badgeText}>{children}</Text>
+    <View style={{ ...s.chip, ...(mint ? { backgroundColor: C.mint, borderColor: C.mintInk } : {}) }}>
+      <Text style={{ ...s.chipText, ...(mint ? { color: "#08301F" } : {}) }}>{children}</Text>
     </View>
   );
 }
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.bg },
-  content: { padding: 20, paddingTop: 64, paddingBottom: 40 },
-  hero: { marginBottom: 20 },
-  brand: { fontSize: 32, fontWeight: "800", color: C.text, letterSpacing: -1, marginBottom: 6 },
-  badges: { flexDirection: "row", gap: 8, marginTop: 14 },
-  badge: {
-    backgroundColor: C.surface,
-    borderColor: C.border,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: R.pill,
-    paddingVertical: 5,
-    paddingHorizontal: 11,
-  },
-  badgeText: { color: C.dim, fontSize: 12, fontWeight: "600" },
-  bench: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    backgroundColor: C.surface,
-    borderColor: C.border,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: R.lg,
-    padding: 14,
-    marginBottom: 18,
-  },
-  benchEmoji: { fontSize: 26 },
-  wrapped: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    backgroundColor: tint("#a78bfa", 0.16),
-    borderColor: tint("#a78bfa", 0.55),
-    borderWidth: 1,
-    borderRadius: R.lg,
-    padding: 16,
-    marginBottom: 10,
-  },
-  wrappedEmoji: { fontSize: 30 },
-  wrappedTitle: { color: C.text, fontSize: 17, fontWeight: "800", letterSpacing: -0.3 },
-  wrappedSub: { color: C.dim, fontSize: 12, marginTop: 2 },
-  wrappedGo: { color: "#a78bfa", fontSize: 26, fontWeight: "400" },
-  chevron: { color: C.faint, fontSize: 24, fontWeight: "300" },
-  list: { gap: 8 },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    backgroundColor: C.surface,
-    borderRadius: R.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-  },
-  iconChip: {
-    width: 38,
-    height: 38,
-    borderRadius: R.sm,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  icon: { fontSize: 20 },
-  rowTitle: { color: C.text, fontSize: 15, fontWeight: "700", letterSpacing: -0.3 },
-  rowTag: { color: C.dim, fontSize: 12, marginTop: 2 },
-  androidTag: { fontSize: 10, fontWeight: "800", letterSpacing: 0.5 },
-  footer: { color: C.faint, fontSize: 12, textAlign: "center", marginTop: 28 },
+  content: { padding: 20, paddingTop: 8, paddingBottom: 44 },
+  logo: { fontFamily: F.display, fontSize: 56, color: C.orange, lineHeight: 60, letterSpacing: -1 },
+  logoO: { color: C.blue },
+  tagline: { fontFamily: F.displaySemi, fontSize: 18, color: C.ink, marginTop: -2 },
+  chips: { flexDirection: "row", flexWrap: "wrap", gap: 7, marginTop: 12, marginBottom: 20 },
+  chip: { backgroundColor: C.surface, borderWidth: 2, borderColor: C.ink, borderRadius: R.pill, paddingVertical: 4, paddingHorizontal: 11, ...keycap(3) },
+  chipText: { fontFamily: F.mono, fontSize: 11, color: C.ink },
+
+  cartridge: { backgroundColor: C.surface, borderWidth: 2, borderColor: C.ink, borderRadius: R.xl, padding: 16, marginBottom: 14, ...keycap(6) },
+  cartArt: { height: 92, borderRadius: R.lg, backgroundColor: "#FBE3F1", borderWidth: 2, borderColor: C.ink, alignItems: "center", justifyContent: "center", marginBottom: 12, overflow: "hidden" },
+  cartEmoji: { fontSize: 40 },
+  dot: { position: "absolute", width: 14, height: 14, borderRadius: 7, borderWidth: 2, borderColor: C.ink },
+  cartTitle: { fontFamily: F.display, fontSize: 22, color: C.ink },
+  cartSub: { fontFamily: F.bodySemi, fontSize: 13, color: C.dim, marginTop: 3, marginBottom: 14 },
+  playPill: { alignSelf: "flex-start", backgroundColor: C.orange, borderWidth: 2, borderColor: C.ink, borderRadius: R.pill, paddingVertical: 10, paddingHorizontal: 20, ...keycap(4) },
+  playText: { fontFamily: F.display, fontSize: 15, color: "#fff" },
+
+  race: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: wash(C.blue, 0.14), borderWidth: 2, borderColor: C.blue, borderRadius: R.lg, padding: 15, marginBottom: 22, ...keycap(4) },
+  raceEmoji: { fontSize: 28 },
+  raceTitle: { fontFamily: F.display, fontSize: 17, color: C.ink },
+  raceSub: { fontFamily: F.bodySemi, fontSize: 12, color: C.dim, marginTop: 1 },
+  raceGo: { fontFamily: F.display, fontSize: 24, color: C.blue },
+
+  section: { fontFamily: F.bodyBold, fontSize: 13, color: C.dim, textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 12 },
+  grid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
+  tile: { width: "47%", backgroundColor: C.surface, borderWidth: 2, borderRadius: R.lg, padding: 13, ...keycap(5) },
+  tileChip: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", marginBottom: 9 },
+  tileEmoji: { fontSize: 21 },
+  tileTitle: { fontFamily: F.display, fontSize: 15, color: C.ink },
+  tileTag: { fontFamily: F.body, fontSize: 11.5, color: C.dim, marginTop: 1 },
+  tileAnd: { position: "absolute", top: 11, right: 12, fontSize: 15 },
+
+  footer: { fontFamily: F.mono, fontSize: 11, color: C.faint, textAlign: "center", marginTop: 26 },
 });

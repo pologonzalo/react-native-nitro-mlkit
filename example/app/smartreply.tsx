@@ -5,7 +5,7 @@ import {
 } from "@nitro-mlkit/smart-reply";
 import { useState } from "react";
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { C, R, T, tint } from "../src/theme";
+import { C, F, R, T, keycap, tint, wash } from "../src/theme";
 import { Card, Pill, TitleBlock } from "../src/ui";
 
 const ACCENT = "#f59e0b";
@@ -116,24 +116,26 @@ const s = StyleSheet.create({
   content: { padding: 20, paddingTop: 16, paddingBottom: 40 },
   chips: { gap: 8 },
   chip: {
-    backgroundColor: tint(ACCENT, 0.14),
-    borderColor: tint(ACCENT, 0.4),
-    borderWidth: 1,
+    backgroundColor: wash(ACCENT, 0.14),
+    borderColor: tint(ACCENT, 0.5),
+    borderWidth: 2,
     borderRadius: R.md,
     paddingVertical: 11,
     paddingHorizontal: 14,
+    ...keycap(3),
   },
-  chipText: { color: C.text, fontSize: 13, fontWeight: "600" },
+  chipText: { color: C.text, fontFamily: F.bodySemi, fontSize: 13.5 },
   statusRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginVertical: 16 },
-  status: { color: C.gold, fontSize: 14 },
+  status: { fontFamily: F.bodySemi, color: C.gold, fontSize: 14, textAlign: "center" },
   suggestions: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   suggestion: {
-    backgroundColor: tint(ACCENT, 0.16),
+    backgroundColor: wash(ACCENT, 0.16),
     borderColor: ACCENT,
-    borderWidth: 1,
+    borderWidth: 2,
     borderRadius: R.pill,
     paddingVertical: 8,
     paddingHorizontal: 14,
+    ...keycap(3),
   },
-  suggestionText: { color: C.gold, fontSize: 14, fontWeight: "600" },
+  suggestionText: { color: C.gold, fontFamily: F.bodyBold, fontSize: 14 },
 });

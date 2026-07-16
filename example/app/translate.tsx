@@ -10,7 +10,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { C, R, T, tint } from "../src/theme";
+import { C, F, R, T, keycap, tint, wash } from "../src/theme";
 import { Card, Pill, TitleBlock } from "../src/ui";
 
 const ACCENT = "#6366f1";
@@ -65,7 +65,7 @@ export default function TranslateScreen() {
               onPress={() => setTarget(tg.code)}
               style={{
                 ...s.target,
-                backgroundColor: on ? ACCENT : tint(ACCENT, 0.14),
+                backgroundColor: on ? ACCENT : wash(ACCENT, 0.14),
                 borderColor: on ? ACCENT : tint(ACCENT, 0.4),
               }}
             >
@@ -116,35 +116,37 @@ export default function TranslateScreen() {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.bg },
   content: { padding: 20, paddingTop: 16, paddingBottom: 40 },
-  label: { color: C.faint, fontSize: 12, fontWeight: "700", marginBottom: 8, letterSpacing: 1 },
+  label: { color: C.faint, fontFamily: F.bodyBold, fontSize: 12, marginBottom: 8, letterSpacing: 1 },
   targets: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 16 },
-  target: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: R.pill, borderWidth: 1 },
-  targetText: { fontSize: 13, fontWeight: "700" },
+  target: { paddingVertical: 8, paddingHorizontal: 15, borderRadius: R.pill, borderWidth: 2, ...keycap(3) },
+  targetText: { fontFamily: F.bodyBold, fontSize: 13 },
   input: {
     backgroundColor: C.surface,
-    borderColor: C.border,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: C.ink,
+    borderWidth: 2,
     borderRadius: R.md,
     color: C.text,
+    fontFamily: F.body,
     fontSize: 15,
     padding: 14,
     minHeight: 70,
     textAlignVertical: "top",
   },
-  go: { backgroundColor: ACCENT, paddingVertical: 13, borderRadius: R.md, alignItems: "center", marginTop: 10 },
-  goText: { color: "#fff", fontWeight: "700", fontSize: 15 },
+  go: { backgroundColor: ACCENT, paddingVertical: 13, borderRadius: R.md, alignItems: "center", marginTop: 10, borderWidth: 2, borderColor: C.ink, ...keycap(5) },
+  goText: { color: "#fff", fontFamily: F.display, fontSize: 16 },
   chip: {
-    backgroundColor: tint(ACCENT, 0.12),
-    borderColor: tint(ACCENT, 0.35),
-    borderWidth: 1,
+    backgroundColor: wash(ACCENT, 0.12),
+    borderColor: tint(ACCENT, 0.5),
+    borderWidth: 2,
     borderRadius: R.md,
     paddingVertical: 11,
     paddingHorizontal: 14,
     marginBottom: 8,
+    ...keycap(3),
   },
-  chipText: { color: C.text, fontSize: 13, fontWeight: "600" },
+  chipText: { color: C.text, fontFamily: F.bodySemi, fontSize: 13.5 },
   statusRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginVertical: 16 },
-  status: { color: C.gold, fontSize: 14, textAlign: "center" },
+  status: { fontFamily: F.bodySemi, color: C.gold, fontSize: 14, textAlign: "center" },
   head: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
-  out: { color: ACCENT, fontSize: 19, fontWeight: "700" },
+  out: { color: ACCENT, fontFamily: F.bodyBold, fontSize: 19 },
 });

@@ -2,7 +2,7 @@ import { NitroLabeler } from "@nitro-mlkit/image-labeling";
 import { useState } from "react";
 import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SCENES } from "../src/samples";
-import { C, R, T, tint } from "../src/theme";
+import { C, F, R, T, keycap, tint, wash } from "../src/theme";
 import { Card, Meter, SamplePicker, TitleBlock } from "../src/ui";
 
 const ACCENT = "#06b6d4";
@@ -86,18 +86,19 @@ export default function LabelingScreen() {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.bg },
   content: { padding: 20, paddingTop: 16, paddingBottom: 40 },
-  preview: { width: "100%", height: 240, borderRadius: R.lg, marginTop: 16, backgroundColor: C.surfaceAlt },
+  preview: { width: "100%", height: 240, borderRadius: R.lg, marginTop: 16, backgroundColor: C.surfaceAlt, borderWidth: 2, borderColor: C.ink },
   statusRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginVertical: 14 },
-  status: { color: C.gold, fontSize: 14 },
+  status: { fontFamily: F.bodySemi, color: C.gold, fontSize: 14, textAlign: "center" },
   batch: {
-    backgroundColor: tint(ACCENT, 0.16),
-    borderColor: tint(ACCENT, 0.5),
-    borderWidth: 1,
+    backgroundColor: wash(ACCENT, 0.16),
+    borderColor: ACCENT,
+    borderWidth: 2,
     paddingVertical: 12,
     borderRadius: R.md,
     alignItems: "center",
     marginBottom: 14,
+    ...keycap(4),
   },
-  batchText: { color: ACCENT, fontWeight: "700", fontSize: 14 },
+  batchText: { color: ACCENT, fontFamily: F.bodyBold, fontSize: 14 },
   labelHead: { flexDirection: "row", justifyContent: "space-between", marginBottom: 5 },
 });

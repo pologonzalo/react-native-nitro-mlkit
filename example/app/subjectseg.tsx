@@ -2,7 +2,7 @@ import { NitroSubjectSegmenter } from "@nitro-mlkit/subject-segmentation";
 import { useState } from "react";
 import { ActivityIndicator, Alert, Image, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SCENES } from "../src/samples";
-import { C, R, T } from "../src/theme";
+import { C, F, R, T } from "../src/theme";
 import { Card, Pill, SamplePicker, TitleBlock } from "../src/ui";
 
 const ACCENT = "#10b981";
@@ -88,10 +88,10 @@ const s = StyleSheet.create({
   content: { padding: 20, paddingTop: 16, paddingBottom: 40 },
   compare: { flexDirection: "row", gap: 10, marginTop: 16 },
   col: { flex: 1 },
-  colLabel: { color: C.faint, fontSize: 11, fontWeight: "700", marginBottom: 6, letterSpacing: 1 },
-  img: { width: "100%", height: 220, borderRadius: R.lg, backgroundColor: C.surfaceAlt },
+  colLabel: { color: C.faint, fontFamily: F.bodyBold, fontSize: 11, marginBottom: 6, letterSpacing: 1 },
+  img: { width: "100%", height: 220, borderRadius: R.lg, backgroundColor: C.surfaceAlt, borderWidth: 2, borderColor: C.ink },
   placeholder: { alignItems: "center", justifyContent: "center" },
   statusRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginVertical: 14 },
-  status: { color: C.gold, fontSize: 13, textAlign: "center" },
+  status: { fontFamily: F.bodySemi, color: C.gold, fontSize: 13, textAlign: "center" },
   head: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
 });

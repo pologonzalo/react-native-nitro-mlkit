@@ -14,7 +14,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { C, R, T, tint } from "../src/theme";
+import { C, F, R, T, keycap, tint, wash } from "../src/theme";
 import { Card, Pill, TitleBlock } from "../src/ui";
 
 const ACCENT = "#d946ef";
@@ -108,7 +108,7 @@ export default function DigitalInkScreen() {
             onPress={() => setLang(l)}
             style={{
               ...s.langChip,
-              backgroundColor: lang === l ? ACCENT : tint(ACCENT, 0.14),
+              backgroundColor: lang === l ? ACCENT : wash(ACCENT, 0.14),
               borderColor: lang === l ? ACCENT : tint(ACCENT, 0.4),
             }}
           >
@@ -175,34 +175,37 @@ const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.bg },
   content: { padding: 20, paddingTop: 16, paddingBottom: 40 },
   langRow: { flexDirection: "row", gap: 8, marginBottom: 12 },
-  langChip: { paddingVertical: 7, paddingHorizontal: 12, borderRadius: R.pill, borderWidth: 1 },
-  langText: { fontSize: 13, fontWeight: "700" },
+  langChip: { paddingVertical: 7, paddingHorizontal: 13, borderRadius: R.pill, borderWidth: 2, ...keycap(3) },
+  langText: { fontFamily: F.bodyBold, fontSize: 13 },
   canvas: {
     height: 300,
     borderRadius: R.lg,
-    backgroundColor: "#f8fafc",
-    borderWidth: 1,
-    borderColor: C.border,
+    backgroundColor: C.surface,
+    borderWidth: 2,
+    borderColor: C.ink,
     overflow: "hidden",
     alignItems: "center",
     justifyContent: "center",
+    ...keycap(4),
   },
-  canvasHint: { color: "#94a3b8", fontSize: 16 },
+  canvasHint: { color: C.faint, fontFamily: F.bodySemi, fontSize: 16 },
   actions: { flexDirection: "row", gap: 10, marginTop: 14 },
-  btnPrimary: { flex: 1, backgroundColor: ACCENT, paddingVertical: 14, borderRadius: R.md, alignItems: "center" },
-  btnPrimaryText: { color: "#1a021f", fontWeight: "800", fontSize: 15 },
+  btnPrimary: { flex: 1, backgroundColor: ACCENT, paddingVertical: 14, borderRadius: R.md, alignItems: "center", borderWidth: 2, borderColor: C.ink, ...keycap(5) },
+  btnPrimaryText: { color: "#1a021f", fontFamily: F.display, fontSize: 16 },
   btnGhost: {
     paddingVertical: 14,
     paddingHorizontal: 22,
     borderRadius: R.md,
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: C.border,
+    borderWidth: 2,
+    borderColor: C.ink,
+    backgroundColor: C.surface,
+    ...keycap(4),
   },
-  btnGhostText: { color: C.dim, fontWeight: "700", fontSize: 15 },
+  btnGhostText: { color: C.dim, fontFamily: F.bodyBold, fontSize: 15 },
   statusRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginVertical: 14 },
-  status: { color: C.gold, fontSize: 14 },
+  status: { fontFamily: F.bodySemi, color: C.gold, fontSize: 14, textAlign: "center" },
   head: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
   candRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 7, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: C.borderSoft },
-  candText: { fontSize: 17, fontWeight: "600" },
+  candText: { fontFamily: F.bodySemi, fontSize: 17 },
 });
