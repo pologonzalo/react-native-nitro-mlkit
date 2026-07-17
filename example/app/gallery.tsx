@@ -79,60 +79,86 @@ export default function GalleryScreen() {
       return;
     }
 
-    // On Android a MediaLibrary asset.uri is directly readable by the native
-    // side. On iOS it's a "ph://" PhotosKit id ML Kit can't decode — resolve
-    // each asset's on-disk localUri. We keep creationTime aligned with the uri.
-    let uris: string[];
-    if (Platform.OS === "ios") {
-      uris = [];
-      for (let i = 0; i < assets.length; i += 25) {
-        const info = await Promise.all(
-          assets.slice(i, i + 25).map((a) => MediaLibrary.getAssetInfoAsync(a)),
-        );
-        uris.push(...info.map((x) => x.localUri ?? x.uri));
-      }
-    } else {
-      uris = assets.map((a) => a.uri);
-    }
-    const times = assets.map((a) => a.creationTime ?? 0);
+    const cap = Math.min(assets.length, SCAN_CAP);
+    setTotal(cap);
 
-    // 3) Scan chunk-by-chunk (two native batch calls per chunk, concurrent),
-    //    merging labels + faces + capture time into one record per photo.
+    // 3) Scan chunk-by-chunk. For each chunk we resolve its URIs *right before*
+    //    processing it (so progress moves from the very first chunk instead of
+    //    stalling on a big up-front pass) and run two native batch calls
+    //    concurrently, merging labels + faces + capture time per photo.
+    //    On Android asset.uri is directly readable. On iOS it's a "ph://"
+    //    PhotosKit id ML Kit can't decode, so we resolve each asset's on-disk
+    //    localUri — WITHOUT triggering an iCloud download (that's what made it
+    //    look frozen at 0/N). Photos that live only in iCloud are skipped.
     const photos: ScannedPhoto[] = [];
+    let skipped = 0;
     const t0 = Date.now();
-    for (let i = 0; i < uris.length; i += CHUNK) {
-      const chunk = uris.slice(i, i + CHUNK);
-      const chunkTimes = times.slice(i, i + CHUNK);
-      const [labels, faces] = await Promise.all([
-        NitroLabeler.labelBatch(chunk, {
-          concurrency: CONCURRENCY,
-          maxLabels: 5,
-          confidenceThreshold: 0.55,
-        }),
-        NitroFace.detectBatch(chunk, CONCURRENCY),
-      ]);
+    for (let i = 0; i < cap; i += CHUNK) {
+      const slice = assets.slice(i, i + CHUNK);
+      const chunkTimes = slice.map((a) => a.creationTime ?? 0);
+
+      let chunkUris: (string | null)[];
+      if (Platform.OS === "ios") {
+        const infos = await Promise.all(
+          slice.map((a) =>
+            MediaLibrary.getAssetInfoAsync(a, { shouldDownloadFromNetwork: false }).catch(
+              () => null,
+            ),
+          ),
+        );
+        chunkUris = infos.map((x) => x?.localUri ?? null);
+      } else {
+        chunkUris = slice.map((a) => a.uri);
+      }
+
+      // Only decode what we could resolve; remember each one's slot in the slice.
+      const decodable: string[] = [];
+      const slotOf: number[] = [];
+      for (let j = 0; j < chunkUris.length; j++) {
+        const u = chunkUris[j];
+        if (u) {
+          decodable.push(u);
+          slotOf.push(j);
+        } else {
+          skipped++;
+        }
+      }
+
+      const [labels, faces] = decodable.length
+        ? await Promise.all([
+            NitroLabeler.labelBatch(decodable, {
+              concurrency: CONCURRENCY,
+              maxLabels: 5,
+              confidenceThreshold: 0.55,
+            }),
+            NitroFace.detectBatch(decodable, CONCURRENCY),
+          ])
+        : [[], []];
       const labelByIdx = new Map<number, { text: string }[]>();
       for (const r of labels) labelByIdx.set(r.index, r.labels);
       const faceByIdx = new Map<number, { smilingProbability: number }[]>();
       for (const r of faces) faceByIdx.set(r.index, r.faces);
 
-      for (let j = 0; j < chunk.length; j++) {
-        const uri = chunk[j];
-        if (!uri) continue;
-        const fs = faceByIdx.get(j) ?? [];
+      for (let k = 0; k < decodable.length; k++) {
+        const fs = faceByIdx.get(k) ?? [];
         photos.push({
-          uri,
-          time: chunkTimes[j] ?? 0,
-          labels: (labelByIdx.get(j) ?? []).map((l) => l.text.toLowerCase()),
+          uri: decodable[k],
+          time: chunkTimes[slotOf[k]] ?? 0,
+          labels: (labelByIdx.get(k) ?? []).map((l) => l.text.toLowerCase()),
           faces: fs.length,
           smiles: fs.filter((f) => f.smilingProbability > 0.6).length,
         });
       }
-      const done = Math.min(i + CHUNK, uris.length);
+      const done = Math.min(i + CHUNK, cap);
       setScanned(done);
-      setProgress(done / uris.length);
+      setProgress(done / cap);
     }
     const elapsed = Date.now() - t0;
+    if (skipped > 0) {
+      setNote(
+        `${skipped} photo${skipped === 1 ? "" : "s"} are stored only in iCloud and were skipped (we never download them).`,
+      );
+    }
     const ins = buildInsights(photos, elapsed);
     setInsights(ins);
 
@@ -147,6 +173,7 @@ export default function GalleryScreen() {
       JSON.stringify(
         {
           scanned: photos.length,
+          iCloudSkipped: skipped,
           elapsedMs: elapsed,
           distinctLabels: labelCount.size,
           labels, // top 80 labels → count (the key calibration signal)
