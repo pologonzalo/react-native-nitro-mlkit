@@ -30,6 +30,7 @@ namespace margelo::nitro::mlkit::face { struct BatchEmbeddingResult; }
 #include <string>
 #include "FaceDetectionOptions.hpp"
 #include "BatchCropResult.hpp"
+#include <optional>
 #include "CroppedFace.hpp"
 #include "BatchEmbeddingResult.hpp"
 
@@ -65,7 +66,7 @@ namespace margelo::nitro::mlkit::face {
     public:
       // Methods
       virtual std::shared_ptr<Promise<std::vector<DetectedFace>>> detect(const std::string& imageUri, const FaceDetectionOptions& options) = 0;
-      virtual std::shared_ptr<Promise<std::vector<BatchCropResult>>> detectBatch(const std::vector<std::string>& imageUris, double concurrency) = 0;
+      virtual std::shared_ptr<Promise<std::vector<BatchCropResult>>> detectBatch(const std::vector<std::string>& imageUris, double concurrency, const std::optional<FaceDetectionOptions>& options) = 0;
       virtual std::shared_ptr<Promise<DetectedFace>> detectPrimary(const std::string& imageUri) = 0;
       virtual std::shared_ptr<Promise<std::vector<CroppedFace>>> cropFaces(const std::string& imageUri, double padding) = 0;
       virtual std::shared_ptr<Promise<std::vector<double>>> extractEmbedding(const std::string& faceUri) = 0;

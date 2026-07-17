@@ -47,6 +47,7 @@ namespace margelo::nitro::mlkit::face { enum class PerformanceMode; }
 #include <NitroModules/Result.hpp>
 #include <exception>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 

@@ -1,4 +1,4 @@
-import { NitroFace } from "@nitro-mlkit/face-detection";
+import { NitroFace, PerformanceMode } from "@nitro-mlkit/face-detection";
 import { NitroLabeler } from "@nitro-mlkit/image-labeling";
 import { Image as ExpoImage } from "expo-image";
 import * as MediaLibrary from "expo-media-library";
@@ -131,7 +131,15 @@ export default function GalleryScreen() {
               maxLabels: 5,
               confidenceThreshold: 0.55,
             }),
-            NitroFace.detectBatch(decodable, CONCURRENCY),
+            // classifications:true → real smilingProbability per face (the whole
+            // point of the beta face package); performanceMode FAST keeps it snappy.
+            NitroFace.detectBatch(decodable, CONCURRENCY, {
+              performanceMode: PerformanceMode.FAST,
+              landmarks: false,
+              classifications: true,
+              minFaceSize: 0.1,
+              tracking: false,
+            }),
           ])
         : [[], []];
       const labelByIdx = new Map<number, { text: string }[]>();

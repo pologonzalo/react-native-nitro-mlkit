@@ -100,10 +100,14 @@ export interface FaceDetector extends HybridObject<{
 
   /**
    * Detect faces in multiple images in parallel (native-side batching).
+   * When `options` is omitted it runs the fast, no-classification config
+   * (fastest). Pass `options` with `classifications: true` to get smiling /
+   * eyes-open probabilities per face across the whole batch.
    */
   detectBatch(
     imageUris: string[],
     concurrency: number,
+    options?: FaceDetectionOptions,
   ): Promise<BatchCropResult[]>;
 
   /**

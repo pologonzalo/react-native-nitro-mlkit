@@ -50,6 +50,25 @@ class HybridFaceDetector : HybridFaceDetectorSpec() {
     )
   }
 
+  // A detector per distinct FaceDetectionOptions combo, built once and reused.
+  // Lets detect/detectBatch honour classifications, landmarks, tracking and
+  // minFaceSize instead of being pinned to the two fixed configs above.
+  private val detectorCache = java.util.concurrent.ConcurrentHashMap<String, com.google.mlkit.vision.face.FaceDetector>()
+
+  private fun detectorFor(options: FaceDetectionOptions): com.google.mlkit.vision.face.FaceDetector {
+    val accurate = options.performanceMode == PerformanceMode.ACCURATE
+    val key = "${if (accurate) "a" else "f"}|${if (options.landmarks) 1 else 0}|${if (options.classifications) 1 else 0}|${if (options.tracking) 1 else 0}|${Math.round(options.minFaceSize * 1000)}"
+    return detectorCache.getOrPut(key) {
+      val builder = FaceDetectorOptions.Builder()
+        .setPerformanceMode(if (accurate) FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE else FaceDetectorOptions.PERFORMANCE_MODE_FAST)
+        .setLandmarkMode(if (options.landmarks) FaceDetectorOptions.LANDMARK_MODE_ALL else FaceDetectorOptions.LANDMARK_MODE_NONE)
+        .setClassificationMode(if (options.classifications) FaceDetectorOptions.CLASSIFICATION_MODE_ALL else FaceDetectorOptions.CLASSIFICATION_MODE_NONE)
+      if (options.minFaceSize > 0) builder.setMinFaceSize(options.minFaceSize.toFloat())
+      if (options.tracking) builder.enableTracking()
+      FaceDetection.getClient(builder.build())
+    }
+  }
+
   // MARK: - Spec methods
 
   override fun detect(imageUri: String, options: FaceDetectionOptions): Promise<Array<DetectedFace>> {
@@ -58,16 +77,20 @@ class HybridFaceDetector : HybridFaceDetectorSpec() {
         ?: throw Error("Failed to load image: $imageUri")
       val image = InputImage.fromBitmap(bitmap, 0)
 
-      val detector = if (options.performanceMode == PerformanceMode.ACCURATE) accurateDetector else fastDetector
+      val detector = detectorFor(options)
       val mlFaces = detector.process(image).await()
 
       mlFaces.map { mapFace(it, withLandmarks = options.landmarks) }.toTypedArray()
     }
   }
 
-  override fun detectBatch(imageUris: Array<String>, concurrency: Double): Promise<Array<BatchCropResult>> {
+  override fun detectBatch(imageUris: Array<String>, concurrency: Double, options: FaceDetectionOptions?): Promise<Array<BatchCropResult>> {
     return Promise.async {
       val maxConcurrent = concurrency.toInt().coerceAtLeast(1)
+      // One detector for the whole batch: the options' config, or the fast
+      // no-classification default when none is given.
+      val detector = if (options != null) detectorFor(options) else fastDetector
+      val withLandmarks = options?.landmarks ?: false
       val results = mutableListOf<BatchCropResult>()
 
       var chunkStart = 0
@@ -75,7 +98,7 @@ class HybridFaceDetector : HybridFaceDetectorSpec() {
         val chunkEnd = minOf(chunkStart + maxConcurrent, imageUris.size)
         val chunkResults = coroutineScope {
           (chunkStart until chunkEnd).map { idx ->
-            async { detectForBatch(idx, imageUris[idx]) }
+            async { detectForBatch(idx, imageUris[idx], detector, withLandmarks) }
           }.awaitAll()
         }
         results.addAll(chunkResults)
@@ -183,13 +206,18 @@ class HybridFaceDetector : HybridFaceDetectorSpec() {
 
   // MARK: - Private helpers
 
-  private suspend fun detectForBatch(idx: Int, uri: String): BatchCropResult {
+  private suspend fun detectForBatch(
+    idx: Int,
+    uri: String,
+    detector: com.google.mlkit.vision.face.FaceDetector,
+    withLandmarks: Boolean
+  ): BatchCropResult {
     return try {
       val bitmap = loadBitmap(uri)
         ?: return BatchCropResult(idx.toDouble(), emptyArray(), emptyArray(), false)
       val image = InputImage.fromBitmap(bitmap, 0)
-      val mlFaces = fastDetector.process(image).await()
-      val faces = mlFaces.map { mapFace(it, withLandmarks = false) }.toTypedArray()
+      val mlFaces = detector.process(image).await()
+      val faces = mlFaces.map { mapFace(it, withLandmarks = withLandmarks) }.toTypedArray()
       BatchCropResult(idx.toDouble(), faces, emptyArray(), true)
     } catch (e: Exception) {
       BatchCropResult(idx.toDouble(), emptyArray(), emptyArray(), false)

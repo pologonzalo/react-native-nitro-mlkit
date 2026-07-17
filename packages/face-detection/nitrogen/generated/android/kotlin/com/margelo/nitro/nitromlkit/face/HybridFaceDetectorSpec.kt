@@ -35,7 +35,7 @@ abstract class HybridFaceDetectorSpec: HybridObject() {
   
   @DoNotStrip
   @Keep
-  abstract fun detectBatch(imageUris: Array<String>, concurrency: Double): Promise<Array<BatchCropResult>>
+  abstract fun detectBatch(imageUris: Array<String>, concurrency: Double, options: FaceDetectionOptions?): Promise<Array<BatchCropResult>>
   
   @DoNotStrip
   @Keep

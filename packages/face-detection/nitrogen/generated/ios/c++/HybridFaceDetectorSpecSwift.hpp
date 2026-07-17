@@ -44,6 +44,7 @@ namespace margelo::nitro::mlkit::face { struct DetectedFaceWithEmbedding; }
 #include "PerformanceMode.hpp"
 #include "BatchCropResult.hpp"
 #include "CroppedFace.hpp"
+#include <optional>
 #include "BatchEmbeddingResult.hpp"
 #include "DetectedFaceWithEmbedding.hpp"
 
@@ -105,8 +106,8 @@ namespace margelo::nitro::mlkit::face {
       auto __value = std::move(__result.value());
       return __value;
     }
-    inline std::shared_ptr<Promise<std::vector<BatchCropResult>>> detectBatch(const std::vector<std::string>& imageUris, double concurrency) override {
-      auto __result = _swiftPart.detectBatch(imageUris, std::forward<decltype(concurrency)>(concurrency));
+    inline std::shared_ptr<Promise<std::vector<BatchCropResult>>> detectBatch(const std::vector<std::string>& imageUris, double concurrency, const std::optional<FaceDetectionOptions>& options) override {
+      auto __result = _swiftPart.detectBatch(imageUris, std::forward<decltype(concurrency)>(concurrency), options);
       if (__result.hasError()) [[unlikely]] {
         std::rethrow_exception(__result.error());
       }

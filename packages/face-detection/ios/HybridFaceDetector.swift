@@ -30,9 +30,32 @@ class HybridFaceDetector: HybridFaceDetectorSpec {
         opts.classificationMode = .all
         return MLKitFaceDetection.FaceDetector.faceDetector(options: opts)
     }()
-    
+
+    // A detector per distinct FaceDetectionOptions combo, built once and reused
+    // (building an MLKit detector isn't free). Lets detect/detectBatch honour
+    // classifications, landmarks, tracking and minFaceSize instead of being
+    // pinned to the two fixed configs above.
+    private let detectorLock = NSLock()
+    private var detectorCache: [String: MLKitFaceDetection.FaceDetector] = [:]
+
+    private func detector(for options: FaceDetectionOptions) -> MLKitFaceDetection.FaceDetector {
+        let key = "\(options.performanceMode == .accurate ? "a" : "f")|\(options.landmarks ? 1 : 0)|\(options.classifications ? 1 : 0)|\(options.tracking ? 1 : 0)|\(Int((options.minFaceSize * 1000).rounded()))"
+        detectorLock.lock()
+        defer { detectorLock.unlock() }
+        if let cached = detectorCache[key] { return cached }
+        let opts = FaceDetectorOptions()
+        opts.performanceMode = options.performanceMode == .accurate ? .accurate : .fast
+        opts.landmarkMode = options.landmarks ? .all : .none
+        opts.classificationMode = options.classifications ? .all : .none
+        opts.isTrackingEnabled = options.tracking
+        if options.minFaceSize > 0 { opts.minFaceSize = CGFloat(options.minFaceSize) }
+        let detector = MLKitFaceDetection.FaceDetector.faceDetector(options: opts)
+        detectorCache[key] = detector
+        return detector
+    }
+
     // MARK: - Protocol methods
-    
+
     func detect(imageUri: String, options: FaceDetectionOptions) throws -> Promise<[DetectedFace]> {
         return Promise.async {
             guard let image = self.loadImage(from: imageUri) else {
@@ -40,25 +63,29 @@ class HybridFaceDetector: HybridFaceDetectorSpec {
             }
             let visionImage = VisionImage(image: image)
             visionImage.orientation = image.imageOrientation
-            
-            let detector = options.performanceMode == .accurate ? self.accurateDetector : self.fastDetector
+
+            let detector = self.detector(for: options)
             let mlFaces = try await detector.process(visionImage)
-            
+
             return mlFaces.map { self.mapFace($0, withLandmarks: options.landmarks) }
         }
     }
-    
-    func detectBatch(imageUris: [String], concurrency: Double) throws -> Promise<[BatchCropResult]> {
+
+    func detectBatch(imageUris: [String], concurrency: Double, options: FaceDetectionOptions?) throws -> Promise<[BatchCropResult]> {
         return Promise.async {
-            let maxConcurrent = Int(concurrency)
+            let maxConcurrent = max(1, Int(concurrency))
+            // One detector for the whole batch: the options' config, or the fast
+            // no-classification default when none is given.
+            let detector = options.map { self.detector(for: $0) } ?? self.fastDetector
+            let withLandmarks = options?.landmarks ?? false
             var results = [BatchCropResult]()
             results.reserveCapacity(imageUris.count)
-            
+
             // Process in chunks for controlled concurrency
             for chunkStart in stride(from: 0, to: imageUris.count, by: maxConcurrent) {
                 let chunkEnd = min(chunkStart + maxConcurrent, imageUris.count)
                 let chunk = Array(imageUris[chunkStart..<chunkEnd])
-                
+
                 let chunkResults = await withTaskGroup(of: (Int, BatchCropResult).self) { group in
                     for (i, uri) in chunk.enumerated() {
                         let globalIdx = chunkStart + i
@@ -68,15 +95,15 @@ class HybridFaceDetector: HybridFaceDetectorSpec {
                                     return (globalIdx, BatchCropResult(index: Double(globalIdx), faces: [], crops: [], success: false))
                                 }
                                 let visionImage = VisionImage(image: img)
-                                let mlFaces = try await self.fastDetector.process(visionImage)
-                                let faces = mlFaces.map { self.mapFace($0, withLandmarks: false) }
+                                let mlFaces = try await detector.process(visionImage)
+                                let faces = mlFaces.map { self.mapFace($0, withLandmarks: withLandmarks) }
                                 return (globalIdx, BatchCropResult(index: Double(globalIdx), faces: faces, crops: [], success: true))
                             } catch {
                                 return (globalIdx, BatchCropResult(index: Double(globalIdx), faces: [], crops: [], success: false))
                             }
                         }
                     }
-                    
+
                     var chunkOut = [(Int, BatchCropResult)]()
                     for await result in group { chunkOut.append(result) }
                     return chunkOut.sorted(by: { $0.0 < $1.0 }).map(\.1)

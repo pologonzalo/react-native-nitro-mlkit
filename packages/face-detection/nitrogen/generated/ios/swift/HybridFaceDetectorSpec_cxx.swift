@@ -150,9 +150,9 @@ open class HybridFaceDetectorSpec_cxx {
   }
   
   @inline(__always)
-  public final func detectBatch(imageUris: bridge.std__vector_std__string_, concurrency: Double) -> bridge.Result_std__shared_ptr_Promise_std__vector_BatchCropResult____ {
+  public final func detectBatch(imageUris: bridge.std__vector_std__string_, concurrency: Double, options: bridge.std__optional_FaceDetectionOptions_) -> bridge.Result_std__shared_ptr_Promise_std__vector_BatchCropResult____ {
     do {
-      let __result = try self.__implementation.detectBatch(imageUris: imageUris.map({ __item in String(__item) }), concurrency: concurrency)
+      let __result = try self.__implementation.detectBatch(imageUris: imageUris.map({ __item in String(__item) }), concurrency: concurrency, options: options.value)
       let __resultCpp = { () -> bridge.std__shared_ptr_Promise_std__vector_BatchCropResult___ in
         let __promise = bridge.create_std__shared_ptr_Promise_std__vector_BatchCropResult___()
         let __promiseHolder = bridge.wrap_std__shared_ptr_Promise_std__vector_BatchCropResult___(__promise)

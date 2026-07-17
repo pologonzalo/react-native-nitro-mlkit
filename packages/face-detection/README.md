@@ -71,9 +71,19 @@ const primary = await NitroFace.detectPrimary(selfieUri);
 const crops = await NitroFace.cropFaces(photoUri, 0.3);
 // → [{ uri, faceIndex, width, height }]
 
-// Native batch — ONE JSI call, N images detected concurrently
+// Native batch — ONE JSI call, N images detected concurrently.
+// Omit options for the fastest run (no classification):
 const results = await NitroFace.detectBatch(galleryUris, 4 /* concurrency */);
 // → [{ index, faces, crops, success }]
+
+// Pass options to classify the whole batch — real smiling / eyes-open per face:
+const withSmiles = await NitroFace.detectBatch(galleryUris, 4, {
+  performanceMode: PerformanceMode.FAST,
+  landmarks: false,
+  classifications: true, // ← populates smilingProbability & *EyeOpenProbability
+  minFaceSize: 0.1,
+  tracking: false,
+});
 
 // Runtime availability
 NitroFace.isAvailable(); // boolean
@@ -86,7 +96,7 @@ NitroFace.isAvailable(); // boolean
 | `detect(uri, options)`                | ✅                              |
 | `detectPrimary(uri)`                  | ✅                              |
 | `cropFaces(uri, padding)`             | ✅                              |
-| `detectBatch(uris, concurrency)`      | ✅                              |
+| `detectBatch(uris, concurrency, options?)` | ✅ `options` opts into classification |
 | `isAvailable()`                       | ✅                              |
 | `compareFaces(a, b)`                  | ✅ cosine similarity (0..1)     |
 | `extractEmbedding(uri)`               | 🔜 v0.2.0 — **throws** today    |
