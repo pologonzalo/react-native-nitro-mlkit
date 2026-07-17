@@ -288,7 +288,7 @@ export default function GalleryScreen() {
               <View style={s.grid}>
                 <Stat big={insights.faces.totalFaces} label="faces found" />
                 <Stat big={insights.faces.photosWithFaces} label="photos with people" />
-                <Stat big={insights.faces.smiles} label="smiles 😄" />
+                <Stat big={insights.faces.smiles} label="smiley photos 😄" />
                 <Stat big={insights.faces.biggestGroup} label="biggest group shot" />
               </View>
             </Card>

@@ -29,22 +29,37 @@ type MemoryDef = {
   match: (p: ScannedPhoto, c: Ctx) => boolean;
 };
 
+// Whole-token match, NOT arbitrary substring: a label matches a word only if
+// the label equals it or contains it as a space-delimited token. This is what
+// keeps "cat" from matching "va·cat·ion" and "text" from matching "textile"
+// (both real false positives that exploded the pets/screens memories). Words
+// that themselves contain a space (e.g. "web page") fall back to substring.
 const has = (p: ScannedPhoto, ...words: string[]) =>
-  p.labels.some((l) => words.some((w) => l.includes(w)));
+  p.labels.some((l) => {
+    const toks = l.split(/\s+/);
+    return words.some((w) => (w.includes(" ") ? l.includes(w) : l === w || toks.includes(w)));
+  });
 
 /** Ordered by how headline-worthy a memory is when counts tie. */
 const MEMORIES: MemoryDef[] = [
   {
     key: "babies", emoji: "👶", title: "Tiny humans", accent: "#F59E0B",
     blurb: (n) => `${n} baby moments — the cutest corner of your roll.`,
-    match: (p) => has(p, "baby", "infant", "toddler", "child", "kid"),
+    match: (p) => has(p, "baby", "infant", "toddler", "child", "children", "kid"),
+  },
+  {
+    key: "trips", emoji: "✈️", title: "On tour", accent: "#0EA5E9",
+    blurb: (n) => `${n} shots from your travels — you get around.`,
+    match: (p) => has(p, "vacation", "trip", "travel", "tourism", "tourist", "luggage", "resort", "hotel", "airport", "landmark", "sightseeing"),
   },
   {
     key: "party", emoji: "🎉", title: "Party mode", accent: C.orange,
-    blurb: (n) => `${n} nights out — we spotted the drinks and the crowd.`,
+    blurb: (n) => `${n} celebrations — crowds, events and good times.`,
+    // Drinks labels rarely fire on a real roll, so anchor on a social scene
+    // (event / crowd / celebration) backed by an actual group of people.
     match: (p, c) =>
-      has(p, "party", "bar", "nightclub", "disco", "dance", "cocktail", "wine", "beer", "drink", "champagne", "toast") &&
-      (p.faces >= 2 || c.hour >= 21 || c.hour <= 3),
+      has(p, "party", "nightclub", "disco", "dance", "cocktail", "wine", "beer", "drink", "champagne", "toast", "festival", "celebration", "concert") ||
+      (has(p, "event", "crowd", "community", "audience") && (p.faces >= 3 || c.hour >= 21 || c.hour <= 3)),
   },
   {
     key: "squad", emoji: "👯", title: "The squad", accent: "#EC4899",
@@ -53,8 +68,10 @@ const MEMORIES: MemoryDef[] = [
   },
   {
     key: "smiles", emoji: "😄", title: "Say cheese", accent: C.yellow,
-    blurb: (n) => `${n} smiles caught in the act.`,
-    match: (p) => p.smiles >= 1,
+    blurb: (n) => `${n} big smiles caught in the act.`,
+    // Face classification (smilingProbability) needs a native rebuild to turn
+    // on, so we lean on the labeler's own "smile" label, which is free here.
+    match: (p) => p.smiles >= 1 || has(p, "smile", "laugh", "grin"),
   },
   {
     key: "selfies", emoji: "🤳", title: "Selfie season", accent: "#8B5CF6",
@@ -67,9 +84,14 @@ const MEMORIES: MemoryDef[] = [
     match: (p) => p.faces === 2,
   },
   {
+    key: "glam", emoji: "👗", title: "Dressed up", accent: "#DB2777",
+    blurb: (n) => `${n} times you turned up in your best fit.`,
+    match: (p) => has(p, "dress", "gown", "suit", "tuxedo", "fashion", "outfit", "formal wear"),
+  },
+  {
     key: "foodie", emoji: "🍽️", title: "Foodie files", accent: "#EF4444",
     blurb: (n) => `${n} plates photographed before the first bite.`,
-    match: (p) => has(p, "food", "dish", "dessert", "cuisine", "meal", "breakfast", "brunch", "cake", "pizza", "sushi", "burger", "fruit", "coffee", "baking", "snack"),
+    match: (p) => has(p, "food", "dish", "cuisine", "meal", "breakfast", "brunch", "pizza", "sushi", "burger", "bread", "coffee", "snack", "tableware", "fast food"),
   },
   {
     key: "sweet", emoji: "🍰", title: "Sweet tooth", accent: "#F9A8D4",
@@ -98,7 +120,7 @@ const MEMORIES: MemoryDef[] = [
   {
     key: "beach", emoji: "🏖️", title: "Beach days", accent: "#06B6D4",
     blurb: (n) => `${n} reasons you already miss summer.`,
-    match: (p) => has(p, "beach", "sea", "ocean", "wave", "coast", "sand", "pool", "swimming", "surf"),
+    match: (p) => has(p, "beach", "sea", "ocean", "wave", "coast", "sand", "pool", "swimming", "swimwear", "surf"),
   },
   {
     key: "outdoors", emoji: "🏔️", title: "Great outdoors", accent: "#10B981",
@@ -113,17 +135,17 @@ const MEMORIES: MemoryDef[] = [
   {
     key: "city", emoji: "🏙️", title: "City lights", accent: "#3B82F6",
     blurb: (n) => `${n} urban wanders.`,
-    match: (p) => has(p, "building", "city", "street", "architecture", "skyline", "urban", "bridge", "tower", "downtown"),
+    match: (p) => has(p, "building", "city", "street", "architecture", "skyline", "urban", "skyscraper", "tower", "downtown"),
   },
   {
     key: "road", emoji: "🚗", title: "On the road", accent: "#0EA5E9",
     blurb: (n) => `${n} journeys, big and small.`,
-    match: (p) => has(p, "car", "vehicle", "motorcycle", "bicycle", "road", "traffic", "train", "airplane", "boat"),
+    match: (p) => has(p, "car", "vehicle", "motorcycle", "bicycle", "road", "traffic", "train", "airplane", "boat", "bus"),
   },
   {
     key: "sports", emoji: "🏀", title: "Game on", accent: "#84CC16",
     blurb: (n) => `${n} moments of motion.`,
-    match: (p) => has(p, "sport", "ball", "football", "basketball", "soccer", "stadium", "gym", "fitness", "running", "athlete"),
+    match: (p) => has(p, "sport", "ball", "football", "basketball", "soccer", "stadium", "gym", "fitness", "running", "athlete", "team", "workout"),
   },
   {
     key: "art", emoji: "🎨", title: "Art & design", accent: "#A855F7",
@@ -133,7 +155,7 @@ const MEMORIES: MemoryDef[] = [
   {
     key: "screens", emoji: "📱", title: "Screenshots", accent: "#64748B",
     blurb: (n) => `${n} screenshots & text. We won't tell.`,
-    match: (p) => has(p, "screenshot", "text", "font", "document", "poster", "menu", "receipt", "web page", "number", "paper"),
+    match: (p) => has(p, "screenshot", "web page", "text", "font", "document", "menu", "receipt", "number"),
   },
   {
     key: "pretty", emoji: "☁️", title: "Sky watch", accent: "#38BDF8",
@@ -176,6 +198,8 @@ export type Insights = {
 /** Persona headline derived from the top memory. */
 const PERSONA: Record<string, { emoji: string; title: string; blurb: string }> = {
   babies: { emoji: "👶", title: "Family Historian", blurb: "Your roll is full of tiny humans and big moments." },
+  trips: { emoji: "✈️", title: "Frequent Flyer", blurb: "Your camera roll is basically a travel diary." },
+  glam: { emoji: "👗", title: "Dressed to Impress", blurb: "Every occasion gets the outfit it deserves." },
   party: { emoji: "🥂", title: "Life of the Party", blurb: "The night out lives on in your camera roll." },
   squad: { emoji: "👯", title: "People Person", blurb: "You collect faces, not things — the crew is always in frame." },
   smiles: { emoji: "😄", title: "Joy Collector", blurb: "Your gallery is basically a smile archive." },
@@ -219,7 +243,9 @@ export function buildInsights(photos: ScannedPhoto[], elapsedMs = 0): Insights {
     if (p.faces > 0) photosWithFaces++;
     if (p.faces === 1) soloShots++;
     totalFaces += p.faces;
-    smiles += p.smiles;
+    // Per-face smilingProbability needs a native rebuild to populate, so count
+    // "smiley photos" from the labeler's smile label (matches the memory rule).
+    if (p.smiles >= 1 || has(p, "smile", "laugh", "grin")) smiles++;
     if (p.faces > biggestGroup) biggestGroup = p.faces;
   }
 
