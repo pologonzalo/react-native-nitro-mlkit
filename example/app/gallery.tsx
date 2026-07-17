@@ -32,6 +32,24 @@ const CONCURRENCY = 6;
 
 type Phase = "idle" | "scanning" | "done";
 
+// detectBatch gained an optional options arg (classification) in a native
+// update. Ask for real per-face smiles; fall back to the plain fast batch on an
+// older native binary so a JS-only reload still scans (smiles then come from
+// the "smile" label instead of face classification).
+async function detectFaces(uris: string[]) {
+  try {
+    return await NitroFace.detectBatch(uris, CONCURRENCY, {
+      performanceMode: PerformanceMode.FAST,
+      landmarks: false,
+      classifications: true,
+      minFaceSize: 0.1,
+      tracking: false,
+    });
+  } catch {
+    return NitroFace.detectBatch(uris, CONCURRENCY);
+  }
+}
+
 export default function GalleryScreen() {
   const [phase, setPhase] = useState<Phase>("idle");
   const [progress, setProgress] = useState(0);
@@ -132,14 +150,9 @@ export default function GalleryScreen() {
               confidenceThreshold: 0.55,
             }),
             // classifications:true → real smilingProbability per face (the whole
-            // point of the beta face package); performanceMode FAST keeps it snappy.
-            NitroFace.detectBatch(decodable, CONCURRENCY, {
-              performanceMode: PerformanceMode.FAST,
-              landmarks: false,
-              classifications: true,
-              minFaceSize: 0.1,
-              tracking: false,
-            }),
+            // point of the beta face package), with a graceful fallback for old
+            // native binaries that predate the options overload.
+            detectFaces(decodable),
           ])
         : [[], []];
       const labelByIdx = new Map<number, { text: string }[]>();
