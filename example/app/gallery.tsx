@@ -8,6 +8,7 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  Share,
   StyleSheet,
   Text,
   View,
@@ -40,6 +41,7 @@ export default function GalleryScreen() {
   const [note, setNote] = useState<string | null>(null);
   const [showStories, setShowStories] = useState(false);
   const [storyStart, setStoryStart] = useState(0);
+  const [report, setReport] = useState<string | null>(null);
 
   const slides = useMemo(() => (insights ? buildStories(insights) : []), [insights]);
 
@@ -61,6 +63,7 @@ export default function GalleryScreen() {
     setPhase("scanning");
     setProgress(0);
     setInsights(null);
+    setReport(null);
 
     // 2) Grab the most recent photos.
     const page = await MediaLibrary.getAssetsAsync({
@@ -129,7 +132,36 @@ export default function GalleryScreen() {
       setScanned(done);
       setProgress(done / uris.length);
     }
-    setInsights(buildInsights(photos, Date.now() - t0));
+    const elapsed = Date.now() - t0;
+    const ins = buildInsights(photos, elapsed);
+    setInsights(ins);
+
+    // Calibration report — a compact JSON the user can copy/share back so we can
+    // tune the memory rules against the labels their real gallery actually fires.
+    const labelCount = new Map<string, number>();
+    for (const p of photos) for (const l of p.labels) labelCount.set(l, (labelCount.get(l) ?? 0) + 1);
+    const labels = Object.fromEntries(
+      [...labelCount.entries()].sort((a, b) => b[1] - a[1]).slice(0, 80),
+    );
+    setReport(
+      JSON.stringify(
+        {
+          scanned: photos.length,
+          elapsedMs: elapsed,
+          distinctLabels: labelCount.size,
+          labels, // top 80 labels → count (the key calibration signal)
+          memories: Object.fromEntries(ins.memories.map((m) => [m.key, m.count])),
+          faces: {
+            total: ins.faces.totalFaces,
+            smiling: ins.faces.smiles,
+            withFaces: ins.faces.photosWithFaces,
+            biggestGroup: ins.faces.biggestGroup,
+          },
+        },
+        null,
+        2,
+      ),
+    );
     setPhase("done");
   }
 
@@ -233,6 +265,23 @@ export default function GalleryScreen() {
                 <Stat big={insights.faces.biggestGroup} label="biggest group shot" />
               </View>
             </Card>
+
+            {report && (
+              <Card style={{ marginBottom: 14 }}>
+                <View style={s.repHead}>
+                  <Text style={T.label}>🧪 Calibration report</Text>
+                  <Pressable style={s.repBtn} onPress={() => Share.share({ message: report })}>
+                    <Text style={s.repBtnText}>Share ↗</Text>
+                  </Pressable>
+                </View>
+                <Text style={{ ...T.faint, marginBottom: 10 }}>
+                  Copy or share this and paste it back to me — I'll tune the memories to your real labels.
+                </Text>
+                <ScrollView style={s.repBox} nestedScrollEnabled showsVerticalScrollIndicator>
+                  <Text style={s.repJson} selectable>{report}</Text>
+                </ScrollView>
+              </Card>
+            )}
 
             <Pressable style={s.rescan} onPress={scan}>
               <Text style={s.rescanText}>Scan again 🔄</Text>
@@ -429,6 +478,27 @@ const s = StyleSheet.create({
   },
   statBig: { color: ACCENT, fontFamily: F.display, fontSize: 28 },
   statLabel: { color: C.dim, fontFamily: F.body, fontSize: 12, marginTop: 2 },
+
+  repHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 6 },
+  repBtn: {
+    backgroundColor: wash(C.blue, 0.16),
+    borderColor: C.blue,
+    borderWidth: 2,
+    borderRadius: R.pill,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    ...keycap(3),
+  },
+  repBtnText: { color: C.blue, fontFamily: F.bodyBold, fontSize: 13 },
+  repBox: {
+    maxHeight: 220,
+    backgroundColor: C.surfaceAlt,
+    borderWidth: 2,
+    borderColor: C.ink,
+    borderRadius: R.md,
+    padding: 12,
+  },
+  repJson: { fontFamily: F.mono, fontSize: 11, color: C.ink, lineHeight: 16 },
 
   rescan: {
     backgroundColor: wash(ACCENT, 0.16),
