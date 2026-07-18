@@ -25,6 +25,7 @@ SplashScreen.preventAutoHideAsync();
 const TITLES: Record<string, string> = {
   index: "",
   gallery: "Gallery Wrapped",
+  cleaner: "Photo Cleaner",
   benchmark: "The Race",
   ...Object.fromEntries(FEATURES.map((f) => [f.route, f.title])),
 };
@@ -86,6 +87,7 @@ function ToyShelf(props: DrawerContentComponentProps) {
         {/* Featured quick links */}
         <Row emoji="🏠" title="Home" onPress={() => go("index")} active={active === "index"} accent={C.orange} />
         <Row emoji="✨" title="Gallery Wrapped" onPress={() => go("gallery")} active={active === "gallery"} accent={C.orange} />
+        <Row emoji="🧹" title="Photo Cleaner" onPress={() => go("cleaner")} active={active === "cleaner"} accent={C.mint} />
         <Row emoji="🏁" title="The Race — Benchmark" onPress={() => go("benchmark")} active={active === "benchmark"} accent={C.blue} />
 
         {SHELVES.map((shelf) => (

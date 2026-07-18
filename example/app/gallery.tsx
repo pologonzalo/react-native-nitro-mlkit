@@ -1,11 +1,7 @@
-import { NitroFace, PerformanceMode } from "@nitro-mlkit/face-detection";
-import { NitroLabeler } from "@nitro-mlkit/image-labeling";
 import { Image as ExpoImage } from "expo-image";
-import * as MediaLibrary from "expo-media-library";
 import { type ReactNode, useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  Platform,
   Pressable,
   ScrollView,
   Share,
@@ -20,35 +16,15 @@ import {
   type Memory,
   type ScannedPhoto,
 } from "../src/gallery-insights";
+import { PERMISSION_DENIED, scanGallery } from "../src/photo-scan";
 import { StoryPlayer } from "../src/StoryPlayer";
 import { C, F, R, T, keycap, wash } from "../src/theme";
 import { Card, Meter } from "../src/ui";
 
 const ACCENT = "#8B5CF6";
-// How many photos we scan at most, and how many go in one native batch call.
-const SCAN_CAP = 1000;
-const CHUNK = 40;
-const CONCURRENCY = 6;
+const SCAN_CAP = 1000; // shown in the privacy copy
 
 type Phase = "idle" | "scanning" | "done";
-
-// detectBatch gained an optional options arg (classification) in a native
-// update. Ask for real per-face smiles; fall back to the plain fast batch on an
-// older native binary so a JS-only reload still scans (smiles then come from
-// the "smile" label instead of face classification).
-async function detectFaces(uris: string[]) {
-  try {
-    return await NitroFace.detectBatch(uris, CONCURRENCY, {
-      performanceMode: PerformanceMode.FAST,
-      landmarks: false,
-      classifications: true,
-      minFaceSize: 0.1,
-      tracking: false,
-    });
-  } catch {
-    return NitroFace.detectBatch(uris, CONCURRENCY);
-  }
-}
 
 export default function GalleryScreen() {
   const [phase, setPhase] = useState<Phase>("idle");
@@ -69,158 +45,84 @@ export default function GalleryScreen() {
     setShowStories(true);
   }
 
-  async function scan() {
+  async function scan(force = false) {
     setNote(null);
-    // 1) Permission — this is the OS gallery prompt the user asked for.
-    const perm = await MediaLibrary.requestPermissionsAsync(false, ["photo"]);
-    if (!perm.granted) {
-      setNote("Gallery permission denied — nothing leaves your phone, we just need to read photos.");
-      return;
-    }
-
     setPhase("scanning");
     setProgress(0);
     setInsights(null);
     setReport(null);
 
-    // 2) Grab the most recent photos.
-    const page = await MediaLibrary.getAssetsAsync({
-      mediaType: "photo",
-      first: SCAN_CAP,
-      sortBy: [[MediaLibrary.SortBy.creationTime, false]],
-    });
-    const assets = page.assets;
-    setTotal(page.totalCount);
-    if (assets.length === 0) {
-      setPhase("idle");
-      setNote("No photos found in this gallery.");
-      return;
-    }
-
-    const cap = Math.min(assets.length, SCAN_CAP);
-    setTotal(cap);
-
-    // 3) Scan chunk-by-chunk. For each chunk we resolve its URIs *right before*
-    //    processing it (so progress moves from the very first chunk instead of
-    //    stalling on a big up-front pass) and run two native batch calls
-    //    concurrently, merging labels + faces + capture time per photo.
-    //    On Android asset.uri is directly readable. On iOS it's a "ph://"
-    //    PhotosKit id ML Kit can't decode, so we resolve each asset's on-disk
-    //    localUri — WITHOUT triggering an iCloud download (that's what made it
-    //    look frozen at 0/N). Photos that live only in iCloud are skipped.
-    const photos: ScannedPhoto[] = [];
-    let skipped = 0;
-    const chunkMs: number[] = [];
-    for (let i = 0; i < cap; i += CHUNK) {
-      const chunkStart = Date.now();
-      const slice = assets.slice(i, i + CHUNK);
-      const chunkTimes = slice.map((a) => a.creationTime ?? 0);
-
-      let chunkUris: (string | null)[];
-      if (Platform.OS === "ios") {
-        const infos = await Promise.all(
-          slice.map((a) =>
-            MediaLibrary.getAssetInfoAsync(a, { shouldDownloadFromNetwork: false }).catch(
-              () => null,
-            ),
-          ),
-        );
-        chunkUris = infos.map((x) => x?.localUri ?? null);
-      } else {
-        chunkUris = slice.map((a) => a.uri);
-      }
-
-      // Only decode what we could resolve; remember each one's slot in the slice.
-      const decodable: string[] = [];
-      const slotOf: number[] = [];
-      for (let j = 0; j < chunkUris.length; j++) {
-        const u = chunkUris[j];
-        if (u) {
-          decodable.push(u);
-          slotOf.push(j);
-        } else {
-          skipped++;
-        }
-      }
-
-      const [labels, faces] = decodable.length
-        ? await Promise.all([
-            NitroLabeler.labelBatch(decodable, {
-              concurrency: CONCURRENCY,
-              maxLabels: 5,
-              confidenceThreshold: 0.55,
-            }),
-            // classifications:true → real smilingProbability per face (the whole
-            // point of the beta face package), with a graceful fallback for old
-            // native binaries that predate the options overload.
-            detectFaces(decodable),
-          ])
-        : [[], []];
-      const labelByIdx = new Map<number, { text: string }[]>();
-      for (const r of labels) labelByIdx.set(r.index, r.labels);
-      const faceByIdx = new Map<number, { smilingProbability: number }[]>();
-      for (const r of faces) faceByIdx.set(r.index, r.faces);
-
-      for (let k = 0; k < decodable.length; k++) {
-        const fs = faceByIdx.get(k) ?? [];
-        photos.push({
-          uri: decodable[k],
-          time: chunkTimes[slotOf[k]] ?? 0,
-          labels: (labelByIdx.get(k) ?? []).map((l) => l.text.toLowerCase()),
-          faces: fs.length,
-          smiles: fs.filter((f) => f.smilingProbability > 0.6).length,
-        });
-      }
-      chunkMs.push(Date.now() - chunkStart);
-      const done = Math.min(i + CHUNK, cap);
-      setScanned(done);
-      setProgress(done / cap);
-    }
-    // Robust elapsed = sum of per-chunk times, with suspension outliers (iOS
-    // pauses the JS thread when the app is backgrounded mid-scan, which can
-    // inflate a single chunk to minutes/hours) clamped to the median so the
-    // throughput flex stays honest.
-    const sortedMs = [...chunkMs].sort((a, b) => a - b);
-    const medMs = sortedMs.length ? sortedMs[Math.floor(sortedMs.length / 2)] : 0;
-    const elapsed = Math.round(
-      chunkMs.reduce((s, ms) => s + (medMs > 0 && ms > medMs * 5 ? medMs : ms), 0),
-    );
-    if (skipped > 0) {
-      setNote(
-        `${skipped} photo${skipped === 1 ? "" : "s"} are stored only in iCloud and were skipped (we never download them).`,
-      );
-    }
-    const ins = buildInsights(photos, elapsed);
-    setInsights(ins);
-
-    // Calibration report — a compact JSON the user can copy/share back so we can
-    // tune the memory rules against the labels their real gallery actually fires.
-    const labelCount = new Map<string, number>();
-    for (const p of photos) for (const l of p.labels) labelCount.set(l, (labelCount.get(l) ?? 0) + 1);
-    const labels = Object.fromEntries(
-      [...labelCount.entries()].sort((a, b) => b[1] - a[1]).slice(0, 80),
-    );
-    setReport(
-      JSON.stringify(
-        {
-          scanned: photos.length,
-          iCloudSkipped: skipped,
-          elapsedMs: elapsed,
-          distinctLabels: labelCount.size,
-          labels, // top 80 labels → count (the key calibration signal)
-          memories: Object.fromEntries(ins.memories.map((m) => [m.key, m.count])),
-          faces: {
-            total: ins.faces.totalFaces,
-            smiling: ins.faces.smiles,
-            withFaces: ins.faces.photosWithFaces,
-            biggestGroup: ins.faces.biggestGroup,
-          },
+    try {
+      // Shared scan (cached for the session, so opening the Cleaner afterwards
+      // reuses this exact pass). Returns rich per-face data + labels.
+      const { photos: rich, skipped, elapsedMs } = await scanGallery(
+        ({ done, total }) => {
+          setScanned(done);
+          setTotal(total);
+          setProgress(total > 0 ? done / total : 0);
         },
-        null,
-        2,
-      ),
-    );
-    setPhase("done");
+        { force },
+      );
+
+      if (rich.length === 0) {
+        setPhase("idle");
+        setNote("No photos found in this gallery.");
+        return;
+      }
+
+      // Collapse the shared record into the memories engine's shape.
+      const photos: ScannedPhoto[] = rich.map((p) => ({
+        uri: p.uri,
+        time: p.time,
+        labels: p.labels,
+        faces: p.faces.length,
+        smiles: p.faces.filter((f) => f.smilingProbability > 0.6).length,
+      }));
+
+      if (skipped > 0) {
+        setNote(
+          `${skipped} photo${skipped === 1 ? "" : "s"} are stored only in iCloud and were skipped (we never download them).`,
+        );
+      }
+
+      const ins = buildInsights(photos, elapsedMs);
+      setInsights(ins);
+
+      // Calibration report (dev-only card) — top labels + memory counts.
+      const labelCount = new Map<string, number>();
+      for (const p of photos) for (const l of p.labels) labelCount.set(l, (labelCount.get(l) ?? 0) + 1);
+      const labels = Object.fromEntries(
+        [...labelCount.entries()].sort((a, b) => b[1] - a[1]).slice(0, 80),
+      );
+      setReport(
+        JSON.stringify(
+          {
+            scanned: photos.length,
+            iCloudSkipped: skipped,
+            elapsedMs,
+            distinctLabels: labelCount.size,
+            labels,
+            memories: Object.fromEntries(ins.memories.map((m) => [m.key, m.count])),
+            faces: {
+              total: ins.faces.totalFaces,
+              smiling: ins.faces.smiles,
+              withFaces: ins.faces.photosWithFaces,
+              biggestGroup: ins.faces.biggestGroup,
+            },
+          },
+          null,
+          2,
+        ),
+      );
+      setPhase("done");
+    } catch (e: any) {
+      setNote(
+        String(e?.message) === PERMISSION_DENIED
+          ? "Gallery permission denied — nothing leaves your phone, we just need to read photos."
+          : "Scan failed — " + String(e?.message ?? e),
+      );
+      setPhase("idle");
+    }
   }
 
   const perSec =
@@ -247,7 +149,7 @@ export default function GalleryScreen() {
               <Bullet emoji="🧠">Sort them into smart "memories" — parties, pets, beaches…</Bullet>
               <Bullet emoji="🔒">0 bytes leave the device</Bullet>
             </Card>
-            <Pressable style={s.cta} onPress={scan}>
+            <Pressable style={s.cta} onPress={() => scan()}>
               <Text style={s.ctaText}>Scan my gallery ✨</Text>
             </Pressable>
             <Text style={s.privacy}>
@@ -341,7 +243,7 @@ export default function GalleryScreen() {
               </Card>
             )}
 
-            <Pressable style={s.rescan} onPress={scan}>
+            <Pressable style={s.rescan} onPress={() => scan(true)}>
               <Text style={s.rescanText}>Scan again 🔄</Text>
             </Pressable>
           </>

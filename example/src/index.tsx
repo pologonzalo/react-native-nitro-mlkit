@@ -38,6 +38,18 @@ export default function HomeScreen() {
         </Pressable>
       </Link>
 
+      {/* Photo Cleaner */}
+      <Link href={href("cleaner")} asChild>
+        <Pressable style={s.cleaner}>
+          <Text style={s.raceEmoji}>🧹</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={s.raceTitle}>Photo Cleaner</Text>
+            <Text style={s.raceSub}>Best-shot picker + screenshot purge, on-device</Text>
+          </View>
+          <Text style={s.cleanerGo}>›</Text>
+        </Pressable>
+      </Link>
+
       {/* The Race */}
       <Link href={href("benchmark")} asChild>
         <Pressable style={s.race}>
@@ -101,6 +113,8 @@ const s = StyleSheet.create({
   playPill: { alignSelf: "flex-start", backgroundColor: C.orange, borderWidth: 2, borderColor: C.ink, borderRadius: R.pill, paddingVertical: 10, paddingHorizontal: 20, ...keycap(4) },
   playText: { fontFamily: F.display, fontSize: 15, color: "#fff" },
 
+  cleaner: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: wash(C.mint, 0.16), borderWidth: 2, borderColor: C.mintInk, borderRadius: R.lg, padding: 15, marginBottom: 12, ...keycap(4) },
+  cleanerGo: { fontFamily: F.display, fontSize: 24, color: C.mintInk },
   race: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: wash(C.blue, 0.14), borderWidth: 2, borderColor: C.blue, borderRadius: R.lg, padding: 15, marginBottom: 22, ...keycap(4) },
   raceEmoji: { fontSize: 28 },
   raceTitle: { fontFamily: F.display, fontSize: 17, color: C.ink },
