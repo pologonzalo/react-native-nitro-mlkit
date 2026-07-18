@@ -20,12 +20,16 @@ namespace margelo::nitro::mlkit::face { struct DetectedFaceWithEmbedding; }
 namespace margelo::nitro::mlkit::face { struct DetectedFace; }
 // Forward declaration of `FaceBounds` to properly resolve imports.
 namespace margelo::nitro::mlkit::face { struct FaceBounds; }
+// Forward declaration of `FaceDetectionOptions` to properly resolve imports.
+namespace margelo::nitro::mlkit::face { struct FaceDetectionOptions; }
 // Forward declaration of `FaceLandmarkType` to properly resolve imports.
 namespace margelo::nitro::mlkit::face { enum class FaceLandmarkType; }
 // Forward declaration of `FaceLandmark` to properly resolve imports.
 namespace margelo::nitro::mlkit::face { struct FaceLandmark; }
 // Forward declaration of `HybridFaceDetectorSpec` to properly resolve imports.
 namespace margelo::nitro::mlkit::face { class HybridFaceDetectorSpec; }
+// Forward declaration of `PerformanceMode` to properly resolve imports.
+namespace margelo::nitro::mlkit::face { enum class PerformanceMode; }
 
 // Forward declarations of Swift defined types
 // Forward declaration of `HybridFaceDetectorSpec_cxx` to properly resolve imports.
@@ -38,15 +42,18 @@ namespace NitroMLKitFace { class HybridFaceDetectorSpec_cxx; }
 #include "DetectedFace.hpp"
 #include "DetectedFaceWithEmbedding.hpp"
 #include "FaceBounds.hpp"
+#include "FaceDetectionOptions.hpp"
 #include "FaceLandmark.hpp"
 #include "FaceLandmarkType.hpp"
 #include "HybridFaceDetectorSpec.hpp"
+#include "PerformanceMode.hpp"
 #include <NitroModules/Promise.hpp>
 #include <NitroModules/PromiseHolder.hpp>
 #include <NitroModules/Result.hpp>
 #include <exception>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -199,6 +206,21 @@ namespace margelo::nitro::mlkit::face::bridge::swift {
     std::vector<std::string> vector;
     vector.reserve(size);
     return vector;
+  }
+  
+  // pragma MARK: std::optional<FaceDetectionOptions>
+  /**
+   * Specialized version of `std::optional<FaceDetectionOptions>`.
+   */
+  using std__optional_FaceDetectionOptions_ = std::optional<FaceDetectionOptions>;
+  inline std::optional<FaceDetectionOptions> create_std__optional_FaceDetectionOptions_(const FaceDetectionOptions& value) noexcept {
+    return std::optional<FaceDetectionOptions>(value);
+  }
+  inline bool has_value_std__optional_FaceDetectionOptions_(const std::optional<FaceDetectionOptions>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline FaceDetectionOptions get_std__optional_FaceDetectionOptions_(const std::optional<FaceDetectionOptions>& optional) noexcept {
+    return optional.value();
   }
   
   // pragma MARK: std::shared_ptr<Promise<DetectedFace>>

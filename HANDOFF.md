@@ -1,8 +1,30 @@
 # HANDOFF — react-native-nitro-mlkit
 
-> Last updated: 2026-07-13  
+> Last updated: 2026-07-13 (session 2)  
 > Author: @pologonzalo  
 > Repo: https://github.com/pologonzalo/react-native-nitro-mlkit
+
+## ⚡ Session 2 update — face-detection now runs end-to-end
+
+`@nitro-mlkit/face-detection` **compiles and runs on Android** (verified live on a Pixel_9 emulator: app boots to the demo screen, HybridObject registers, no crash). It also **compiles clean on iOS** (Xcode `BUILD SUCCEEDED`) but **cannot run on the iOS Simulator** — Google ML Kit's iOS pods have no `arm64` Simulator slice (all versions, incl. 9.0.0). Verify iOS on a **physical device**.
+
+What was fixed this session:
+- Added `nitro.json` to image-labeling + face-recognition; ran nitrogen on all 3 (had to extract anonymous `{concurrency?}` option objects to named interfaces — nitrogen rejects anonymous objects).
+- Wrote the Android native glue for face-detection that nitrogen does NOT generate: `android/CMakeLists.txt`, `android/src/main/cpp/cpp-adapter.cpp` (the `JNI_OnLoad` → `registerAllNatives()` — the critical missing piece), CMake/prefab/abiFilters wiring in `build.gradle`, an Expo `Module()` (`NitroMLKitFacePackage`) registered via `expo-module.config.json`, and an eager `requireOptionalNativeModule("NitroMLKitFace")` in `src/index.ts` (Android lazy-loads Expo modules).
+- iOS: removed dead `margelo.nitro.HybridContext()` boilerplate from the Swift impl; podspec now uses `add_nitrogen_files` + `s.module_name = "NitroMLKitFace"` (must match `nitro.json` iosModuleName) + guarded empty `.tflite` resource_bundles + iOS min 15.1.
+- `nitro.json` autolinking now lists `FaceDetector` (modern `ios/android` syntax) so registration code is generated.
+- Example app: created `app/` (expo-router) + `metro.config.js` (monorepo) + `tsconfig.json`; pinned react/react-native workspace-wide and aligned SDK-55 deps.
+- Config plugin: added missing `@expo/config-plugins` dep + `tools:replace` on the MLKit meta-data (conflicted with expo-camera's barcode meta-data).
+
+Build/run recipe & env quirks are saved in project memory (LANG=UTF-8 for pods, ANDROID_HOME, Metro on :8082, RN dedupe).
+
+### Benchmark (session 3)
+
+Added `benchmark/` — a reproducible face-detection benchmark vs `@react-native-ml-kit/face-detection@2.0.1` (classic bridge, **same ML Kit 16.1.7** underneath, so it isolates the JS↔native architecture). Harness is a route in the example app (`example/app/benchmark.tsx`, reachable from the home screen), image prep is `benchmark/prepare-images.sh`. Full methodology + caveats in `benchmark/README.md`.
+
+Android results (Pixel_9 emulator, API 36, 500 imgs, median of 3): single-call **~1.16×**, sequential-500 **~1.16×**, native **batch-500 ~1.6×** vs the competitor's sequential loop (it has no batch API). Honest read: the per-call bridge win is modest because ML Kit inference dominates; the batch/concurrency win is the real story and widens with larger images. iOS benchmark still pending (needs a physical device). Not yet included: `@infinitered/react-native-mlkit-face-detection` as a 3rd bar (its hook-based API needs an imperative adapter).
+
+**Note on the port dance**: 8081 was free this session, so Metro ran on **8081** (not 8082 as an earlier memory says) with `adb reverse tcp:8081 tcp:8081` — simplest when 8081 is free. The debug APK defaults to `localhost:8081`; a `<Link asChild>` with an **array** `style` prop is a hard render error in this expo-router (flatten it).
 
 ## What is this?
 
@@ -88,66 +110,52 @@ vs one mega-package: ~17MB+ even if you only need face detection.
 
 ## What needs to be done (ordered by priority)
 
-### P0 — Make face-detection compile and run
+### ✅ P0 — DONE (session 2): face-detection compiles & builds on both platforms
 
-1. **Adapt Android Kotlin to generated spec**
-   - Look at `nitrogen/generated/android/kotlin/com/margelo/nitro/mlkit/face/HybridFaceDetectorSpec.kt`
-   - Make `HybridFaceDetector.kt` extend the generated base class
-   - Match method signatures exactly (all numbers are `Double`, arrays are `List<>`, etc.)
+All P0 items are complete:
+- ✅ Android Kotlin adapted to the generated spec + full native wiring (CMakeLists, cpp-adapter `JNI_OnLoad`, gradle prefab/abiFilters, Expo module). `libNitroMLKitFace.so` (arm64-v8a) + `app-debug.apk` build.
+- ✅ `nitro.json` added to image-labeling + face-recognition; nitrogen run on all 3.
+- ✅ Example app wired (`app/` router, `metro.config.js`, `tsconfig.json`) — iOS `.app` and Android `.apk` both build.
 
-2. **Add `nitro.json` to image-labeling and face-recognition**
+⚠️ **iOS Simulator cannot RUN face-detection** — Google ML Kit iOS pods have no `arm64` Simulator slice. The Xcode build succeeds, but the app won't install on the Simulator. **Verify iOS on a physical device.** Android has no such limit.
 
-   ```json
-   // packages/image-labeling/nitro.json
-   {
-     "cxxNamespace": ["mlkit", "labeling"],
-     "ios": { "iosModuleName": "NitroMLKitLabeling" },
-     "android": {
-       "androidNamespace": ["nitromlkit", "labeling"],
-       "androidCxxLibName": "NitroMLKitLabeling"
-     },
-     "autolinking": {}
-   }
-   ```
+✅ **Runtime QA passed on Android** (Pixel_9 emulator, API 36, 2026-07-14, live): picked a real portrait → **`detect()` → "Found 1 face(s)"** with correct classifications (smile 99%, left-eye-open 99%, bounds 322×368); **`cropFaces()` → "Got 1 face crop(s)"** (native bitmap crop + temp JPEG write); **`detectBatch()` (10×) → "Processed 10 images, found 10 total faces, all in ONE bridge call"** (coroutine chunked concurrency). No crash, 0 errors/warnings in JS logs. The full native path (JNI → Kotlin → MLKit → back to JS) works end-to-end.
+- Embedding methods still throw the "model not yet loaded" stub — expected (P1).
 
-3. **Run nitrogen on remaining packages**
+### P1 — Download MobileFaceNet model + finish embeddings (unblocks Remin recognition)
 
-   ```bash
-   cd packages/image-labeling && npx nitrogen
-   cd packages/face-recognition && npx nitrogen
-   ```
+- `extractEmbedding()`, `extractPrimaryEmbedding()`, `detectAndEmbed()` are still **STUBS** in both `HybridFaceDetector.swift` and `.kt` (throw "model not yet loaded. Coming in v0.2.0").
+- Get `mobilefacenet.tflite` from https://github.com/nicklockwood/mobilefacenet or TensorFlow Hub.
+- Place in `packages/face-detection/ios/models/` (podspec `resource_bundles` is guarded — it activates once a `.tflite` is present) and `packages/face-detection/android/src/main/assets/`.
+- Write TFLite inference in Swift/Kotlin (add `TensorFlowLiteSwift` pod / `org.tensorflow:tensorflow-lite` gradle dep).
 
-4. **Download MobileFaceNet model**
-   - Get `mobilefacenet.tflite` from https://github.com/nicklockwood/mobilefacenet or TensorFlow Hub
-   - Place in `packages/face-recognition/ios/models/` and `packages/face-recognition/android/src/main/assets/`
-   - Write TFLite inference code in Swift/Kotlin for `extractEmbedding()`
+### P2 — Image labeling native impl (`@nitro-mlkit/image-labeling`)
 
-5. **Wire example app**
-   ```bash
-   cd example && pnpm install && cd ios && pod install && cd ..
-   npx expo run:ios
-   ```
+- nitrogen codegen ✅ done; native impl **not written yet** and **not wired to a runnable app**.
+- Write `HybridImageLabeler.swift` + `.kt` + the same Android glue face-detection has (CMakeLists, cpp-adapter, Expo module, `requireOptionalNativeModule` in `src/index.ts`).
+- MLKit API: `ImageLabeler.process(image)` → array of `ImageLabel(text, confidence, index)`.
+- Safety check: filter labels like "underwear", "swimwear", "lingerie", etc.
 
-### P1 — Image labeling native impl
+### P3 — Face recognition native impl (`@nitro-mlkit/face-recognition`)
 
-- Write `HybridImageLabeler.swift` and `HybridImageLabeler.kt`
-- MLKit API is simple: `ImageLabeler.process(image)` returns array of `ImageLabel(text, confidence, index)`
-- Safety check: filter labels like "underwear", "swimwear", "lingerie" etc.
+- nitrogen codegen ✅ done; native impl **not written yet**. Depends on P1 (needs the MobileFaceNet embedding path).
+- Write `HybridFaceRecognizer.swift` + `.kt` + Android glue.
+- In-memory registry: `Dictionary<String, (name, embedding)>`.
+- `registerPerson()`: detect primary face → crop → MobileFaceNet → store embedding.
+- `findPeopleInPhotos()`: batch detect → crop each face → embed → compare vs registry.
+- `clearRegistry()`: wipe between game sessions.
 
-### P2 — Face recognition native impl
+### P4 — Publish v0.1.0
 
-- Write `HybridFaceRecognizer.swift` and `HybridFaceRecognizer.kt`
-- In-memory registry: `Dictionary<String, (name: String, embedding: [Float])>`
-- `registerPerson()`: detect primary face → crop → MobileFaceNet → store embedding
-- `findPeopleInPhotos()`: batch detect → crop each face → embed → compare vs registry
-- `clearRegistry()`: wipe between game sessions
+- Consider emitting real declarations (`tsc` build to `lib/`) instead of shipping `src/`.
+- `pnpm publish` each package to npm under `@nitro-mlkit` scope.
+- Add to https://reactnative.directory/.
+- Add GitHub topics: `react-native`, `nitro`, `mlkit`, `face-detection`, `expo`.
 
-### P3 — Publish v0.1.0
+### Cleanup / hygiene (do before committing)
 
-- Add proper `tsconfig.json` build step (emit declarations)
-- `pnpm publish` each package to npm under `@nitro-mlkit` scope
-- Add to https://reactnative.directory/
-- Add GitHub topics: `react-native`, `nitro`, `mlkit`, `face-detection`, `expo`
+- **Build artifacts are untracked in git**: `packages/face-detection/android/{build,.gradle,.cxx}/` and `example/{ios,android}/`. Add them to `.gitignore` (native dirs are generated by `expo prebuild` and should not be committed).
+- Nothing has been committed this session — `git status` shows all the session's changes as unstaged.
 
 ## Key files to understand
 
@@ -168,11 +176,108 @@ packages/face-detection/
 ## Technical notes
 
 - **Nitrogen requires numeric enums** (not string unions). `"fast" | "accurate"` → `enum PerformanceMode { FAST = 0, ACCURATE = 1 }`
-- **No optional properties in Nitro interfaces** — all fields must have values. Use sentinel values (-1 for "no tracking ID", empty array for "no landmarks")
-- **No `extends` on option interfaces** — flatten BatchOptions instead of extending FaceDetectionOptions
-- **All numbers are `Double`** in the generated Swift/Kotlin, even if they're semantically integers (faceIndex, trackingId)
+- **Nitrogen (0.36.1) rejects anonymous object types.** An inline `options?: { concurrency?: number }` param fails codegen with _"Anonymous objects cannot be represented in C++"_. Extract every such shape into a named `interface` (this bit both image-labeling and face-recognition — fixed by adding `BatchSafetyOptions` / `FindPeopleOptions`).
+- **Optional properties and `interface extends` ARE supported** in nitrogen 0.36.1 (earlier handoff notes said otherwise — they were wrong for this version). `BatchLabelOptions extends LabelingOptions` and `error?: string` both codegen fine. Optional fields map to nullable/`undefined` on the native side.
+- **All numbers are `Double`** in the generated Swift/Kotlin, even if they're semantically integers (faceIndex, trackingId). Runtime `Double` in Swift, `Double` in Kotlin; arrays are `[T]` / `Array<T>` and number arrays become `[Double]` / `DoubleArray`.
+- **The native glue nitrogen does NOT generate** (you must write per package): `android/CMakeLists.txt`, `android/src/main/cpp/cpp-adapter.cpp` (`JNI_OnLoad` → `registerAllNatives()`), gradle `externalNativeBuild`/`prefab`/`abiFilters`, an Expo `Module()` listed in `expo-module.config.json`, and an eager `requireOptionalNativeModule("<iosModuleName>")` in `src/index.ts` for Android. See `packages/face-detection/android/` as the reference.
 - **MLKit on Android**: use bundled version (`com.google.mlkit:...`) not thin/Play Services version, for offline-first
 - **MLKit on iOS**: pods are `GoogleMLKit/FaceDetection` and `GoogleMLKit/ImageLabeling`
+
+## Session 4 — full ML Kit suite build-out (branch `session/face-detection-beta-prep`)
+
+Goal set by the user: wrap **every** ML Kit API as an independent `@nitro-mlkit/*`
+package (install-only-what-you-use; each ships its own ML Kit dep + `.so`).
+
+**9 packages built + verified live on the Pixel 9 emulator (API 36), all committed:**
+
+| Package | Verified | npm |
+| --- | --- | --- |
+| `face-detection` | detect/crop/batch | ✅ beta published (`0.1.0-beta.0`) |
+| `image-labeling` | label 8@433ms, batch 160 | committed, not published |
+| `barcode-scanning` | QR→URL 117ms, EAN→PRODUCT 11ms, batch 20 | committed |
+| `text-recognition` | OCR "Hello Nitro MLKit" 190ms, batch 20 | committed |
+| `object-detection` | pipeline 200ms (0 objects on a face = expected) | committed |
+| `pose-detection` | 33 landmarks 430ms (nose 96%, hips 0% off-frame) | committed |
+| `language-id` | en 100%, es 99%, ~70ms (text, no image) | committed |
+| `face-mesh` | 468 3D points 180ms | committed |
+| `selfie-segmentation` | 128×128 mask PNG, 54% fg, 76ms (clean silhouette) | committed |
+
+Per-package recipe, tooling notes, and the remaining tail live in the
+`nitro-mlkit-suite` project memory. Key facts:
+- **Node 22 required** (`.nvmrc`) — pnpm 10.x uses `node:sqlite`; Node 20 breaks `pnpm install` (and EAS local builds).
+- **`nitro.json` `autolinking` block MUST be filled** or `createHybridObject` fails at runtime.
+- **`package.json` `files` must be scoped to source** (don't glob whole `android/` — it pulls 600 MB of `.cxx`/`build`). Tarballs are ~20-40 kB.
+- Codegen binary is **`nitrogen`** (run from the package dir), not `nitro-codegen`.
+- Each new package's native glue was generated with a parameterized script; the pattern is the same 4 pieces as face-detection.
+
+**Remaining ML Kit APIs (the harder/odd tail):** `smart-reply` (text, easy);
+`translation`, `entity-extraction`, `subject-segmentation` (need a RUNTIME model
+download — slower/flakier to verify on emulator); `digital-ink` (stroke input,
+not an image); `document-scanner` (full-screen Activity flow, not a still-image
+API — wrap differently or skip).
+
+## Session 5 — suite complete (15 packages) + iOS Swift port + demo redesign
+
+**Android suite is COMPLETE: 15 packages, every one verified live on the Pixel 9
+emulator.** Added since session 4: `smart-reply` (Android-only; "Sure!/Sure/Yes!"
+58ms), `translation` (en→es "Hola, ¿cómo estás hoy?" 2.5s incl. model dl),
+`entity-extraction` (Android-only; phone+email 480ms), `subject-segmentation`
+(Android-only GMS; native path verified, optional model dl slow on emulator),
+`digital-ink` (canvas strokes → 9 candidates 10.5s), `document-scanner`
+(Android-only GMS; launches full-screen scanner Activity → returns 1 page + PDF,
+verified end-to-end via an Activity-result↔Promise coroutine bridge).
+
+**iOS Swift port written (commit e291803) — NOT compiled.** The 9 cross-platform
+packages now have `ios/Hybrid<X>.swift` (barcode, labeling, text, objects, pose,
+selfie-seg, language-id, translation, digital-ink), each conforming to the
+generated `Hybrid<X>Spec`. GoogleMLKit has no arm64 Simulator slice, so they must
+be built on a physical iPhone; the commit message lists the exact MLKit-iOS API
+points likely to need a fix on first device build. The 4 Android-only APIs
+(smart-reply, face-mesh, entity-extraction, subject-segmentation) have no iOS.
+
+**Demo app redesigned:** native expo-router headers + back button, launcher-grid
+home, `SamplePicker` (camera/gallery + ~10 curated stock thumbnails, download on
+tap), on-image overlays (pose landmarks, object/barcode boxes, face mesh),
+confidence meters. `src/theme.ts` + `src/ui.tsx` + `src/samples.ts`.
+
+**Build gotchas (this session):** entity-extraction needs `minSdkVersion 26`
+(set via `expo-build-properties` in app.json); subject-segmentation +
+document-scanner are GMS artifacts (`com.google.android.gms:play-services-mlkit-*`)
+needing a `com.google.mlkit.vision.DEPENDENCIES` manifest meta-data; digital-ink
+classes live under `...vision.digitalink.recognition.*`; run `expo run:android`
+WITHOUT `| tail` (it buffers); stale Gradle daemons with a node-less PATH →
+`./gradlew --stop` then rebuild with Node 22.
+
+**Still pending (needs the user / a physical device):**
+- **iOS on device:** the full-suite `.ipa` now **compiles + signs** (see Session 6);
+  still needs to be **run + verified on a physical iPhone** (runtime behaviour of the
+  9 cross-platform packages on-device is unconfirmed). Install
+  `example/build-1784122316608.ipa` via Expo Orbit or
+  `xcrun devicectl device install app --device <UDID> example/build-*.ipa`.
+- **npm:** publish the committed betas (`npm publish --access public --tag beta`
+  per pkg dir — needs npm login). Only face-detection is published so far.
+- **git:** merge `session/face-detection-beta-prep` → `main` + tag.
+- **v0.2:** face-recognition iOS (TFLite embedding path — was made Android-only) +
+  the `FaceModel` enum.
+
+## Session 6 (2026-07-15)
+
+- **Gallery Wrapped demo** (`example/app/gallery.tsx` + `src/gallery-insights.ts` +
+  home banner): asks photo permission, scans up to 500 gallery photos in native
+  batch (image-labeling + face-detection concurrently, chunked), shows a fun
+  "wrapped" (speed hero photos/s, persona, theme buckets, faces/smiles, top labels).
+  Added `expo-media-library`. **Verified live on Pixel 9: 31 photos in 0.6 s (~53/s).**
+  iOS: resolves `ph://` → `localUri` before scanning.
+- **iOS build is GREEN** — first full-suite `.ipa` (`example/build-1784122316608.ipa`,
+  82.7 MB, ad-hoc, includes the user's iPhone UDID). Built via
+  `eas build -p ios --profile device --local` (headless). Fixes: podspecs now use
+  Nitrogen `add_nitrogen_files` + `s.module_name` (fixed `'<regex>' file not found`);
+  4 Swift fixes (barcode `.driversLicense`, selfie-seg `CVPixelBufferGetWidth/Height`,
+  digital-ink failable init + `t: Int` + top-level `StrokePoint`/`Stroke`);
+  face-recognition → **Android-only** (its TFLite podspec broke `pod install`).
+- **Env:** created `~/.zshenv` so the Claude Bash tool (non-login zsh) resolves
+  node22/pnpm/adb/fastlane/eas; the harness clobbers PATH so prefix commands with
+  `source ~/.zshenv`.
 
 ## Context: Remin (the app that will use this)
 

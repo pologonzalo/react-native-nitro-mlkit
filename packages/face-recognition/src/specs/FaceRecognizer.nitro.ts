@@ -33,6 +33,16 @@ export interface FaceSearchResult {
 }
 
 /**
+ * Options for batch photo scanning.
+ */
+export interface FindPeopleOptions {
+  /** Max concurrent native operations (default: 4) */
+  concurrency?: number;
+  /** Minimum similarity to count as a match (0..1). Default: 0.6 */
+  minSimilarity?: number;
+}
+
+/**
  * Result of scanning a photo for known people.
  */
 export interface PhotoPersonResult {
@@ -60,9 +70,27 @@ export interface PhotoPersonResult {
  * 3. Get results → "Photo 42 has Marcos (92% confidence)"
  */
 export interface FaceRecognizer extends HybridObject<{
-  ios: "swift";
   android: "kotlin";
 }> {
+  // ─── Model ────────────────────────────────────────────────────────────────
+  // Recognition needs a face-embedding model (e.g. MobileFaceNet, ~5 MB,
+  // Apache-2.0) running on TensorFlow Lite. ML Kit only does *detection*, so you
+  // provide the embedding model once; it is cached on disk. `register*` and
+  // `find*` throw until a model is ready. Input/output tensor shapes are read
+  // from the model, so 128-d and 192-d MobileFaceNet variants both work.
+
+  /**
+   * Download a `.tflite` face-embedding model from `url` into app storage and
+   * load it. Call once; subsequent launches can `loadModel()` the cached file.
+   */
+  downloadModel(url: string): Promise<boolean>;
+
+  /** Load a `.tflite` model already on disk (bundled asset or previous download). */
+  loadModel(fileUri: string): Promise<boolean>;
+
+  /** Whether an embedding model is loaded and ready. */
+  isModelReady(): boolean;
+
   // ─── Person Registry ────────────────────────────────────────────────────
 
   /**
@@ -114,7 +142,7 @@ export interface FaceRecognizer extends HybridObject<{
    */
   findPeopleInPhotos(
     imageUris: string[],
-    options?: { concurrency?: number; minSimilarity?: number },
+    options?: FindPeopleOptions,
   ): Promise<PhotoPersonResult[]>;
 
   /**

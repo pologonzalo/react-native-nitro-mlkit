@@ -1,0 +1,16 @@
+{
+  "cxxNamespace": ["mlkit", "pose"],
+  "ios": {
+    "iosModuleName": "NitroMLKitPose"
+  },
+  "android": {
+    "androidNamespace": ["nitromlkit", "pose"],
+    "androidCxxLibName": "NitroMLKitPose"
+  },
+  "autolinking": {
+    "PoseDetector": {
+      "ios": { "language": "swift", "implementationClassName": "HybridPoseDetector" },
+      "android": { "language": "kotlin", "implementationClassName": "HybridPoseDetector" }
+    }
+  }
+}

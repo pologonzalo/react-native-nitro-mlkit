@@ -1,106 +1,129 @@
-# @nitro-mlkit/face-detection
+# React Native ML Kit — Face Detection
 
-High-performance on-device face detection for React Native, built with [Nitro Modules](https://github.com/mrousavy/nitro).
+**`@nitro-mlkit/face-detection`** · on-device Google ML Kit via [Nitro Modules](https://github.com/mrousavy/nitro) — JSI, no bridge.
 
-Uses Google ML Kit (Android) and Apple Vision framework (iOS). **All processing happens on-device — no data leaves the phone.**
+> ⚠️ **Beta (`0.1.0-beta.x`).** Android is verified on-device. iOS builds, links
+> and signs cleanly, but on-device runtime validation is still pending — see
+> [Platform status](#platform-status). Recognition/embeddings are **not**
+> implemented yet (v0.2.0). The API surface may still change before `0.1.0`.
+
+High-performance, on-device face **detection** for React Native, built with
+[Nitro Modules](https://github.com/mrousavy/nitro) — JSI, synchronous crossing,
+no bridge and no JSON serialization.
+
+Powered by **Google ML Kit** on both Android and iOS. **All processing happens
+on-device — nothing leaves the phone.**
 
 ## Why this over existing packages?
 
-| Feature                      | expo-face-detector | @infinitered | **@nitro-mlkit** |
-| ---------------------------- | ------------------ | ------------ | ---------------- |
-| Maintained                   | ❌ Deprecated      | ✅           | ✅               |
-| Nitro (zero bridge overhead) | ❌                 | ❌           | ✅               |
-| Batch processing             | ❌                 | ❌           | ✅               |
-| Crop faces natively          | ❌                 | ❌           | ✅               |
-| Expo config plugin           | ❌                 | ✅           | ✅               |
-| tvOS support                 | ❌                 | ❌           | ✅ (planned)     |
+| Feature                          | expo-face-detector | @infinitered | **@nitro-mlkit** |
+| -------------------------------- | ------------------ | ------------ | ---------------- |
+| Maintained                       | ❌ Deprecated      | ✅           | ✅               |
+| Nitro / JSI (no bridge overhead) | ❌                 | ❌           | ✅               |
+| Native batch API                 | ❌                 | ❌           | ✅               |
+| Crop faces natively              | ❌                 | ❌           | ✅               |
+| Expo config plugin               | ❌                 | ✅           | ✅               |
+
+On Android, `detectBatch` scans 500 images **~2.9× faster** than the
+classic-bridge equivalent and **~4.3×** vs the Expo-module one. Full
+methodology and honest caveats in [`benchmark/`](../../benchmark/README.md).
 
 ## Installation
 
 ```bash
-npm install @nitro-mlkit/face-detection react-native-nitro-modules
+npm install @nitro-mlkit/face-detection@beta react-native-nitro-modules
 ```
+
+This package contains native code, so it does **not** run in Expo Go — use a
+development build or bare workflow.
 
 ### Expo
 
-Add the plugin to your `app.json`:
+Add the config plugin to your `app.json`, then prebuild:
 
 ```json
-{
-  "plugins": ["@nitro-mlkit/face-detection"]
-}
+{ "plugins": ["@nitro-mlkit/face-detection"] }
+```
+
+```bash
+npx expo prebuild
 ```
 
 ## Usage
 
-```typescript
-import { NitroFace } from "@nitro-mlkit/face-detection";
+```ts
+import { NitroFace, PerformanceMode } from "@nitro-mlkit/face-detection";
 
-// ─── Detection ──────────────────────────────────────────────
-
-// Detect faces in a single image
+// Detect faces in one image (all options are required in v0.1)
 const faces = await NitroFace.detect(imageUri, {
-  performanceMode: "accurate",
-  landmarks: true,
-  classifications: true,
+  performanceMode: PerformanceMode.FAST, // or PerformanceMode.ACCURATE
+  landmarks: false,
+  classifications: false,
+  minFaceSize: 0.1,
+  tracking: false,
+});
+// → [{ bounds, headEulerAngleY, smilingProbability, landmarks, trackingId, ... }]
+
+// Largest face only (selfie optimization)
+const primary = await NitroFace.detectPrimary(selfieUri);
+
+// Crop every detected face to temp-file URIs (padding as a fraction of size)
+const crops = await NitroFace.cropFaces(photoUri, 0.3);
+// → [{ uri, faceIndex, width, height }]
+
+// Native batch — ONE JSI call, N images detected concurrently.
+// Omit options for the fastest run (no classification):
+const results = await NitroFace.detectBatch(galleryUris, 4 /* concurrency */);
+// → [{ index, faces, crops, success }]
+
+// Pass options to classify the whole batch — real smiling / eyes-open per face:
+const withSmiles = await NitroFace.detectBatch(galleryUris, 4, {
+  performanceMode: PerformanceMode.FAST,
+  landmarks: false,
+  classifications: true, // ← populates smilingProbability & *EyeOpenProbability
+  minFaceSize: 0.1,
+  tracking: false,
 });
 
-// Detect the primary face (selfie optimization)
-const face = await NitroFace.detectPrimary(selfieUri);
-
-// Crop all faces from an image (returns temp file URIs)
-const crops = await NitroFace.cropFaces(photoUri, { padding: 0.3 });
-
-// ─── Recognition (MobileFaceNet, Apache 2.0) ────────────────
-
-// Register a player: selfie → embedding (one native call)
-const marcosEmbedding = await NitroFace.extractPrimaryEmbedding(selfieUri);
-// → [0.12, -0.34, 0.56, ...] (128-d vector)
-
-// Compare two faces
-const similarity = NitroFace.compareFaces(marcosEmbedding, otherEmbedding);
-// → 0.87 (87% match = same person)
-
-// ─── Batch (the killer feature) ─────────────────────────────
-
-// Scan 500 gallery photos: detect + embed ALL faces, one bridge call
-const results = await NitroFace.detectAndEmbed(galleryUris, {
-  performanceMode: "fast",
-  concurrency: 4,
-});
-
-// Find Marcos in all photos
-for (const result of results) {
-  for (const face of result.faces) {
-    const sim = NitroFace.compareFaces(marcosEmbedding, face.embedding);
-    if (sim > 0.7) {
-      console.log(`Found Marcos in photo ${result.index}!`);
-    }
-  }
-}
+// Runtime availability
+NitroFace.isAvailable(); // boolean
 ```
 
-## Batch Processing
+## API
 
-The killer feature. Instead of 500 bridge roundtrips:
+| Method                                | Status                          |
+| ------------------------------------- | ------------------------------- |
+| `detect(uri, options)`                | ✅                              |
+| `detectPrimary(uri)`                  | ✅                              |
+| `cropFaces(uri, padding)`             | ✅                              |
+| `detectBatch(uris, concurrency, options?)` | ✅ `options` opts into classification |
+| `isAvailable()`                       | ✅                              |
+| `compareFaces(a, b)`                  | ✅ cosine similarity (0..1)     |
+| `extractEmbedding(uri)`               | 🔜 v0.2.0 — **throws** today    |
+| `extractPrimaryEmbedding(uri)`        | 🔜 v0.2.0 — **throws** today    |
+| `detectAndEmbed(uris, concurrency)`   | 🔜 v0.2.0 — **throws** today    |
 
-```
-// ❌ Old way: 500 bridge crossings
-for (const uri of photos) {
-  const faces = await oldDetector.detect(uri); // bridge → native → bridge
-}
+### Face recognition / embeddings (coming in v0.2.0)
 
-// ✅ Nitro way: 1 bridge crossing
-const results = await NitroFace.detectBatch(photos, { concurrency: 4 });
-```
+`extractEmbedding`, `extractPrimaryEmbedding` and `detectAndEmbed` are declared
+in the type surface but **not implemented yet** — calling them throws
+`"MobileFaceNet model not yet loaded. Coming in v0.2.0"`. MobileFaceNet
+embeddings (to find the same person across a photo set) are the next milestone.
+`compareFaces` already ships the cosine-similarity math, so it's ready the
+moment embeddings land.
 
-## Platforms
+## Platform status
 
-- ✅ iOS 17+ (ML Kit via CocoaPods)
-- ✅ Android 13+ (ML Kit bundled)
-- 🔜 tvOS (Vision framework)
-- 🔜 macOS (Vision framework)
+| Platform     | Min version | Status                                                           |
+| ------------ | ----------- | ---------------------------------------------------------------- |
+| Android      | API 21+     | ✅ Verified on-device (Pixel 9 emulator, API 36)                 |
+| iOS          | 15.5+       | ⚠️ Builds, links & signs (GoogleMLKit via CocoaPods); device run pending¹ |
+| tvOS / macOS | —           | 🔜 Planned                                                       |
+
+¹ Google ML Kit's iOS pods ship no `arm64` **Simulator** slice, so iOS must be
+validated on a physical device. The build and code-signing pipeline is green;
+a device run is the last box to tick before a stable `0.1.0`.
 
 ## License
 
-MIT
+MIT © Gonzalo Polo

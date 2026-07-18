@@ -29,10 +29,14 @@ function withNitroMLKitFace(config) {
       if (fs.existsSync(manifestPath)) {
         let contents = fs.readFileSync(manifestPath, "utf-8");
 
-        // Ensure ML Kit uses bundled model (offline-first)
+        // Ensure ML Kit uses bundled model (offline-first).
+        // tools:replace avoids a manifest-merge conflict with other MLKit-based
+        // Expo modules (e.g. expo-camera's barcode scanner) declaring the same
+        // meta-data key with a different value.
         const metaData = `        <meta-data
             android:name="com.google.mlkit.vision.DEPENDENCIES"
-            android:value="face" />`;
+            android:value="face"
+            tools:replace="android:value" />`;
 
         if (!contents.includes("com.google.mlkit.vision.DEPENDENCIES")) {
           contents = contents.replace(

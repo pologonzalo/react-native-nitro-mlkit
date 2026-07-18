@@ -1,0 +1,16 @@
+# Build artifacts — never publish these
+android/.cxx/
+android/.gradle/
+android/build/
+android/.kotlin/
+ios/build/
+ios/Pods/
+ios/DerivedData/
+**/DerivedData/
+**/*.xcuserdata/
+
+# Dev / OS / misc
+node_modules/
+*.log
+.DS_Store
+tsconfig.tsbuildinfo

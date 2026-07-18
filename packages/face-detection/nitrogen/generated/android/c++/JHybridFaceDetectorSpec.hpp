@@ -55,7 +55,7 @@ namespace margelo::nitro::mlkit::face {
   public:
     // Methods
     std::shared_ptr<Promise<std::vector<DetectedFace>>> detect(const std::string& imageUri, const FaceDetectionOptions& options) override;
-    std::shared_ptr<Promise<std::vector<BatchCropResult>>> detectBatch(const std::vector<std::string>& imageUris, double concurrency) override;
+    std::shared_ptr<Promise<std::vector<BatchCropResult>>> detectBatch(const std::vector<std::string>& imageUris, double concurrency, const std::optional<FaceDetectionOptions>& options) override;
     std::shared_ptr<Promise<DetectedFace>> detectPrimary(const std::string& imageUri) override;
     std::shared_ptr<Promise<std::vector<CroppedFace>>> cropFaces(const std::string& imageUri, double padding) override;
     std::shared_ptr<Promise<std::vector<double>>> extractEmbedding(const std::string& faceUri) override;

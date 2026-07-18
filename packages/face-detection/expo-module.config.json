@@ -4,6 +4,6 @@
     "modules": []
   },
   "android": {
-    "modules": []
+    "modules": ["com.nitromlkit.face.NitroMLKitFacePackage"]
   }
 }

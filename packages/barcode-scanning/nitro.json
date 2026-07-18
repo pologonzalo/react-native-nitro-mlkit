@@ -1,0 +1,16 @@
+{
+  "cxxNamespace": ["mlkit", "barcode"],
+  "ios": {
+    "iosModuleName": "NitroMLKitBarcode"
+  },
+  "android": {
+    "androidNamespace": ["nitromlkit", "barcode"],
+    "androidCxxLibName": "NitroMLKitBarcode"
+  },
+  "autolinking": {
+    "BarcodeScanner": {
+      "ios": { "language": "swift", "implementationClassName": "HybridBarcodeScanner" },
+      "android": { "language": "kotlin", "implementationClassName": "HybridBarcodeScanner" }
+    }
+  }
+}

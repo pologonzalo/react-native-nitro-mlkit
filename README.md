@@ -1,6 +1,6 @@
-# react-native-nitro-mlkit
+# React Native ML Kit — the complete suite, on Nitro
 
-High-performance ML Kit modules for React Native, built with [Nitro Modules](https://github.com/mrousavy/nitro).
+The full **Google ML Kit** feature set for **React Native & Expo**, published as [`@nitro-mlkit/*`](#packages) and built with [Nitro Modules](https://github.com/mrousavy/nitro) — JSI, synchronous, no bridge.
 
 All processing runs **on-device** — no data leaves the phone, no cloud APIs, no Firebase required.
 

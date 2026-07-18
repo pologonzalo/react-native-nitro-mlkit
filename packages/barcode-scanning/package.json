@@ -1,0 +1,55 @@
+{
+  "name": "@nitro-mlkit/barcode-scanning",
+  "version": "0.1.0-beta.0",
+  "description": "High-performance on-device barcode & QR scanning for React Native — Google ML Kit + Nitro. Native batch scanning, all 1D/2D symbologies, zero bridge overhead.",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "codegen": "nitrogen",
+    "build": "tsc --noEmit"
+  },
+  "keywords": [
+    "react-native",
+    "nitro",
+    "mlkit",
+    "barcode",
+    "qr-code",
+    "barcode-scanner",
+    "qr-scanner",
+    "machine-learning",
+    "on-device",
+    "expo"
+  ],
+  "author": "pologonzalo",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pologonzalo/react-native-nitro-mlkit",
+    "directory": "packages/barcode-scanning"
+  },
+  "peerDependencies": {
+    "expo-modules-core": "*",
+    "react": ">=18",
+    "react-native": ">=0.76",
+    "react-native-nitro-modules": ">=0.20"
+  },
+  "devDependencies": {
+    "expo-modules-core": "*",
+    "nitro-codegen": "*",
+    "react-native-nitro-modules": "*",
+    "typescript": "~5.9.0"
+  },
+  "files": [
+    "src",
+    "ios/**/*.swift",
+    "android/src",
+    "android/build.gradle",
+    "android/CMakeLists.txt",
+    "expo-module.config.json",
+    "nitrogen/generated",
+    "*.podspec",
+    "nitro.json",
+    "README.md",
+    "LICENSE"
+  ]
+}

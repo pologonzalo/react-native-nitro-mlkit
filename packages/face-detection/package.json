@@ -1,7 +1,7 @@
 {
   "name": "@nitro-mlkit/face-detection",
-  "version": "0.1.0",
-  "description": "High-performance on-device face detection for React Native using ML Kit + Nitro Modules. Batch processing, face embeddings, zero bridge overhead.",
+  "version": "0.1.0-beta.0",
+  "description": "High-performance on-device face detection for React Native — Google ML Kit + Nitro Modules (JSI). Native batch processing, face cropping, zero bridge overhead.",
   "main": "src/index.ts",
   "types": "src/index.ts",
   "scripts": {
@@ -14,7 +14,6 @@
     "nitro",
     "mlkit",
     "face-detection",
-    "face-recognition",
     "machine-learning",
     "on-device",
     "expo",
@@ -27,24 +26,36 @@
     "url": "https://github.com/pologonzalo/react-native-nitro-mlkit",
     "directory": "packages/face-detection"
   },
+  "dependencies": {
+    "@expo/config-plugins": "^55.0.0"
+  },
   "peerDependencies": {
+    "expo-modules-core": "*",
     "react": ">=18",
     "react-native": ">=0.76",
     "react-native-nitro-modules": ">=0.20"
   },
   "devDependencies": {
+    "expo-modules-core": "*",
     "nitro-codegen": "*",
     "react-native-nitro-modules": "*",
     "typescript": "~5.9.0"
   },
   "files": [
     "src",
-    "ios",
-    "android",
+    "ios/**/*.swift",
+    "ios/**/*.h",
+    "ios/**/*.m",
+    "ios/**/*.mm",
+    "android/src",
+    "android/build.gradle",
+    "android/CMakeLists.txt",
     "plugin",
     "nitrogen/generated",
     "*.podspec",
     "nitro.json",
-    "app.plugin.js"
+    "app.plugin.js",
+    "README.md",
+    "LICENSE"
   ]
 }

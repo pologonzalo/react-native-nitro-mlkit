@@ -1,0 +1,15 @@
+{
+  "cxxNamespace": ["mlkit", "entity"],
+  "ios": {
+    "iosModuleName": "NitroMLKitEntity"
+  },
+  "android": {
+    "androidNamespace": ["nitromlkit", "entity"],
+    "androidCxxLibName": "NitroMLKitEntity"
+  },
+  "autolinking": {
+    "EntityExtractor": {
+      "android": { "language": "kotlin", "implementationClassName": "HybridEntityExtractor" }
+    }
+  }
+}

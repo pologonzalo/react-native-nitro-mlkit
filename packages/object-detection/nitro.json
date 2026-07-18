@@ -1,0 +1,16 @@
+{
+  "cxxNamespace": ["mlkit", "objects"],
+  "ios": {
+    "iosModuleName": "NitroMLKitObjects"
+  },
+  "android": {
+    "androidNamespace": ["nitromlkit", "objects"],
+    "androidCxxLibName": "NitroMLKitObjects"
+  },
+  "autolinking": {
+    "ObjectDetector": {
+      "ios": { "language": "swift", "implementationClassName": "HybridObjectDetector" },
+      "android": { "language": "kotlin", "implementationClassName": "HybridObjectDetector" }
+    }
+  }
+}

@@ -5,14 +5,53 @@
     "version": "1.0.0",
     "scheme": "nitro-mlkit-example",
     "ios": {
-      "bundleIdentifier": "com.nitromlkit.example"
+      "bundleIdentifier": "com.nitromlkit.example",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
-      "package": "com.nitromlkit.example"
+      "package": "com.nitromlkit.example",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
-    "plugins": ["expo-router", "expo-camera", "@nitro-mlkit/face-detection"],
+    "plugins": [
+      "expo-router",
+      "expo-camera",
+      "@nitro-mlkit/face-detection",
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Allow NitroMLKit to scan your photo library on-device to build your Gallery Wrapped.",
+          "savePhotosPermission": "Allow NitroMLKit to save photos.",
+          "isAccessMediaLocationEnabled": false
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "15.5"
+          },
+          "android": {
+            "minSdkVersion": 26
+          }
+        }
+      ],
+      "expo-image",
+      "expo-font"
+    ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "639895f7-44ad-48d8-b234-2c87b0ab85ba"
+      }
+    },
+    "owner": "black-sun-studios"
   }
 }

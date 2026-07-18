@@ -1,0 +1,15 @@
+{
+  "cxxNamespace": ["mlkit", "subjectseg"],
+  "ios": {
+    "iosModuleName": "NitroMLKitSubjectSeg"
+  },
+  "android": {
+    "androidNamespace": ["nitromlkit", "subjectseg"],
+    "androidCxxLibName": "NitroMLKitSubjectSeg"
+  },
+  "autolinking": {
+    "SubjectSegmenter": {
+      "android": { "language": "kotlin", "implementationClassName": "HybridSubjectSegmenter" }
+    }
+  }
+}

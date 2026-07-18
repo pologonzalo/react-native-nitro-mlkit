@@ -1,0 +1,15 @@
+{
+  "cxxNamespace": ["mlkit", "docscan"],
+  "ios": {
+    "iosModuleName": "NitroMLKitDocumentScanner"
+  },
+  "android": {
+    "androidNamespace": ["nitromlkit", "docscan"],
+    "androidCxxLibName": "NitroMLKitDocumentScanner"
+  },
+  "autolinking": {
+    "DocumentScanner": {
+      "android": { "language": "kotlin", "implementationClassName": "HybridDocumentScanner" }
+    }
+  }
+}

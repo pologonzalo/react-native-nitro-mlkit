@@ -14,7 +14,7 @@ public protocol HybridFaceDetectorSpec_protocol: HybridObject {
 
   // Methods
   func detect(imageUri: String, options: FaceDetectionOptions) throws -> Promise<[DetectedFace]>
-  func detectBatch(imageUris: [String], concurrency: Double) throws -> Promise<[BatchCropResult]>
+  func detectBatch(imageUris: [String], concurrency: Double, options: FaceDetectionOptions?) throws -> Promise<[BatchCropResult]>
   func detectPrimary(imageUri: String) throws -> Promise<DetectedFace>
   func cropFaces(imageUri: String, padding: Double) throws -> Promise<[CroppedFace]>
   func extractEmbedding(faceUri: String) throws -> Promise<[Double]>

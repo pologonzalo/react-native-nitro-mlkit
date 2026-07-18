@@ -1,214 +1,134 @@
-import { NitroFace } from "@nitro-mlkit/face-detection";
-import { PerformanceMode } from "@nitro-mlkit/face-detection/src/specs/FaceDetector.nitro";
-import * as ImagePicker from "expo-image-picker";
-import { useState } from "react";
-import {
-  Alert,
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { type Href, Link } from "expo-router";
+import type { ReactNode } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { FEATURES } from "./features";
+import { PlatformBadge } from "./PlatformBadge";
+import { C, F, keycap, R, tint, wash } from "./theme";
+
+const href = (route: string) => ("/" + route) as unknown as Href;
 
 export default function HomeScreen() {
-  const [imageUri, setImageUri] = useState<string | null>(null);
-  const [faces, setFaces] = useState<any[]>([]);
-  const [crops, setCrops] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  async function pickImage() {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: "images",
-      quality: 1,
-    });
-    if (!result.canceled && result.assets[0]) {
-      setImageUri(result.assets[0].uri);
-      setFaces([]);
-      setCrops([]);
-    }
-  }
-
-  async function detectFaces() {
-    if (!imageUri) return;
-    setLoading(true);
-    try {
-      const detected = await NitroFace.detect(imageUri, {
-        performanceMode: PerformanceMode.ACCURATE,
-        landmarks: true,
-        classifications: true,
-        minFaceSize: 0.1,
-        tracking: false,
-      });
-      setFaces(detected);
-      Alert.alert("Detected", `Found ${detected.length} face(s)`);
-    } catch (e: any) {
-      Alert.alert("Error", e.message);
-    }
-    setLoading(false);
-  }
-
-  async function cropAllFaces() {
-    if (!imageUri) return;
-    setLoading(true);
-    try {
-      const croppedFaces = await NitroFace.cropFaces(imageUri, 0.3);
-      setCrops(croppedFaces.map((c) => c.uri));
-      Alert.alert("Cropped", `Got ${croppedFaces.length} face crop(s)`);
-    } catch (e: any) {
-      Alert.alert("Error", e.message);
-    }
-    setLoading(false);
-  }
-
-  async function testBatch() {
-    if (!imageUri) return;
-    setLoading(true);
-    try {
-      // Simulate batch with the same image 10 times
-      const uris = Array(10).fill(imageUri);
-      const results = await NitroFace.detectBatch(uris, 4);
-      const totalFaces = results.reduce((sum, r) => sum + r.faces.length, 0);
-      Alert.alert(
-        "Batch Complete",
-        `Processed ${results.length} images, found ${totalFaces} total faces.\nAll in ONE bridge call!`,
-      );
-    } catch (e: any) {
-      Alert.alert("Error", e.message);
-    }
-    setLoading(false);
-  }
-
   return (
     <ScrollView style={s.container} contentContainerStyle={s.content}>
-      <Text style={s.title}>@nitro-mlkit/face-detection</Text>
-      <Text style={s.subtitle}>On-device • Zero bridge overhead • Batch</Text>
+      {/* Cover */}
+      <Text style={s.logo}>
+        GIZM<Text style={s.logoO}>O</Text>
+      </Text>
+      <Text style={s.tagline}>The Nitro toy lab.</Text>
+      <View style={s.chips}>
+        <Chip>on-device</Chip>
+        <Chip>JSI · no bridge</Chip>
+        <Chip mint>0 bytes ↑</Chip>
+      </View>
 
-      <Pressable style={s.btn} onPress={pickImage}>
-        <Text style={s.btnText}>Pick Image</Text>
-      </Pressable>
+      {/* Gallery Wrapped cartridge */}
+      <Link href={href("gallery")} asChild>
+        <Pressable style={s.cartridge}>
+          <View style={s.cartArt}>
+            <Text style={s.cartEmoji}>✨</Text>
+            <View style={[s.dot, { backgroundColor: C.orange, top: 12, left: 20 }]} />
+            <View style={[s.dot, { backgroundColor: C.blue, top: 30, right: 24 }]} />
+            <View style={[s.dot, { backgroundColor: C.mint, bottom: 14, left: 40 }]} />
+          </View>
+          <Text style={s.cartTitle}>Gallery Wrapped ✨</Text>
+          <Text style={s.cartSub}>Scan your whole camera roll on-device → a playful recap + Memories.</Text>
+          <View style={s.playPill}>
+            <Text style={s.playText}>▶ Play memories</Text>
+          </View>
+        </Pressable>
+      </Link>
 
-      {imageUri && (
-        <Image
-          source={{ uri: imageUri }}
-          style={s.preview}
-          resizeMode="contain"
-        />
-      )}
+      {/* Photo Cleaner */}
+      <Link href={href("cleaner")} asChild>
+        <Pressable style={s.cleaner}>
+          <Text style={s.raceEmoji}>🧹</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={s.raceTitle}>Photo Cleaner</Text>
+            <Text style={s.raceSub}>Best-shot picker + screenshot purge, on-device</Text>
+          </View>
+          <Text style={s.cleanerGo}>›</Text>
+        </Pressable>
+      </Link>
 
-      {imageUri && (
-        <View style={s.actions}>
-          <Pressable
-            style={[s.btn, s.btnPrimary]}
-            onPress={detectFaces}
-            disabled={loading}
-          >
-            <Text style={s.btnText}>Detect Faces</Text>
-          </Pressable>
+      {/* The Race */}
+      <Link href={href("benchmark")} asChild>
+        <Pressable style={s.race}>
+          <Text style={s.raceEmoji}>🏁</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={s.raceTitle}>The Race</Text>
+            <Text style={s.raceSub}>Nitro-JSI vs the classic bridge — watch it run</Text>
+          </View>
+          <Text style={s.raceGo}>›</Text>
+        </Pressable>
+      </Link>
 
-          <Pressable
-            style={[s.btn, s.btnPrimary]}
-            onPress={cropAllFaces}
-            disabled={loading}
-          >
-            <Text style={s.btnText}>Crop Faces</Text>
-          </Pressable>
+      {/* All gizmos */}
+      <Text style={s.section}>The toy box</Text>
+      <View style={s.grid}>
+        {FEATURES.map((f) => (
+          <Link key={f.route} href={href(f.route)} asChild>
+            <Pressable style={{ ...s.tile, borderColor: C.ink }}>
+              <View style={{ ...s.tileChip, backgroundColor: tint(f.accent, 0.18) }}>
+                <Text style={s.tileEmoji}>{f.emoji}</Text>
+              </View>
+              <Text style={s.tileTitle} numberOfLines={1}>{f.title}</Text>
+              <Text style={s.tileTag} numberOfLines={1}>{f.tag}</Text>
+              <View style={s.tileBadge}>
+                <PlatformBadge androidOnly={f.android} size={14} />
+              </View>
+            </Pressable>
+          </Link>
+        ))}
+      </View>
 
-          <Pressable
-            style={[s.btn, s.btnAccent]}
-            onPress={testBatch}
-            disabled={loading}
-          >
-            <Text style={s.btnText}>Batch (10x) 🚀</Text>
-          </Pressable>
-        </View>
-      )}
-
-      {faces.length > 0 && (
-        <View style={s.results}>
-          <Text style={s.resultsTitle}>Detected {faces.length} face(s):</Text>
-          {faces.map((face, i) => (
-            <View key={i} style={s.faceCard}>
-              <Text style={s.faceText}>Face {i + 1}</Text>
-              <Text style={s.faceDetail}>
-                Smile: {(face.smilingProbability * 100).toFixed(0)}%
-              </Text>
-              <Text style={s.faceDetail}>
-                Left eye open: {(face.leftEyeOpenProbability * 100).toFixed(0)}%
-              </Text>
-              <Text style={s.faceDetail}>
-                Size: {face.bounds.width.toFixed(0)}x
-                {face.bounds.height.toFixed(0)}
-              </Text>
-            </View>
-          ))}
-        </View>
-      )}
-
-      {crops.length > 0 && (
-        <View style={s.results}>
-          <Text style={s.resultsTitle}>Cropped faces:</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {crops.map((uri, i) => (
-              <Image key={i} source={{ uri }} style={s.cropImg} />
-            ))}
-          </ScrollView>
-        </View>
-      )}
-
-      {loading && <Text style={s.loading}>Processing...</Text>}
+      <Text style={s.footer}>Swipe from the left edge or tap ☰ for the toy box.</Text>
     </ScrollView>
   );
 }
 
+function Chip({ children, mint }: { children: ReactNode; mint?: boolean }) {
+  return (
+    <View style={{ ...s.chip, ...(mint ? { backgroundColor: C.mint, borderColor: C.mintInk } : {}) }}>
+      <Text style={{ ...s.chipText, ...(mint ? { color: "#08301F" } : {}) }}>{children}</Text>
+    </View>
+  );
+}
+
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0A0A1A" },
-  content: { padding: 20, paddingTop: 60 },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#fff",
-    textAlign: "center",
-  },
-  subtitle: {
-    fontSize: 14,
-    color: "#888",
-    textAlign: "center",
-    marginBottom: 24,
-  },
-  btn: {
-    backgroundColor: "#222",
-    padding: 14,
-    borderRadius: 10,
-    alignItems: "center",
-    marginVertical: 6,
-  },
-  btnPrimary: { backgroundColor: "#1a6dff" },
-  btnAccent: { backgroundColor: "#22c55e" },
-  btnText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  preview: { width: "100%", height: 300, borderRadius: 12, marginVertical: 16 },
-  actions: { gap: 8 },
-  results: { marginTop: 20 },
-  resultsTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#fff",
-    marginBottom: 10,
-  },
-  faceCard: {
-    backgroundColor: "#1a1a2e",
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  faceText: { color: "#fff", fontSize: 16, fontWeight: "600" },
-  faceDetail: { color: "#aaa", fontSize: 13, marginTop: 2 },
-  cropImg: { width: 100, height: 100, borderRadius: 8, marginRight: 10 },
-  loading: {
-    color: "#ffd700",
-    textAlign: "center",
-    marginTop: 20,
-    fontSize: 16,
-  },
+  container: { flex: 1, backgroundColor: C.bg },
+  content: { padding: 20, paddingTop: 8, paddingBottom: 44 },
+  logo: { fontFamily: F.display, fontSize: 56, color: C.orange, lineHeight: 60, letterSpacing: -1 },
+  logoO: { color: C.blue },
+  tagline: { fontFamily: F.displaySemi, fontSize: 18, color: C.ink, marginTop: -2 },
+  chips: { flexDirection: "row", flexWrap: "wrap", gap: 7, marginTop: 12, marginBottom: 20 },
+  chip: { backgroundColor: C.surface, borderWidth: 2, borderColor: C.ink, borderRadius: R.pill, paddingVertical: 4, paddingHorizontal: 11, ...keycap(3) },
+  chipText: { fontFamily: F.mono, fontSize: 11, color: C.ink },
+
+  cartridge: { backgroundColor: C.surface, borderWidth: 2, borderColor: C.ink, borderRadius: R.xl, padding: 16, marginBottom: 14, ...keycap(6) },
+  cartArt: { height: 92, borderRadius: R.lg, backgroundColor: "#FBE3F1", borderWidth: 2, borderColor: C.ink, alignItems: "center", justifyContent: "center", marginBottom: 12, overflow: "hidden" },
+  cartEmoji: { fontSize: 40 },
+  dot: { position: "absolute", width: 14, height: 14, borderRadius: 7, borderWidth: 2, borderColor: C.ink },
+  cartTitle: { fontFamily: F.display, fontSize: 22, color: C.ink },
+  cartSub: { fontFamily: F.bodySemi, fontSize: 13, color: C.dim, marginTop: 3, marginBottom: 14 },
+  playPill: { alignSelf: "flex-start", backgroundColor: C.orange, borderWidth: 2, borderColor: C.ink, borderRadius: R.pill, paddingVertical: 10, paddingHorizontal: 20, ...keycap(4) },
+  playText: { fontFamily: F.display, fontSize: 15, color: "#fff" },
+
+  cleaner: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: wash(C.mint, 0.16), borderWidth: 2, borderColor: C.mintInk, borderRadius: R.lg, padding: 15, marginBottom: 12, ...keycap(4) },
+  cleanerGo: { fontFamily: F.display, fontSize: 24, color: C.mintInk },
+  race: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: wash(C.blue, 0.14), borderWidth: 2, borderColor: C.blue, borderRadius: R.lg, padding: 15, marginBottom: 22, ...keycap(4) },
+  raceEmoji: { fontSize: 28 },
+  raceTitle: { fontFamily: F.display, fontSize: 17, color: C.ink },
+  raceSub: { fontFamily: F.bodySemi, fontSize: 12, color: C.dim, marginTop: 1 },
+  raceGo: { fontFamily: F.display, fontSize: 24, color: C.blue },
+
+  section: { fontFamily: F.bodyBold, fontSize: 13, color: C.dim, textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 12 },
+  grid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
+  tile: { width: "47%", backgroundColor: C.surface, borderWidth: 2, borderRadius: R.lg, padding: 13, ...keycap(5) },
+  tileChip: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", marginBottom: 9 },
+  tileEmoji: { fontSize: 21 },
+  tileTitle: { fontFamily: F.display, fontSize: 15, color: C.ink },
+  tileTag: { fontFamily: F.body, fontSize: 11.5, color: C.dim, marginTop: 1 },
+  tileBadge: { position: "absolute", top: 12, right: 12 },
+
+  footer: { fontFamily: F.mono, fontSize: 11, color: C.faint, textAlign: "center", marginTop: 26 },
 });

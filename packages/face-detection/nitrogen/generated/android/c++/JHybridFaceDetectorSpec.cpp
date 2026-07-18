@@ -52,6 +52,7 @@ namespace margelo::nitro::mlkit::face { enum class PerformanceMode; }
 #include "JFaceDetectionOptions.hpp"
 #include "PerformanceMode.hpp"
 #include "JPerformanceMode.hpp"
+#include <optional>
 
 namespace margelo::nitro::mlkit::face {
 
@@ -111,8 +112,8 @@ namespace margelo::nitro::mlkit::face {
       return __promise;
     }();
   }
-  std::shared_ptr<Promise<std::vector<BatchCropResult>>> JHybridFaceDetectorSpec::detectBatch(const std::vector<std::string>& imageUris, double concurrency) {
-    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JPromise::javaobject>(jni::alias_ref<jni::JArrayClass<jni::JString>> /* imageUris */, double /* concurrency */)>("detectBatch");
+  std::shared_ptr<Promise<std::vector<BatchCropResult>>> JHybridFaceDetectorSpec::detectBatch(const std::vector<std::string>& imageUris, double concurrency, const std::optional<FaceDetectionOptions>& options) {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JPromise::javaobject>(jni::alias_ref<jni::JArrayClass<jni::JString>> /* imageUris */, double /* concurrency */, jni::alias_ref<JFaceDetectionOptions> /* options */)>("detectBatch");
     auto __result = method(_javaPart, [&](auto&& __input) {
       size_t __size = __input.size();
       jni::local_ref<jni::JArrayClass<jni::JString>> __array = jni::JArrayClass<jni::JString>::newArray(__size);
@@ -122,7 +123,7 @@ namespace margelo::nitro::mlkit::face {
         __array->setElement(__i, *__elementJni);
       }
       return __array;
-    }(imageUris), concurrency);
+    }(imageUris), concurrency, options.has_value() ? JFaceDetectionOptions::fromCpp(options.value()) : nullptr);
     return [&]() {
       auto __promise = Promise<std::vector<BatchCropResult>>::create();
       __result->cthis()->addOnResolvedListener([=](const jni::alias_ref<jni::JObject>& __boxedResult) {

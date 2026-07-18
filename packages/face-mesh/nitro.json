@@ -1,0 +1,12 @@
+{
+  "cxxNamespace": ["mlkit", "mesh"],
+  "android": {
+    "androidNamespace": ["nitromlkit", "mesh"],
+    "androidCxxLibName": "NitroMLKitMesh"
+  },
+  "autolinking": {
+    "FaceMeshDetector": {
+      "android": { "language": "kotlin", "implementationClassName": "HybridFaceMeshDetector" }
+    }
+  }
+}

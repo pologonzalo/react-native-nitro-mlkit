@@ -1,0 +1,16 @@
+{
+  "cxxNamespace": ["mlkit", "labeling"],
+  "ios": {
+    "iosModuleName": "NitroMLKitLabeling"
+  },
+  "android": {
+    "androidNamespace": ["nitromlkit", "labeling"],
+    "androidCxxLibName": "NitroMLKitLabeling"
+  },
+  "autolinking": {
+    "ImageLabeler": {
+      "ios": { "language": "swift", "implementationClassName": "HybridImageLabeler" },
+      "android": { "language": "kotlin", "implementationClassName": "HybridImageLabeler" }
+    }
+  }
+}
