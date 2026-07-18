@@ -110,8 +110,9 @@ export default function GalleryScreen() {
     //    look frozen at 0/N). Photos that live only in iCloud are skipped.
     const photos: ScannedPhoto[] = [];
     let skipped = 0;
-    const t0 = Date.now();
+    const chunkMs: number[] = [];
     for (let i = 0; i < cap; i += CHUNK) {
+      const chunkStart = Date.now();
       const slice = assets.slice(i, i + CHUNK);
       const chunkTimes = slice.map((a) => a.creationTime ?? 0);
 
@@ -170,11 +171,20 @@ export default function GalleryScreen() {
           smiles: fs.filter((f) => f.smilingProbability > 0.6).length,
         });
       }
+      chunkMs.push(Date.now() - chunkStart);
       const done = Math.min(i + CHUNK, cap);
       setScanned(done);
       setProgress(done / cap);
     }
-    const elapsed = Date.now() - t0;
+    // Robust elapsed = sum of per-chunk times, with suspension outliers (iOS
+    // pauses the JS thread when the app is backgrounded mid-scan, which can
+    // inflate a single chunk to minutes/hours) clamped to the median so the
+    // throughput flex stays honest.
+    const sortedMs = [...chunkMs].sort((a, b) => a - b);
+    const medMs = sortedMs.length ? sortedMs[Math.floor(sortedMs.length / 2)] : 0;
+    const elapsed = Math.round(
+      chunkMs.reduce((s, ms) => s + (medMs > 0 && ms > medMs * 5 ? medMs : ms), 0),
+    );
     if (skipped > 0) {
       setNote(
         `${skipped} photo${skipped === 1 ? "" : "s"} are stored only in iCloud and were skipped (we never download them).`,
