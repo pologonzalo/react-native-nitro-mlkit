@@ -24,9 +24,21 @@ echo "Se publicarán ${#PKGS[@]} paquetes con --tag beta --access public"
 read -r -p "¿Continuar? [y/N] " ok
 [ "$ok" = "y" ] || { echo "Abortado."; exit 1; }
 
+published=()
+skipped=()
 for b in "${PKGS[@]}"; do
   echo "=== publicando @nitro-mlkit/$b ==="
-  ( cd "packages/$b" && npm publish --access public --tag beta )
+  # Tolerate an already-published version (E403): skip it and keep going
+  # instead of aborting the whole run. The `if` also shields us from `set -e`.
+  if ( cd "packages/$b" && npm publish --access public --tag beta ); then
+    published+=("$b")
+  else
+    echo "  ⚠️  omitido @nitro-mlkit/$b (¿esa versión ya está publicada? súbela para republicar)"
+    skipped+=("$b")
+  fi
 done
 
-echo "Hecho. Verifica:  npm view @nitro-mlkit/text-recognition dist-tags"
+echo
+echo "Publicados (${#published[@]}): ${published[*]:-ninguno}"
+echo "Omitidos   (${#skipped[@]}): ${skipped[*]:-ninguno}"
+echo "Verifica:  npm view @nitro-mlkit/face-detection dist-tags"
