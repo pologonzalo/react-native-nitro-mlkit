@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Publica los 9 paquetes iOS-completos de @nitro-mlkit como beta.
+# Publica los 10 paquetes iOS-completos de @nitro-mlkit como beta.
 # Requiere estar logueado antes:  npm login   (verifica con: npm whoami)
 # Uso:  bash scripts/publish-beta.sh
 set -euo pipefail
@@ -9,6 +9,7 @@ cd "$(dirname "$0")/.."
 PKGS=(
   barcode-scanning
   digital-ink
+  face-detection
   image-labeling
   language-id
   object-detection
