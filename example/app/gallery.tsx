@@ -324,7 +324,7 @@ export default function GalleryScreen() {
               </View>
             </Card>
 
-            {report && (
+            {__DEV__ && report && (
               <Card style={{ marginBottom: 14 }}>
                 <View style={s.repHead}>
                   <Text style={T.label}>🧪 Calibration report</Text>
