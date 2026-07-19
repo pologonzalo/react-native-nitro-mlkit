@@ -1,8 +1,12 @@
 # HANDOFF — react-native-nitro-mlkit
 
-> Last updated: 2026-07-13 (session 2)  
+> Last updated: 2026-07-18 (session 7)  
 > Author: @pologonzalo  
 > Repo: https://github.com/pologonzalo/react-native-nitro-mlkit
+
+> 🚨 **Newest state is Session 7 at the bottom** — betas published (10 pkgs),
+> native `detectBatch` classification, Photo Cleaner + reusable utils, Memories 2.0
+> tuned on a real gallery. Urgent next steps are listed there.
 
 ## ⚡ Session 2 update — face-detection now runs end-to-end
 
@@ -278,6 +282,74 @@ WITHOUT `| tail` (it buffers); stale Gradle daemons with a node-less PATH →
 - **Env:** created `~/.zshenv` so the Claude Bash tool (non-login zsh) resolves
   node22/pnpm/adb/fastlane/eas; the harness clobbers PATH so prefix commands with
   `source ~/.zshenv`.
+
+## Session 7 (2026-07-18) — real-iPhone tuning, native classification, Photo Cleaner, betas published
+
+Everything below is on `main` (PRs #1 + #2 merged). Verified live on the user's
+**real iPhone** via an EAS **dev-client** build + Metro (JS hot-reloads; only the
+`detectBatch` classification needed the rebuild).
+
+### 🚨 URGENT — next steps (start here)
+
+- **Test the Photo Cleaner on the real device** (JS-only — just reload, no rebuild):
+  🧹 Photo Cleaner → *Find clutter*. Verify (1) burst grouping makes sense
+  (8 s / ±1 face heuristic), (2) best-shot picking (open eyes + smile), (3) delete
+  flow (OS "Delete N?" confirm). Then iterate the heuristic in `src/photo-quality.ts`.
+- **iOS on-device runtime of the 9 cross-platform packages is still UNCONFIRMED**
+  (they compile + sign; on-device behaviour unverified) — carried from session 6.
+- **SDK 55 → 57 upgrade deferred** (latest is Expo SDK 57 / RN 0.84+). Do it as its
+  own task before the next betas — needs a rebuild + recompiling the `@nitro-mlkit/*`
+  packages against the new RN.
+- **v0.2:** face-recognition embeddings (MobileFaceNet TFLite) + iOS recognition.
+
+### Shipped this session
+
+- **npm betas — 10 packages live under the `beta` tag:**
+  `@nitro-mlkit/face-detection@0.1.0-beta.1` (⭐ has the new per-face classification),
+  the other 9 at `0.1.0-beta.0` (barcode-scanning, digital-ink, image-labeling,
+  language-id, object-detection, pose-detection, selfie-segmentation,
+  text-recognition, translation). **6 Android-only / stub packages intentionally NOT
+  published** (face-mesh, face-recognition, smart-reply, subject-segmentation,
+  entity-extraction, document-scanner). Publish with `scripts/publish-beta.sh`
+  (now resilient — skips already-published versions, prints a published/skipped
+  summary; needs `npm login`). Install: `npm i @nitro-mlkit/<pkg>@beta` + native rebuild.
+- **Native: `detectBatch` gained an optional `FaceDetectionOptions` 3rd arg** →
+  real per-face `smilingProbability` + `*EyeOpenProbability` across a whole batch
+  when `classifications: true`. `detect()` + `detectBatch()` now build & **cache** a
+  detector matching the requested options (also fixes `detect()` having ignored
+  classifications/tracking/minFaceSize). Spec updated + **nitrogen bindings
+  regenerated** (0.36.1). **Verified on a real iPhone** (201 smiling across 1098
+  faces). ⚠️ Requires a native rebuild to take effect.
+- **Photo Cleaner (`example/app/cleaner.tsx`) + reusable utils** — the example is a
+  testbed for utils destined for the user's **main app** (see the
+  `example-utils-for-main-app` project memory):
+  - `example/src/photo-quality.ts` — pure, testable scoring/grouping: `faceShotScore`
+    (open eyes dominate, smile is a bonus), `bestShotScore` (worst face weighted
+    heavily), `groupSimilar` (time + face-count bursts), `pickBest`, `isScreenshot`,
+    `buildCleanupPlan`.
+  - `example/src/photo-scan.ts` — one shared gallery scan (labels + classified faces)
+    with a **session cache**, so Wrapped and Cleaner don't each re-scan.
+    `example/app/gallery.tsx` was refactored onto it.
+  - Cleaner UI: bursts (keeper highlighted + % quality, extras dimmed) → screenshot
+    pile with % of roll → per-section delete gated by the OS "Delete N photos?" dialog.
+- **Memories 2.0 tuned against a real 570-photo gallery (2 passes):** `has()` is now a
+  whole-token match — killed "cat" ⊂ "va**cat**ion" (pets 163 → 30) and "text" ⊂
+  "**text**ile" (screens 101 → 41). Added `trips` (vacation ×136) + `glam` (dress/gown).
+  Repaired `party` (event/crowd + a real group — real rolls have no drink labels).
+  Smiles now real via classification (0 → 201). Calibration report card gated behind
+  `__DEV__`.
+- **Fixes (all JS, hot-reloaded):**
+  - iOS Gallery scan no longer stalls at 0/N — URIs resolve per-chunk with
+    `shouldDownloadFromNetwork: false` (never downloads iCloud-only originals; skips +
+    counts them). The old up-front pass silently downloaded from iCloud → looked frozen.
+  - **The Race** degrades gracefully when a competitor's native module isn't linked
+    (`@react-native-ml-kit/face-detection` is a legacy `RCT_EXPORT_MODULE` bridge that
+    doesn't autolink under the New Architecture) — it races whoever's present and shows
+    the rest as "not in this build" instead of crashing.
+  - Scan throughput is robust to the app being backgrounded mid-scan (per-chunk timing,
+    suspension outliers clamped to the median — a real run reported 8.6 h before this).
+- **Tooling:** added `@expo/vector-icons` (real Apple/Play platform badges, no robot
+  emoji) + `expo-dev-client` + the `development` EAS profile.
 
 ## Context: Remin (the app that will use this)
 
