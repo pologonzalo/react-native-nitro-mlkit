@@ -2,10 +2,10 @@
 
 **`@nitro-mlkit/face-detection`** · on-device Google ML Kit via [Nitro Modules](https://github.com/mrousavy/nitro) — JSI, no bridge.
 
-> ⚠️ **Beta (`0.1.0-beta.x`).** Android is verified on-device. iOS builds, links
-> and signs cleanly, but on-device runtime validation is still pending — see
-> [Platform status](#platform-status). Recognition/embeddings are **not**
-> implemented yet (v0.2.0). The API surface may still change before `0.1.0`.
+> ✅ **`0.1.0`** — detection is verified on-device on **both** Android and a
+> physical iPhone, and the API is stable. Recognition/embeddings are **not**
+> implemented yet (`v0.2.0`) — see
+> [Face recognition / embeddings](#face-recognition--embeddings-coming-in-v020).
 
 High-performance, on-device face **detection** for React Native, built with
 [Nitro Modules](https://github.com/mrousavy/nitro) — JSI, synchronous crossing,
@@ -31,7 +31,7 @@ methodology and honest caveats in [`benchmark/`](../../benchmark/README.md).
 ## Installation
 
 ```bash
-npm install @nitro-mlkit/face-detection@beta react-native-nitro-modules
+npm install @nitro-mlkit/face-detection react-native-nitro-modules
 ```
 
 This package contains native code, so it does **not** run in Expo Go — use a
@@ -117,12 +117,11 @@ moment embeddings land.
 | Platform     | Min version | Status                                                           |
 | ------------ | ----------- | ---------------------------------------------------------------- |
 | Android      | API 21+     | ✅ Verified on-device (Pixel 9 emulator, API 36)                 |
-| iOS          | 15.5+       | ⚠️ Builds, links & signs (GoogleMLKit via CocoaPods); device run pending¹ |
+| iOS          | 15.5+       | ✅ Verified on a physical iPhone — `detectBatch` with classification over a real gallery¹ |
 | tvOS / macOS | —           | 🔜 Planned                                                       |
 
-¹ Google ML Kit's iOS pods ship no `arm64` **Simulator** slice, so iOS must be
-validated on a physical device. The build and code-signing pipeline is green;
-a device run is the last box to tick before a stable `0.1.0`.
+¹ Google ML Kit's iOS pods ship no `arm64` **Simulator** slice, so iOS builds
+there but cannot run — validate on a physical device.
 
 ## License
 

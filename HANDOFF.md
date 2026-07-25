@@ -1,12 +1,13 @@
 # HANDOFF — react-native-nitro-mlkit
 
-> Last updated: 2026-07-18 (session 7)  
+> Last updated: 2026-07-25 (session 8)  
 > Author: @pologonzalo  
 > Repo: https://github.com/pologonzalo/react-native-nitro-mlkit
 
-> 🚨 **Newest state is Session 7 at the bottom** — betas published (10 pkgs),
-> native `detectBatch` classification, Photo Cleaner + reusable utils, Memories 2.0
-> tuned on a real gallery. Urgent next steps are listed there.
+> 🚨 **Newest state is Session 8 at the bottom** — release hygiene pass: found
+> that the published `face-detection` betas were **broken on Android**, cut
+> `0.1.0`, gated the Android-only packages, added CI. Urgent next steps are
+> listed there.
 
 ## ⚡ Session 2 update — face-detection now runs end-to-end
 
@@ -350,6 +351,127 @@ Everything below is on `main` (PRs #1 + #2 merged). Verified live on the user's
     suspension outliers clamped to the median — a real run reported 8.6 h before this).
 - **Tooling:** added `@expo/vector-icons` (real Apple/Play platform badges, no robot
   emoji) + `expo-dev-client` + the `development` EAS profile.
+
+## Session 8 (2026-07-25) — release hygiene: the published betas were broken
+
+Nothing has been pushed to npm yet this session — **all the registry-side steps
+are still pending and need `npm login`** (see the checklist below). Everything
+else is committed.
+
+### 🚨 The find: `face-detection` on npm did not work on Android
+
+`expo-module.config.json` was **missing from the package's `files` array**, so it
+never made it into the tarball. Verified against the real artifact:
+`@nitro-mlkit/face-detection@0.1.0-beta.1` on npm has 84 files and no
+`expo-module.config.json`.
+
+Why that is fatal: Expo's autolinking discovers the Android module by finding
+that file inside `node_modules`. No file → `NitroMLKitFacePackage` is never
+instantiated → its `init { NitroMLKitFaceOnLoad.initializeNative() }` never runs
+→ the `.so` never loads → the HybridObject never registers →
+`requireOptionalNativeModule("NitroMLKitFace")` returns `null` and
+`NitroFace.isAvailable()` is `false`. The package installed cleanly and then did
+nothing.
+
+**It was invisible in development** because the example app consumes the package
+through a pnpm `workspace:*` link, which exposes the whole package directory —
+the `files` array is never consulted. Only a real npm install shows it. This is
+the trap for every future package: `pnpm -r lint` and the example app cannot
+catch a packaging bug, only `npm pack` can.
+
+Fixed: added to `files`, and both the hygiene script and CI now assert it.
+`face-detection` is bumped to **`0.1.0`** — the first build that works from the
+registry. Only face-detection had the bug; the other 15 already listed the file.
+
+### Shipped this session (all repo-side, nothing on npm yet)
+
+- **`face-detection` → `0.1.0`** (stable). It is the only package verified
+  on-device on *both* platforms, so it is the only one promoted.
+- **The 9 other cross-platform packages → `0.1.0-beta.1`**, picking up:
+  - `react-native-nitro-modules` peer range **`>=0.36.0 <1.0.0`** (was `>=0.20`,
+    which allowed a Nitro too old to compile the committed 0.36.x bindings)
+  - `homepage`, `bugs`, and a normalized `repository.url` (`git+…git`)
+- **6 Android-only packages are now `private: true`** — `document-scanner`,
+  `entity-extraction`, `face-mesh`, `face-recognition`, `smart-reply`,
+  `subject-segmentation`. This is the reja that was missing when
+  `face-recognition` escaped to npm at 21:05 on 2026-07-18, outside the
+  `publish-beta.sh` list. Their READMEs now document consuming them from the
+  monorepo instead of telling people to `npm install` something that 404s.
+- **`codegen` script fixed** in `face-detection` + `image-labeling`: they pointed
+  at `nitro-codegen`, which is not a binary in this toolchain. It is `nitrogen`.
+  Added a `lint` script to all 16 (only face-detection had one, so `pnpm -r lint`
+  was silently checking a single package).
+- **CI** (`.github/workflows/ci.yml`): typecheck all 16 + hygiene check +
+  `npm pack --dry-run` on every publishable package. That last job is the one
+  that would have caught the bug above.
+- **`scripts/check-release-hygiene.mjs`** — asserts a publishable package has
+  iOS Swift + a podspec + committed nitrogen bindings + a shipped
+  `expo-module.config.json` + npm metadata + a tight Nitro peer range. Verified
+  it fails (exit 1) on both real historical mistakes.
+- **`scripts/publish.mjs` + `scripts/fix-npm-tags.mjs`** replace
+  `publish-beta.sh` (whose hardcoded list had gone stale — it still contained
+  `face-detection`, which would now be published under the `beta` tag by
+  mistake). Both derive everything from `package.json` and are **dry-run by
+  default**; `--apply` is required to touch npm.
+- **Docs:** root README rewritten (all 16 packages with honest per-platform
+  status, benchmark table surfaced, the iOS-Simulator constraint stated up
+  front), new `CONTRIBUTING.md` (the README linked to a 404 for weeks) and
+  `CHANGELOG.md`.
+
+### 🚨 URGENT — next steps (start here)
+
+**1. Push to npm** — needs `npm login` as the `@nitro-mlkit` owner:
+
+```bash
+node scripts/publish.mjs              # dry run: 10 packages (face-detection@0.1.0 + 9 betas)
+node scripts/publish.mjs --apply
+node scripts/fix-npm-tags.mjs         # dry run: shows the dist-tag + deprecate plan
+node scripts/fix-npm-tags.mjs --apply
+```
+
+`fix-npm-tags` will: point `latest` at `0.1.0` for face-detection (it currently
+points at `0.1.0-beta.0`, an *older* build than the `beta` tag), deprecate both
+broken betas, and deprecate `face-recognition`.
+
+**Why `latest` was wrong:** npm sets `latest` on a package's *first* publish even
+with `--tag beta`. So the whole suite's `latest` landed on prereleases, and on
+face-detection it stuck at `beta.0` while `beta` moved on to `beta.1`. A plain
+`npm install` fetched the older, broken build.
+
+**2. Tag + GitHub Release** once this branch is merged to `main`. Use
+`CHANGELOG.md` as the release body. There are currently **zero git tags** in the
+repo. Suggested scheme for a monorepo with independent versions:
+`@nitro-mlkit/face-detection@0.1.0`.
+
+**3. Carried over from session 7, still open:**
+- **iOS on-device runtime of 8 cross-platform packages is UNCONFIRMED** (they
+  compile + sign; behaviour unverified). `face-detection` and `image-labeling`
+  *are* confirmed on a real iPhone. This is the single biggest gap and it gates
+  promoting the rest to stable.
+- **Test the Photo Cleaner on the real device** (JS-only, just reload).
+- **SDK 55 → 57 upgrade deferred** — do it as its own task before the next betas.
+- **v0.2:** face-recognition iOS (TFLite embedding path) + the `FaceModel` enum,
+  plus real MobileFaceNet embeddings in face-detection.
+
+**4. Not done, deliberately left for the promotion phase:** iOS benchmark numbers
+(needs the physical device), and any distribution of the demo app (an Android APK
+on a GitHub Release is the cheap path; TestFlight needs an Apple Developer
+account, and note `example/app.json` has no `NSPhotoLibraryUsageDescription`,
+which App Review will ask about given the Photo Cleaner deletes photos).
+
+### Notes for whoever picks this up
+
+- `api.npmjs.org` (download stats) is blocked from the sandboxed session
+  environment; `registry.npmjs.org` works, which is enough to audit versions,
+  dist-tags and tarball contents via `fetch` + `npm pack`.
+- `face-recognition`'s Android implementation is **real**, not a stub — a full
+  TFLite `Interpreter` with `downloadModel(url)` / `loadModel(uri)`. No `.tflite`
+  is bundled *by design* (bring your own model). The "STUBS" note in earlier
+  sessions refers to `face-detection`'s embedding methods, which is a different
+  package. Don't conflate them.
+- There is still a phantom `nitro-codegen: *` devDependency in
+  `face-detection`/`image-labeling`; harmless but it should become `nitrogen`
+  next time the lockfile is touched.
 
 ## Context: Remin (the app that will use this)
 

@@ -2,8 +2,15 @@
 
 **`@nitro-mlkit/face-recognition`** · on-device Google ML Kit via [Nitro Modules](https://github.com/mrousavy/nitro) — JSI, no bridge.
 
-> ⚠️ **Beta (`0.1.0-beta.x`).** Android verified on-device; iOS impl pending
-> (see [Platform status](#platform-status)). **You provide the embedding model.**
+> ⚠️ **Beta (`0.1.0-beta.x`) · Android-only.** Android is verified on-device;
+> there is **no iOS implementation yet** (planned for `v0.2.0` — see
+> [Platform status](#platform-status)). **You provide the embedding model** —
+> nothing is bundled, by design.
+>
+> This package reached npm ahead of the rest of the suite, before the Android-only
+> packages were deliberately held back. If you need cross-platform face work
+> today, use [`@nitro-mlkit/face-detection`](https://www.npmjs.com/package/@nitro-mlkit/face-detection)
+> instead; come back here when `v0.2.0` ships iOS recognition.
 
 On-device **face recognition** for React Native, built with
 [Nitro Modules](https://github.com/mrousavy/nitro) (JSI, no bridge).
