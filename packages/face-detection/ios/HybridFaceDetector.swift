@@ -1,20 +1,73 @@
 import Foundation
 import UIKit
 import NitroModules
+#if !targetEnvironment(simulator)
 import MLKitFaceDetection
 import MLKitVision
+#endif
 
 /**
  * Native iOS implementation of FaceDetector.
  * Conforms to the Nitrogen-generated HybridFaceDetectorSpec protocol.
+ *
+ * Google ML Kit's vendored frameworks (MLImage, MLKitCommon, MLKitVision,
+ * MLKitFaceDetection) ship no arm64 iOS-Simulator slice — confirmed against
+ * GoogleMLKit 9.0.0, see HANDOFF.md. Linking them into an arm64-simulator
+ * build fails with "building for iOS-Simulator, but linking in object file
+ * built for iOS". So on simulator we never import or call into MLKit at all;
+ * every method throws a clear error instead. The companion Podfile hook
+ * (packages/face-detection/plugin) excludes those pod targets from
+ * arm64-simulator so Xcode doesn't even try to link them.
  */
 class HybridFaceDetector: HybridFaceDetectorSpec {
-    
+
     // MARK: - HybridObject boilerplate
     var memorySize: Int { MemoryLayout<HybridFaceDetector>.size }
-    
+
+    #if targetEnvironment(simulator)
+
+    // MARK: - Simulator stub (no arm64-sim slice from Google ML Kit)
+
+    private static func simulatorError() -> RuntimeError {
+        RuntimeError.error(withMessage: "Face detection isn't available on the iOS Simulator — Google ML Kit ships no arm64 Simulator slice. Run on a physical device.")
+    }
+
+    func detect(imageUri: String, options: FaceDetectionOptions) throws -> Promise<[DetectedFace]> {
+        return Promise.async { throw Self.simulatorError() }
+    }
+
+    func detectBatch(imageUris: [String], concurrency: Double, options: FaceDetectionOptions?) throws -> Promise<[BatchCropResult]> {
+        return Promise.async { throw Self.simulatorError() }
+    }
+
+    func detectPrimary(imageUri: String) throws -> Promise<DetectedFace> {
+        return Promise.async { throw Self.simulatorError() }
+    }
+
+    func cropFaces(imageUri: String, padding: Double) throws -> Promise<[CroppedFace]> {
+        return Promise.async { throw Self.simulatorError() }
+    }
+
+    func extractEmbedding(faceUri: String) throws -> Promise<[Double]> {
+        return Promise.async { throw Self.simulatorError() }
+    }
+
+    func extractPrimaryEmbedding(imageUri: String) throws -> Promise<[Double]> {
+        return Promise.async { throw Self.simulatorError() }
+    }
+
+    func detectAndEmbed(imageUris: [String], concurrency: Double) throws -> Promise<[BatchEmbeddingResult]> {
+        return Promise.async { throw Self.simulatorError() }
+    }
+
+    func isAvailable() throws -> Bool {
+        return false
+    }
+
+    #else
+
     // MARK: - Lazy MLKit detectors
-    
+
     private lazy var fastDetector: MLKitFaceDetection.FaceDetector = {
         let opts = FaceDetectorOptions()
         opts.performanceMode = .fast
@@ -22,7 +75,7 @@ class HybridFaceDetector: HybridFaceDetectorSpec {
         opts.classificationMode = .none
         return MLKitFaceDetection.FaceDetector.faceDetector(options: opts)
     }()
-    
+
     private lazy var accurateDetector: MLKitFaceDetection.FaceDetector = {
         let opts = FaceDetectorOptions()
         opts.performanceMode = .accurate
@@ -113,7 +166,7 @@ class HybridFaceDetector: HybridFaceDetectorSpec {
             return results
         }
     }
-    
+
     func detectPrimary(imageUri: String) throws -> Promise<DetectedFace> {
         return Promise.async {
             guard let image = self.loadImage(from: imageUri) else {
@@ -121,7 +174,7 @@ class HybridFaceDetector: HybridFaceDetectorSpec {
             }
             let visionImage = VisionImage(image: image)
             let mlFaces = try await self.accurateDetector.process(visionImage)
-            
+
             guard let largest = mlFaces.max(by: {
                 $0.frame.width * $0.frame.height < $1.frame.width * $1.frame.height
             }) else {
@@ -130,7 +183,7 @@ class HybridFaceDetector: HybridFaceDetectorSpec {
             return self.mapFace(largest, withLandmarks: true)
         }
     }
-    
+
     func cropFaces(imageUri: String, padding: Double) throws -> Promise<[CroppedFace]> {
         return Promise.async {
             guard let image = self.loadImage(from: imageUri),
@@ -139,29 +192,29 @@ class HybridFaceDetector: HybridFaceDetectorSpec {
             }
             let visionImage = VisionImage(image: image)
             let mlFaces = try await self.fastDetector.process(visionImage)
-            
+
             let imgW = Double(cgImage.width)
             let imgH = Double(cgImage.height)
             var crops = [CroppedFace]()
-            
+
             for (idx, face) in mlFaces.enumerated() {
                 let bounds = face.frame
                 let padX = Double(bounds.width) * padding
                 let padY = Double(bounds.height) * padding
-                
+
                 let x = max(0, Double(bounds.origin.x) - padX)
                 let y = max(0, Double(bounds.origin.y) - padY)
                 let w = min(imgW - x, Double(bounds.width) + padX * 2)
                 let h = min(imgH - y, Double(bounds.height) + padY * 2)
-                
+
                 let cropRect = CGRect(x: x, y: y, width: w, height: h)
                 guard let cropped = cgImage.cropping(to: cropRect) else { continue }
-                
+
                 let tempPath = NSTemporaryDirectory() + "nitro_face_\(UUID().uuidString).jpg"
                 let croppedImg = UIImage(cgImage: cropped)
                 guard let data = croppedImg.jpegData(compressionQuality: 0.8) else { continue }
                 try data.write(to: URL(fileURLWithPath: tempPath))
-                
+
                 crops.append(CroppedFace(
                     uri: "file://\(tempPath)",
                     faceIndex: Double(idx),
@@ -172,7 +225,7 @@ class HybridFaceDetector: HybridFaceDetectorSpec {
             return crops
         }
     }
-    
+
     func extractEmbedding(faceUri: String) throws -> Promise<[Double]> {
         return Promise.async {
             // TODO: Load MobileFaceNet TFLite model and run inference
@@ -180,40 +233,25 @@ class HybridFaceDetector: HybridFaceDetectorSpec {
             throw RuntimeError.error(withMessage: "MobileFaceNet model not yet loaded. Coming in v0.2.0")
         }
     }
-    
-    func compareFaces(embedding1: [Double], embedding2: [Double]) throws -> Double {
-        // Cosine similarity
-        guard embedding1.count == embedding2.count, !embedding1.isEmpty else { return 0 }
-        var dot = 0.0, mag1 = 0.0, mag2 = 0.0
-        for i in 0..<embedding1.count {
-            dot += embedding1[i] * embedding2[i]
-            mag1 += embedding1[i] * embedding1[i]
-            mag2 += embedding2[i] * embedding2[i]
-        }
-        let denom = sqrt(mag1) * sqrt(mag2)
-        return denom > 0 ? (dot / denom + 1.0) / 2.0 : 0 // normalize to 0..1
-    }
-    
+
     func extractPrimaryEmbedding(imageUri: String) throws -> Promise<[Double]> {
         return Promise.async {
             // TODO: detect primary face → crop → embed with MobileFaceNet
             throw RuntimeError.error(withMessage: "MobileFaceNet model not yet loaded. Coming in v0.2.0")
         }
     }
-    
+
     func detectAndEmbed(imageUris: [String], concurrency: Double) throws -> Promise<[BatchEmbeddingResult]> {
         return Promise.async {
             // TODO: batch detect + embed
             throw RuntimeError.error(withMessage: "MobileFaceNet model not yet loaded. Coming in v0.2.0")
         }
     }
-    
+
     func isAvailable() throws -> Bool {
         return true
     }
-    
-    // MARK: - Private helpers
-    
+
     private func loadImage(from uri: String) -> UIImage? {
         let path: String
         if uri.hasPrefix("file://") {
@@ -226,7 +264,7 @@ class HybridFaceDetector: HybridFaceDetectorSpec {
         }
         return UIImage(contentsOfFile: path)
     }
-    
+
     private func mapFace(_ face: Face, withLandmarks: Bool) -> DetectedFace {
         var landmarks = [FaceLandmark]()
         if withLandmarks {
@@ -243,7 +281,7 @@ class HybridFaceDetector: HybridFaceDetectorSpec {
                 }
             }
         }
-        
+
         return DetectedFace(
             bounds: FaceBounds(
                 x: Double(face.frame.origin.x),
@@ -260,5 +298,22 @@ class HybridFaceDetector: HybridFaceDetectorSpec {
             landmarks: landmarks,
             trackingId: Double(face.hasTrackingID ? face.trackingID : -1)
         )
+    }
+
+    #endif
+
+    // MARK: - Shared (no MLKit dependency — works on device and simulator)
+
+    func compareFaces(embedding1: [Double], embedding2: [Double]) throws -> Double {
+        // Cosine similarity
+        guard embedding1.count == embedding2.count, !embedding1.isEmpty else { return 0 }
+        var dot = 0.0, mag1 = 0.0, mag2 = 0.0
+        for i in 0..<embedding1.count {
+            dot += embedding1[i] * embedding2[i]
+            mag1 += embedding1[i] * embedding1[i]
+            mag2 += embedding2[i] * embedding2[i]
+        }
+        let denom = sqrt(mag1) * sqrt(mag2)
+        return denom > 0 ? (dot / denom + 1.0) / 2.0 : 0 // normalize to 0..1
     }
 }
