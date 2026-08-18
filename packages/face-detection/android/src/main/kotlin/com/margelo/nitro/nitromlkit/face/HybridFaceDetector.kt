@@ -270,6 +270,7 @@ class HybridFaceDetector : HybridFaceDetectorSpec() {
         width = face.boundingBox.width().toDouble(),
         height = face.boundingBox.height().toDouble()
       ),
+      headEulerAngleX = face.headEulerAngleX.toDouble(),
       headEulerAngleY = face.headEulerAngleY.toDouble(),
       headEulerAngleZ = face.headEulerAngleZ.toDouble(),
       leftEyeOpenProbability = (face.leftEyeOpenProbability ?: -1f).toDouble(),

@@ -37,6 +37,8 @@ export interface FaceLandmark {
 
 export interface DetectedFace {
   bounds: FaceBounds;
+  /** Cabeza arriba/abajo (pitch). Lo que delata un plano en contrapicado. */
+  headEulerAngleX: number;
   headEulerAngleY: number;
   headEulerAngleZ: number;
   leftEyeOpenProbability: number;

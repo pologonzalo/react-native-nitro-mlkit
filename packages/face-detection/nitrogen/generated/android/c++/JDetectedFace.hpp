@@ -39,6 +39,8 @@ namespace margelo::nitro::mlkit::face {
       static const auto clazz = javaClassStatic();
       static const auto fieldBounds = clazz->getField<JFaceBounds>("bounds");
       jni::local_ref<JFaceBounds> bounds = this->getFieldValue(fieldBounds);
+      static const auto fieldHeadEulerAngleX = clazz->getField<double>("headEulerAngleX");
+      double headEulerAngleX = this->getFieldValue(fieldHeadEulerAngleX);
       static const auto fieldHeadEulerAngleY = clazz->getField<double>("headEulerAngleY");
       double headEulerAngleY = this->getFieldValue(fieldHeadEulerAngleY);
       static const auto fieldHeadEulerAngleZ = clazz->getField<double>("headEulerAngleZ");
@@ -55,6 +57,7 @@ namespace margelo::nitro::mlkit::face {
       double trackingId = this->getFieldValue(fieldTrackingId);
       return DetectedFace(
         bounds->toCpp(),
+        headEulerAngleX,
         headEulerAngleY,
         headEulerAngleZ,
         leftEyeOpenProbability,
@@ -80,12 +83,13 @@ namespace margelo::nitro::mlkit::face {
      */
     [[maybe_unused]]
     static jni::local_ref<JDetectedFace::javaobject> fromCpp(const DetectedFace& value) {
-      using JSignature = JDetectedFace(jni::alias_ref<JFaceBounds>, double, double, double, double, double, jni::alias_ref<jni::JArrayClass<JFaceLandmark>>, double);
+      using JSignature = JDetectedFace(jni::alias_ref<JFaceBounds>, double, double, double, double, double, double, jni::alias_ref<jni::JArrayClass<JFaceLandmark>>, double);
       static const auto clazz = javaClassStatic();
       static const auto create = clazz->getStaticMethod<JSignature>("fromCpp");
       return create(
         clazz,
         JFaceBounds::fromCpp(value.bounds),
+        value.headEulerAngleX,
         value.headEulerAngleY,
         value.headEulerAngleZ,
         value.leftEyeOpenProbability,

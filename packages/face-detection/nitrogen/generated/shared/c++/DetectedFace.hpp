@@ -45,6 +45,7 @@ namespace margelo::nitro::mlkit::face {
   struct DetectedFace final {
   public:
     FaceBounds bounds     SWIFT_PRIVATE;
+    double headEulerAngleX     SWIFT_PRIVATE;
     double headEulerAngleY     SWIFT_PRIVATE;
     double headEulerAngleZ     SWIFT_PRIVATE;
     double leftEyeOpenProbability     SWIFT_PRIVATE;
@@ -55,7 +56,7 @@ namespace margelo::nitro::mlkit::face {
 
   public:
     DetectedFace() = default;
-    explicit DetectedFace(FaceBounds bounds, double headEulerAngleY, double headEulerAngleZ, double leftEyeOpenProbability, double rightEyeOpenProbability, double smilingProbability, std::vector<FaceLandmark> landmarks, double trackingId): bounds(bounds), headEulerAngleY(headEulerAngleY), headEulerAngleZ(headEulerAngleZ), leftEyeOpenProbability(leftEyeOpenProbability), rightEyeOpenProbability(rightEyeOpenProbability), smilingProbability(smilingProbability), landmarks(landmarks), trackingId(trackingId) {}
+    explicit DetectedFace(FaceBounds bounds, double headEulerAngleX, double headEulerAngleY, double headEulerAngleZ, double leftEyeOpenProbability, double rightEyeOpenProbability, double smilingProbability, std::vector<FaceLandmark> landmarks, double trackingId): bounds(bounds), headEulerAngleX(headEulerAngleX), headEulerAngleY(headEulerAngleY), headEulerAngleZ(headEulerAngleZ), leftEyeOpenProbability(leftEyeOpenProbability), rightEyeOpenProbability(rightEyeOpenProbability), smilingProbability(smilingProbability), landmarks(landmarks), trackingId(trackingId) {}
 
   public:
     friend bool operator==(const DetectedFace& lhs, const DetectedFace& rhs) = default;
@@ -72,6 +73,7 @@ namespace margelo::nitro {
       jsi::Object obj = arg.asObject(runtime);
       return margelo::nitro::mlkit::face::DetectedFace(
         JSIConverter<margelo::nitro::mlkit::face::FaceBounds>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "bounds"))),
+        JSIConverter<double>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "headEulerAngleX"))),
         JSIConverter<double>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "headEulerAngleY"))),
         JSIConverter<double>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "headEulerAngleZ"))),
         JSIConverter<double>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "leftEyeOpenProbability"))),
@@ -84,6 +86,7 @@ namespace margelo::nitro {
     static inline jsi::Value toJSI(jsi::Runtime& runtime, const margelo::nitro::mlkit::face::DetectedFace& arg) {
       jsi::Object obj(runtime);
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "bounds"), JSIConverter<margelo::nitro::mlkit::face::FaceBounds>::toJSI(runtime, arg.bounds));
+      obj.setProperty(runtime, PropNameIDCache::get(runtime, "headEulerAngleX"), JSIConverter<double>::toJSI(runtime, arg.headEulerAngleX));
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "headEulerAngleY"), JSIConverter<double>::toJSI(runtime, arg.headEulerAngleY));
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "headEulerAngleZ"), JSIConverter<double>::toJSI(runtime, arg.headEulerAngleZ));
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "leftEyeOpenProbability"), JSIConverter<double>::toJSI(runtime, arg.leftEyeOpenProbability));
@@ -102,6 +105,7 @@ namespace margelo::nitro {
         return false;
       }
       if (!JSIConverter<margelo::nitro::mlkit::face::FaceBounds>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "bounds")))) return false;
+      if (!JSIConverter<double>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "headEulerAngleX")))) return false;
       if (!JSIConverter<double>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "headEulerAngleY")))) return false;
       if (!JSIConverter<double>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "headEulerAngleZ")))) return false;
       if (!JSIConverter<double>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "leftEyeOpenProbability")))) return false;

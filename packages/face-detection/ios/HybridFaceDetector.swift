@@ -251,6 +251,7 @@ class HybridFaceDetector: HybridFaceDetectorSpec {
                 width: Double(face.frame.width),
                 height: Double(face.frame.height)
             ),
+            headEulerAngleX: Double(face.headEulerAngleX),
             headEulerAngleY: Double(face.headEulerAngleY),
             headEulerAngleZ: Double(face.headEulerAngleZ),
             leftEyeOpenProbability: Double(face.leftEyeOpenProbability),

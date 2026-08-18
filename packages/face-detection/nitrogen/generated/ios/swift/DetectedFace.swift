@@ -18,8 +18,8 @@ public extension DetectedFace {
   /**
    * Create a new instance of `DetectedFace`.
    */
-  init(bounds: FaceBounds, headEulerAngleY: Double, headEulerAngleZ: Double, leftEyeOpenProbability: Double, rightEyeOpenProbability: Double, smilingProbability: Double, landmarks: [FaceLandmark], trackingId: Double) {
-    self.init(bounds, headEulerAngleY, headEulerAngleZ, leftEyeOpenProbability, rightEyeOpenProbability, smilingProbability, { () -> bridge.std__vector_FaceLandmark_ in
+  init(bounds: FaceBounds, headEulerAngleX: Double, headEulerAngleY: Double, headEulerAngleZ: Double, leftEyeOpenProbability: Double, rightEyeOpenProbability: Double, smilingProbability: Double, landmarks: [FaceLandmark], trackingId: Double) {
+    self.init(bounds, headEulerAngleX, headEulerAngleY, headEulerAngleZ, leftEyeOpenProbability, rightEyeOpenProbability, smilingProbability, { () -> bridge.std__vector_FaceLandmark_ in
       var __vector = bridge.create_std__vector_FaceLandmark_(landmarks.count)
       for __item in landmarks {
         __vector.push_back(__item)
@@ -31,6 +31,11 @@ public extension DetectedFace {
   @inline(__always)
   var bounds: FaceBounds {
     return self.__bounds
+  }
+  
+  @inline(__always)
+  var headEulerAngleX: Double {
+    return self.__headEulerAngleX
   }
   
   @inline(__always)
