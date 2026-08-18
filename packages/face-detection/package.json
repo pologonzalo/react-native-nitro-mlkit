@@ -54,6 +54,7 @@
     "nitrogen/generated",
     "*.podspec",
     "nitro.json",
+    "expo-module.config.json",
     "app.plugin.js",
     "README.md",
     "LICENSE"
