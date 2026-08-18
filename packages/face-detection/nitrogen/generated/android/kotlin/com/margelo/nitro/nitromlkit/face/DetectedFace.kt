@@ -23,6 +23,9 @@ data class DetectedFace(
   val bounds: FaceBounds,
   @DoNotStrip
   @Keep
+  val headEulerAngleX: Double,
+  @DoNotStrip
+  @Keep
   val headEulerAngleY: Double,
   @DoNotStrip
   @Keep
@@ -49,6 +52,7 @@ data class DetectedFace(
     if (this === other) return true
     if (other !is DetectedFace) return false
     return Objects.deepEquals(this.bounds, other.bounds)
+      && Objects.deepEquals(this.headEulerAngleX, other.headEulerAngleX)
       && Objects.deepEquals(this.headEulerAngleY, other.headEulerAngleY)
       && Objects.deepEquals(this.headEulerAngleZ, other.headEulerAngleZ)
       && Objects.deepEquals(this.leftEyeOpenProbability, other.leftEyeOpenProbability)
@@ -61,6 +65,7 @@ data class DetectedFace(
   override fun hashCode(): Int {
     return arrayOf<Any?>(
       bounds,
+      headEulerAngleX,
       headEulerAngleY,
       headEulerAngleZ,
       leftEyeOpenProbability,
@@ -79,8 +84,8 @@ data class DetectedFace(
     @Keep
     @Suppress("unused")
     @JvmStatic
-    private fun fromCpp(bounds: FaceBounds, headEulerAngleY: Double, headEulerAngleZ: Double, leftEyeOpenProbability: Double, rightEyeOpenProbability: Double, smilingProbability: Double, landmarks: Array<FaceLandmark>, trackingId: Double): DetectedFace {
-      return DetectedFace(bounds, headEulerAngleY, headEulerAngleZ, leftEyeOpenProbability, rightEyeOpenProbability, smilingProbability, landmarks, trackingId)
+    private fun fromCpp(bounds: FaceBounds, headEulerAngleX: Double, headEulerAngleY: Double, headEulerAngleZ: Double, leftEyeOpenProbability: Double, rightEyeOpenProbability: Double, smilingProbability: Double, landmarks: Array<FaceLandmark>, trackingId: Double): DetectedFace {
+      return DetectedFace(bounds, headEulerAngleX, headEulerAngleY, headEulerAngleZ, leftEyeOpenProbability, rightEyeOpenProbability, smilingProbability, landmarks, trackingId)
     }
   }
 }
