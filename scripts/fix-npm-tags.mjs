@@ -19,24 +19,35 @@ import { execFileSync } from 'node:child_process';
 
 const APPLY = process.argv.includes('--apply');
 
-/** Versions of face-detection that shipped without expo-module.config.json and
- *  therefore never register the HybridObject on Android. */
-const BROKEN = {
+/**
+ * Version-level deprecations, per package.
+ *
+ * Keep these keyed to SPECIFIC versions, never to a whole package name. An
+ * earlier draft deprecated every version of face-recognition for "no iOS
+ * implementation"; 0.1.0-beta.1 shipped one, so that would now be a false
+ * warning on every install.
+ */
+const DEPRECATE_VERSIONS = {
   'face-detection': {
-    versions: ['0.1.0-beta.0', '0.1.0-beta.1'],
+    // These shipped without expo-module.config.json in `files`, so Expo's
+    // autolinking never finds the module and the HybridObject never registers.
+    // Verified against the real tarballs: beta.2's `files` array lacks it too —
+    // 0.1.0-beta.3 is the first build that works when installed from npm.
+    versions: ['0.1.0-beta.0', '0.1.0-beta.1', '0.1.0-beta.2'],
     message:
       'Broken on Android: the published tarball omitted expo-module.config.json, ' +
-      'so Expo autolinking never registers the native module. Upgrade to 0.1.0.',
+      'so Expo autolinking never registers the native module. Upgrade with ' +
+      '`npm i @nitro-mlkit/face-detection@beta` (0.1.0-beta.3 or newer).',
   },
-};
-
-/** Published but has no iOS implementation; it escaped the release list. */
-const DEPRECATE_PACKAGE = {
   'face-recognition': {
+    // beta.0 works on Android but has no iOS implementation at all, and its
+    // podspec pulled TensorFlowLiteObjC, which has no module map — `pod install`
+    // failed outright. beta.1 added the Swift implementation.
+    versions: ['0.1.0-beta.0'],
     message:
-      'Android-only — there is no iOS implementation yet (planned for v0.2.0), and ' +
-      'you must supply your own TFLite embedding model. Use @nitro-mlkit/face-detection ' +
-      'for cross-platform face work.',
+      'Android-only, and `pod install` fails on iOS. Upgrade with ' +
+      '`npm i @nitro-mlkit/face-recognition@beta` (0.1.0-beta.1 adds the iOS ' +
+      'implementation). You still supply your own TFLite embedding model.',
   },
 };
 
@@ -97,33 +108,32 @@ for (const name of fs.readdirSync('packages').sort()) {
   }
 
   // `beta` should never resolve to something worse than `latest`.
+  //
+  // A MISSING beta tag counts as wrong, not as "nothing to do": every README in
+  // the suite tells people to install with `@beta`, so a prerelease-only package
+  // without the tag makes `npm i <pkg>@beta` fail outright. Publishing without
+  // `--tag beta` is how document-scanner ended up in that state.
   const wantBeta = cmp(newest, wantLatest) > 0 ? newest : wantLatest;
-  if (tags.beta && tags.beta !== wantBeta) {
+  const needsBeta = isPre(wantBeta) || tags.beta;
+  if (needsBeta && tags.beta !== wantBeta) {
     plan.push({
-      why: `${pkg.name}: beta → ${wantBeta} (was ${tags.beta})`,
+      why: `${pkg.name}: beta → ${wantBeta} (was ${tags.beta ?? 'unset'})`,
       cmd: ['dist-tag', 'add', `${pkg.name}@${wantBeta}`, 'beta'],
     });
   }
 
   // Version-level deprecations for builds we know are broken.
-  const broken = BROKEN[name];
-  if (broken) {
-    for (const v of broken.versions.filter((x) => published.includes(x))) {
+  const stale = DEPRECATE_VERSIONS[name];
+  if (stale) {
+    for (const v of stale.versions.filter((x) => published.includes(x))) {
       if (meta.versions[v].deprecated) continue;
+      // Never deprecate the version the repo is currently shipping.
+      if (v === pkg.version) continue;
       plan.push({
-        why: `${pkg.name}@${v}: deprecate (broken on Android)`,
-        cmd: ['deprecate', `${pkg.name}@${v}`, broken.message],
+        why: `${pkg.name}@${v}: deprecate`,
+        cmd: ['deprecate', `${pkg.name}@${v}`, stale.message],
       });
     }
-  }
-
-  // Whole-package deprecation.
-  const dep = DEPRECATE_PACKAGE[name];
-  if (dep && !published.every((v) => meta.versions[v].deprecated)) {
-    plan.push({
-      why: `${pkg.name}: deprecate every version (no iOS implementation)`,
-      cmd: ['deprecate', pkg.name, dep.message],
-    });
   }
 
   if (!pkg.private && !published.includes(pkg.version)) {
