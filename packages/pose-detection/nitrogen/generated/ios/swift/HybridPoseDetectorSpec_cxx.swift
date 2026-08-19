@@ -125,9 +125,9 @@ open class HybridPoseDetectorSpec_cxx {
 
   // Methods
   @inline(__always)
-  public final func detect(imageUri: std.string) -> bridge.Result_std__shared_ptr_Promise_std__vector_PoseLandmark____ {
+  public final func detect(imageUri: std.string, options: bridge.std__optional_PoseDetectionOptions_) -> bridge.Result_std__shared_ptr_Promise_std__vector_PoseLandmark____ {
     do {
-      let __result = try self.__implementation.detect(imageUri: String(imageUri))
+      let __result = try self.__implementation.detect(imageUri: String(imageUri), options: options.value)
       let __resultCpp = { () -> bridge.std__shared_ptr_Promise_std__vector_PoseLandmark___ in
         let __promise = bridge.create_std__shared_ptr_Promise_std__vector_PoseLandmark___()
         let __promiseHolder = bridge.wrap_std__shared_ptr_Promise_std__vector_PoseLandmark___(__promise)
@@ -150,9 +150,9 @@ open class HybridPoseDetectorSpec_cxx {
   }
   
   @inline(__always)
-  public final func detectBatch(imageUris: bridge.std__vector_std__string_, concurrency: Double) -> bridge.Result_std__shared_ptr_Promise_std__vector_BatchPoseResult____ {
+  public final func detectBatch(imageUris: bridge.std__vector_std__string_, concurrency: Double, options: bridge.std__optional_PoseDetectionOptions_) -> bridge.Result_std__shared_ptr_Promise_std__vector_BatchPoseResult____ {
     do {
-      let __result = try self.__implementation.detectBatch(imageUris: imageUris.map({ __item in String(__item) }), concurrency: concurrency)
+      let __result = try self.__implementation.detectBatch(imageUris: imageUris.map({ __item in String(__item) }), concurrency: concurrency, options: options.value)
       let __resultCpp = { () -> bridge.std__shared_ptr_Promise_std__vector_BatchPoseResult___ in
         let __promise = bridge.create_std__shared_ptr_Promise_std__vector_BatchPoseResult___()
         let __promiseHolder = bridge.wrap_std__shared_ptr_Promise_std__vector_BatchPoseResult___(__promise)

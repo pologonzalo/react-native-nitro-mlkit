@@ -150,9 +150,11 @@ version, including 9.0.0. Apps build fine and then fail to run there. **All iOS
 testing must happen on a physical device.** This is an ML Kit constraint, not
 something this library can work around.
 
-`face-detection` and `face-recognition` ship a config plugin that strips those
-frameworks from the Simulator link so an `arm64` Simulator build still *compiles*
-— the ML Kit calls themselves throw a clear error there instead of linking.
+Every iOS package ships a config plugin that strips those frameworks from the
+Simulator link so an `arm64` Simulator build still *compiles and links* — the
+ML Kit calls themselves throw a clear error there instead. The plugins share a
+single Podfile hook (pattern-based over `MLKit*`/`MLImage`/`TensorFlowLite*`),
+so any combination of packages works in any order.
 
 ## Repository layout
 

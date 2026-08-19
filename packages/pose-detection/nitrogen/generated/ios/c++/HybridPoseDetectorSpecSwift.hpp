@@ -14,6 +14,12 @@ namespace NitroMLKitPose { class HybridPoseDetectorSpec_cxx; }
 
 // Forward declaration of `PoseLandmark` to properly resolve imports.
 namespace margelo::nitro::mlkit::pose { struct PoseLandmark; }
+// Forward declaration of `PoseDetectionOptions` to properly resolve imports.
+namespace margelo::nitro::mlkit::pose { struct PoseDetectionOptions; }
+// Forward declaration of `PerformanceMode` to properly resolve imports.
+namespace margelo::nitro::mlkit::pose { enum class PerformanceMode; }
+// Forward declaration of `DetectorMode` to properly resolve imports.
+namespace margelo::nitro::mlkit::pose { enum class DetectorMode; }
 // Forward declaration of `BatchPoseResult` to properly resolve imports.
 namespace margelo::nitro::mlkit::pose { struct BatchPoseResult; }
 
@@ -21,8 +27,11 @@ namespace margelo::nitro::mlkit::pose { struct BatchPoseResult; }
 #include <vector>
 #include <NitroModules/Promise.hpp>
 #include <string>
-#include "BatchPoseResult.hpp"
+#include "PoseDetectionOptions.hpp"
 #include <optional>
+#include "PerformanceMode.hpp"
+#include "DetectorMode.hpp"
+#include "BatchPoseResult.hpp"
 
 #include "NitroMLKitPose-Swift-Cxx-Umbrella.hpp"
 
@@ -74,16 +83,16 @@ namespace margelo::nitro::mlkit::pose {
 
   public:
     // Methods
-    inline std::shared_ptr<Promise<std::vector<PoseLandmark>>> detect(const std::string& imageUri) override {
-      auto __result = _swiftPart.detect(imageUri);
+    inline std::shared_ptr<Promise<std::vector<PoseLandmark>>> detect(const std::string& imageUri, const std::optional<PoseDetectionOptions>& options) override {
+      auto __result = _swiftPart.detect(imageUri, options);
       if (__result.hasError()) [[unlikely]] {
         std::rethrow_exception(__result.error());
       }
       auto __value = std::move(__result.value());
       return __value;
     }
-    inline std::shared_ptr<Promise<std::vector<BatchPoseResult>>> detectBatch(const std::vector<std::string>& imageUris, double concurrency) override {
-      auto __result = _swiftPart.detectBatch(imageUris, std::forward<decltype(concurrency)>(concurrency));
+    inline std::shared_ptr<Promise<std::vector<BatchPoseResult>>> detectBatch(const std::vector<std::string>& imageUris, double concurrency, const std::optional<PoseDetectionOptions>& options) override {
+      auto __result = _swiftPart.detectBatch(imageUris, std::forward<decltype(concurrency)>(concurrency), options);
       if (__result.hasError()) [[unlikely]] {
         std::rethrow_exception(__result.error());
       }

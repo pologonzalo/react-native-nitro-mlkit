@@ -61,6 +61,8 @@ android {
 dependencies {
     // MLKit
     implementation "com.google.mlkit:pose-detection:18.0.0-beta5"
+    // Modelo accurate — elegible en runtime vía PoseDetectionOptions.performanceMode
+    implementation "com.google.mlkit:pose-detection-accurate:18.0.0-beta5"
 
     // Nitro Modules
     implementation project(":react-native-nitro-modules")

@@ -31,11 +31,11 @@ abstract class HybridPoseDetectorSpec: HybridObject() {
   // Methods
   @DoNotStrip
   @Keep
-  abstract fun detect(imageUri: String): Promise<Array<PoseLandmark>>
+  abstract fun detect(imageUri: String, options: PoseDetectionOptions?): Promise<Array<PoseLandmark>>
   
   @DoNotStrip
   @Keep
-  abstract fun detectBatch(imageUris: Array<String>, concurrency: Double): Promise<Array<BatchPoseResult>>
+  abstract fun detectBatch(imageUris: Array<String>, concurrency: Double, options: PoseDetectionOptions?): Promise<Array<BatchPoseResult>>
   
   @DoNotStrip
   @Keep

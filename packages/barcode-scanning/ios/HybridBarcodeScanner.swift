@@ -1,8 +1,10 @@
 import Foundation
 import UIKit
 import NitroModules
+#if !targetEnvironment(simulator)
 import MLKitBarcodeScanning
 import MLKitVision
+#endif
 
 /**
  * Native iOS implementation of BarcodeScanner.
@@ -16,6 +18,37 @@ class HybridBarcodeScanner: HybridBarcodeScannerSpec {
 
     // MARK: - HybridObject boilerplate
     var memorySize: Int { MemoryLayout<HybridBarcodeScanner>.size }
+
+    #if targetEnvironment(simulator)
+
+    // MARK: - Simulator stub (no arm64-sim slice from Google ML Kit)
+    // Same pattern as @nitro-mlkit/face-detection: ML Kit's vendored frameworks
+    // ship no arm64 iOS-Simulator slice, so on simulator we never import or
+    // call into MLKit — every method throws a clear error instead. The
+    // companion config plugin strips the frameworks from the simulator link.
+
+    private static func simulatorError() -> RuntimeError {
+        RuntimeError.error(withMessage: "Barcode scanning isn't available on the iOS Simulator — Google ML Kit ships no arm64 Simulator slice. Run on a physical device.")
+    }
+
+    func scan(imageUri: String) throws -> Promise<[Barcode]> {
+        return Promise.async { throw Self.simulatorError() }
+    }
+
+    func scanFirst(imageUri: String) throws -> Promise<Barcode?> {
+        return Promise.async { throw Self.simulatorError() }
+    }
+
+    func scanBatch(imageUris: [String], concurrency: Double) throws -> Promise<[BatchScanResult]> {
+        return Promise.async { throw Self.simulatorError() }
+    }
+
+    func isAvailable() throws -> Bool{
+        return false
+    }
+
+    #else
+
 
     // Disambiguate the MLKit `Barcode` class from the Nitro `Barcode` struct.
     private typealias MLBarcode = MLKitBarcodeScanning.Barcode
@@ -152,4 +185,6 @@ class HybridBarcodeScanner: HybridBarcodeScannerSpec {
         }
         return UIImage(contentsOfFile: path)
     }
+
+    #endif
 }

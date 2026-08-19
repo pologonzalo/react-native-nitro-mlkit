@@ -1,7 +1,9 @@
 import Foundation
 import NitroModules
+#if !targetEnvironment(simulator)
 import MLKitCommon
 import MLKitDigitalInkRecognition
+#endif
 
 /**
  * Native iOS implementation of DigitalInkRecognizer (MLKit Digital Ink).
@@ -17,6 +19,41 @@ class HybridDigitalInkRecognizer: HybridDigitalInkRecognizerSpec {
 
     // MARK: - HybridObject boilerplate
     var memorySize: Int { MemoryLayout<HybridDigitalInkRecognizer>.size }
+
+    #if targetEnvironment(simulator)
+
+    // MARK: - Simulator stub (no arm64-sim slice from Google ML Kit)
+    // Same pattern as @nitro-mlkit/face-detection: ML Kit's vendored frameworks
+    // ship no arm64 iOS-Simulator slice, so on simulator we never import or
+    // call into MLKit — every method throws a clear error instead. The
+    // companion config plugin strips the frameworks from the simulator link.
+
+    private static func simulatorError() -> RuntimeError {
+        RuntimeError.error(withMessage: "Digital ink recognition isn't available on the iOS Simulator — Google ML Kit ships no arm64 Simulator slice. Run on a physical device.")
+    }
+
+    func recognize(strokes: [InkStroke], languageTag: String) throws -> Promise<[RecognitionCandidate]> {
+        return Promise.async { throw Self.simulatorError() }
+    }
+
+    func downloadModel(languageTag: String) throws -> Promise<Void> {
+        return Promise.async { throw Self.simulatorError() }
+    }
+
+    func isModelDownloaded(languageTag: String) throws -> Promise<Bool> {
+        return Promise.async { throw Self.simulatorError() }
+    }
+
+    func deleteModel(languageTag: String) throws -> Promise<Void> {
+        return Promise.async { throw Self.simulatorError() }
+    }
+
+    func isAvailable() throws -> Bool{
+        return false
+    }
+
+    #else
+
 
     // MARK: - Lazy MLKit model manager
     private lazy var modelManager: ModelManager = ModelManager.modelManager()
@@ -153,4 +190,6 @@ class HybridDigitalInkRecognizer: HybridDigitalInkRecognizerSpec {
     func isAvailable() throws -> Bool {
         return true
     }
+
+    #endif
 }

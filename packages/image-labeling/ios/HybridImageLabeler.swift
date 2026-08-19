@@ -1,8 +1,10 @@
 import Foundation
 import UIKit
 import NitroModules
+#if !targetEnvironment(simulator)
 import MLKitImageLabeling
 import MLKitVision
+#endif
 
 /**
  * Native iOS implementation of ImageLabeler.
@@ -17,6 +19,45 @@ class HybridImageLabeler: HybridImageLabelerSpec {
 
     // MARK: - HybridObject boilerplate
     var memorySize: Int { MemoryLayout<HybridImageLabeler>.size }
+
+    #if targetEnvironment(simulator)
+
+    // MARK: - Simulator stub (no arm64-sim slice from Google ML Kit)
+    // Same pattern as @nitro-mlkit/face-detection: ML Kit's vendored frameworks
+    // ship no arm64 iOS-Simulator slice, so on simulator we never import or
+    // call into MLKit — every method throws a clear error instead. The
+    // companion config plugin strips the frameworks from the simulator link.
+
+    private static func simulatorError() -> RuntimeError {
+        RuntimeError.error(withMessage: "Image labeling isn't available on the iOS Simulator — Google ML Kit ships no arm64 Simulator slice. Run on a physical device.")
+    }
+
+    func label(imageUri: String, options: LabelingOptions?) throws -> Promise<[ImageLabel]> {
+        return Promise.async { throw Self.simulatorError() }
+    }
+
+    func labelBatch(imageUris: [String], options: BatchLabelOptions?) throws -> Promise<[BatchLabelResult]> {
+        return Promise.async { throw Self.simulatorError() }
+    }
+
+    func checkSafety(imageUri: String) throws -> Promise<SafetyResult> {
+        return Promise.async { throw Self.simulatorError() }
+    }
+
+    func checkSafetyBatch(imageUris: [String], options: BatchSafetyOptions?) throws -> Promise<[SafetyResult]> {
+        return Promise.async { throw Self.simulatorError() }
+    }
+
+    func matchCategories(imageUri: String, categories: [String]) throws -> Promise<[ImageLabel]> {
+        return Promise.async { throw Self.simulatorError() }
+    }
+
+    func isAvailable() throws -> Bool{
+        return false
+    }
+
+    #else
+
 
     // MARK: - Defaults (match Kotlin companion object)
     private static let defaultThreshold = 0.5
@@ -178,4 +219,6 @@ class HybridImageLabeler: HybridImageLabelerSpec {
         }
         return UIImage(contentsOfFile: path)
     }
+
+    #endif
 }

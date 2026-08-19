@@ -18,8 +18,21 @@ background and returns a confidence **mask as a PNG** (alpha = confidence).
 npm install @nitro-mlkit/selfie-segmentation@beta react-native-nitro-modules
 ```
 
-No config plugin (autolinked Expo module). Install and `npx expo prebuild`.
-Not available in Expo Go.
+Add the config plugin to your `app.json`, then prebuild:
+
+```json
+{ "plugins": ["@nitro-mlkit/selfie-segmentation"] }
+```
+
+```bash
+npx expo prebuild
+```
+
+The plugin keeps arm64-Simulator builds *linking* on iOS (Google ML Kit ships
+no Simulator slice — on the Simulator every method throws a clear error; run
+on a physical device). It shares its Podfile hook with every other
+`@nitro-mlkit/*` plugin, so any combination works in any order. Not
+available in Expo Go.
 
 ## Usage
 

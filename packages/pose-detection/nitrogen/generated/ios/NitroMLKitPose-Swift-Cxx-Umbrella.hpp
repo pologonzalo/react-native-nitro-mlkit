@@ -10,14 +10,23 @@
 // Forward declarations of C++ defined types
 // Forward declaration of `BatchPoseResult` to properly resolve imports.
 namespace margelo::nitro::mlkit::pose { struct BatchPoseResult; }
+// Forward declaration of `DetectorMode` to properly resolve imports.
+namespace margelo::nitro::mlkit::pose { enum class DetectorMode; }
 // Forward declaration of `HybridPoseDetectorSpec` to properly resolve imports.
 namespace margelo::nitro::mlkit::pose { class HybridPoseDetectorSpec; }
+// Forward declaration of `PerformanceMode` to properly resolve imports.
+namespace margelo::nitro::mlkit::pose { enum class PerformanceMode; }
+// Forward declaration of `PoseDetectionOptions` to properly resolve imports.
+namespace margelo::nitro::mlkit::pose { struct PoseDetectionOptions; }
 // Forward declaration of `PoseLandmark` to properly resolve imports.
 namespace margelo::nitro::mlkit::pose { struct PoseLandmark; }
 
 // Include C++ defined types
 #include "BatchPoseResult.hpp"
+#include "DetectorMode.hpp"
 #include "HybridPoseDetectorSpec.hpp"
+#include "PerformanceMode.hpp"
+#include "PoseDetectionOptions.hpp"
 #include "PoseLandmark.hpp"
 #include <NitroModules/Promise.hpp>
 #include <NitroModules/Result.hpp>
