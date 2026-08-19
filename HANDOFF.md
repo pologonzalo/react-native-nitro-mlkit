@@ -1,12 +1,14 @@
 # HANDOFF — react-native-nitro-mlkit
 
-> Last updated: 2026-07-18 (session 7)  
+> Last updated: 2026-08-16 (session 8)  
 > Author: @pologonzalo  
 > Repo: https://github.com/pologonzalo/react-native-nitro-mlkit
 
-> 🚨 **Newest state is Session 7 at the bottom** — betas published (10 pkgs),
-> native `detectBatch` classification, Photo Cleaner + reusable utils, Memories 2.0
-> tuned on a real gallery. Urgent next steps are listed there.
+> 🚨 **Newest state is Session 8 near the bottom** — face-recognition iOS
+> implemented (Swift + TFLite + podspec, compiles for device; on-device run
+> pending) + `ph://` PhotoKit renditions for iCloud-safe gallery scans.
+> **`0.1.0-beta.1` PUBLISHED** (tag `beta`, 2026-08-16). Session 7: betas
+> published (10 pkgs), native `detectBatch` classification, Photo Cleaner.
 
 ## ⚡ Session 2 update — face-detection now runs end-to-end
 
@@ -350,6 +352,72 @@ Everything below is on `main` (PRs #1 + #2 merged). Verified live on the user's
     suspension outliers clamped to the median — a real run reported 8.6 h before this).
 - **Tooling:** added `@expo/vector-icons` (real Apple/Play platform badges, no robot
   emoji) + `expo-dev-client` + the `development` EAS profile.
+
+## Session 8 (2026-08-16) — face-recognition iOS implemented + `ph://` renditions
+
+**face-recognition is no longer Android-only.** The v0.2 item ("iOS TFLite
+embedding path") is written and compiling; what's left is on-device runtime
+validation. **`0.1.0-beta.1` published to npm (tag `beta`) on 2026-08-16**
+(web-2FA flow: `script -q <log> npm login --auth-type=web` under a pty is the
+trick when this Bash harness has no TTY — plain `npm login` falls back to the
+legacy Username prompt and dies). Remin consumes it from the registry.
+
+### What shipped
+
+- **`ios/HybridFaceRecognizer.swift`** — full Swift impl mirroring the Kotlin
+  contract: ML Kit FAST detection → crop → TFLite embedding (shapes read from
+  the model, `(px−127.5)/128`), in-memory registry with running-mean
+  references, chunked-task-group batch. Three non-obvious pieces, documented in
+  the file header: **TensorFlowLiteSwift not TensorFlowLiteObjC** (the ObjC pod
+  has no module map — that's exactly what broke `pod install` in session 6 and
+  forced Android-only); **every image redrawn upright** (ML Kit frames are in
+  oriented space, `CGImage.cropping` in raw-pixel space — portrait iPhone
+  photos crop an ear otherwise); **TFLite `Interpreter` serialised** behind a
+  lock (not thread-safe; detection still overlaps).
+- **`ph://` PhotoKit renditions** (both platforms get `targetSize`):
+  `findPeopleInPhotos` accepts `ph://` URIs directly on iOS and loads a
+  1024px rendition via `PHImageManager` — never the original. New
+  `FindPeopleOptions`: `targetSize` (default 1024) and `allowNetworkAccess`
+  (default **false**: iCloud-only photos come back `success:false,
+  error:"icloud"` so callers can offer a deliberate second pass instead of
+  silently eating a data plan). Android honours `targetSize` via
+  `inSampleSize` bounds-decode (12MP × 700 photos no longer materialise).
+- **Podspec restored** (`NitroMLKitFaceRecognition.podspec`, module
+  `NitroMLKitRecognition` to match nitrogen) + spec/nitro.json/expo-module
+  back to `ios+android` + nitrogen regenerated.
+- **Config plugin added** (`app.plugin.js`): Android face-model meta-data +
+  the Podfile `post_integrate` hook. ⚠️ It shares the MARKER with
+  face-detection's plugin on purpose — CocoaPods allows ONE `post_integrate`
+  per Podfile, so whichever plugin runs first writes the block and this one
+  widens the framework list in place (adds TensorFlowLiteC/CoreML/Metal to the
+  simulator strip + drops `-l"TensorFlowLiteSwift"`, which `-ObjC` would
+  otherwise force-load with unresolvable TFLiteC symbols). Both orders work;
+  don't "clean up" the shared marker.
+- **`src/index.ts`**: platform guard widened to Android+iOS (Proxy still means
+  importing never crashes anywhere).
+
+### Verified this session
+
+- `pod install` in the example: **green** — `NitroMLKitFaceRecognition
+  (0.1.0-beta.1)` + `TensorFlowLiteSwift 2.17.0` resolve and integrate.
+  (The "Can't merge user_target_xcconfig EXCLUDED_ARCHS" warnings are
+  pre-existing MLKit-vs-TFLite disagreements, non-fatal.)
+- Device-lane compile: `xcodebuild -project Pods/Pods.xcodeproj -target
+  NitroMLKitFaceRecognition -sdk iphoneos` → **BUILD SUCCEEDED**, zero
+  diagnostics for our Swift.
+- `tsc --noEmit` green.
+
+### 🚨 Next steps
+
+1. **Run on a physical iPhone** (register + findPeopleInPhotos over `ph://`,
+   confirm rendition path stays off-network with Optimise Storage on). The
+   whole-workspace example build still fails at EXConstants' script phase when
+   xcodebuild runs without node in PATH — build via `eas build --local` or
+   Xcode GUI as in session 6. Fastest real-world test: the Remin TestFlight
+   build v2.0.0(3) launched 2026-08-16 ships this exact code.
+2. ~~publish `0.1.0-beta.1`~~ **done 2026-08-16**.
+3. Cross-platform sanity: same photo → same person match on Android & iOS
+   (embeddings won't be bit-identical, cosine ranking should agree).
 
 ## Context: Remin (the app that will use this)
 

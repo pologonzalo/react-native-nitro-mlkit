@@ -35,9 +35,15 @@ namespace margelo::nitro::mlkit::recognition {
       jni::local_ref<jni::JDouble> concurrency = this->getFieldValue(fieldConcurrency);
       static const auto fieldMinSimilarity = clazz->getField<jni::JDouble>("minSimilarity");
       jni::local_ref<jni::JDouble> minSimilarity = this->getFieldValue(fieldMinSimilarity);
+      static const auto fieldTargetSize = clazz->getField<jni::JDouble>("targetSize");
+      jni::local_ref<jni::JDouble> targetSize = this->getFieldValue(fieldTargetSize);
+      static const auto fieldAllowNetworkAccess = clazz->getField<jni::JBoolean>("allowNetworkAccess");
+      jni::local_ref<jni::JBoolean> allowNetworkAccess = this->getFieldValue(fieldAllowNetworkAccess);
       return FindPeopleOptions(
         concurrency != nullptr ? std::make_optional(concurrency->value()) : std::nullopt,
-        minSimilarity != nullptr ? std::make_optional(minSimilarity->value()) : std::nullopt
+        minSimilarity != nullptr ? std::make_optional(minSimilarity->value()) : std::nullopt,
+        targetSize != nullptr ? std::make_optional(targetSize->value()) : std::nullopt,
+        allowNetworkAccess != nullptr ? std::make_optional(static_cast<bool>(allowNetworkAccess->value())) : std::nullopt
       );
     }
 
@@ -47,13 +53,15 @@ namespace margelo::nitro::mlkit::recognition {
      */
     [[maybe_unused]]
     static jni::local_ref<JFindPeopleOptions::javaobject> fromCpp(const FindPeopleOptions& value) {
-      using JSignature = JFindPeopleOptions(jni::alias_ref<jni::JDouble>, jni::alias_ref<jni::JDouble>);
+      using JSignature = JFindPeopleOptions(jni::alias_ref<jni::JDouble>, jni::alias_ref<jni::JDouble>, jni::alias_ref<jni::JDouble>, jni::alias_ref<jni::JBoolean>);
       static const auto clazz = javaClassStatic();
       static const auto create = clazz->getStaticMethod<JSignature>("fromCpp");
       return create(
         clazz,
         value.concurrency.has_value() ? jni::JDouble::valueOf(value.concurrency.value()) : nullptr,
-        value.minSimilarity.has_value() ? jni::JDouble::valueOf(value.minSimilarity.value()) : nullptr
+        value.minSimilarity.has_value() ? jni::JDouble::valueOf(value.minSimilarity.value()) : nullptr,
+        value.targetSize.has_value() ? jni::JDouble::valueOf(value.targetSize.value()) : nullptr,
+        value.allowNetworkAccess.has_value() ? jni::JBoolean::valueOf(value.allowNetworkAccess.value()) : nullptr
       );
     }
   };

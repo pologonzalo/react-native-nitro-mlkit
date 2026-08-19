@@ -21,6 +21,7 @@
       "expo-router",
       "expo-camera",
       "@nitro-mlkit/face-detection",
+      "@nitro-mlkit/face-recognition",
       [
         "expo-media-library",
         {

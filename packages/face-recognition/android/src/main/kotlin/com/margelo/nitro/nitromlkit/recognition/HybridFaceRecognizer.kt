@@ -131,10 +131,11 @@ class HybridFaceRecognizer : HybridFaceRecognizerSpec() {
   ): Promise<Array<PhotoPersonResult>> {
     return Promise.async {
       val minSim = options?.minSimilarity ?: 0.6
+      val targetSize = (options?.targetSize ?: 1024.0).toInt()
       val results = arrayOfNulls<PhotoPersonResult>(imageUris.size)
       for ((idx, uri) in imageUris.withIndex()) {
         try {
-          val bitmap = loadBitmap(uri)
+          val bitmap = loadBitmap(uri, targetSize)
           if (bitmap == null) {
             results[idx] = PhotoPersonResult(idx.toDouble(), emptyArray(), 0.0, 0.0, false, "load failed")
             continue
@@ -243,17 +244,44 @@ class HybridFaceRecognizer : HybridFaceRecognizerSpec() {
     return if (denom > 0) dot / denom else 0.0
   }
 
-  private fun loadBitmap(uri: String): Bitmap? {
+  /**
+   * Decodes the image downsampled to roughly [targetSize] on its longest side.
+   * `inSampleSize` skips pixels at DECODE time (powers of two), so a 12 MP
+   * photo never materialises in memory — that, times 700 photos, is the
+   * difference between a scan that flies and one that crawls into an OOM.
+   * Detection doesn't need originals; the face crop is re-scaled to the
+   * model's 112×112 anyway.
+   */
+  private fun loadBitmap(uri: String, targetSize: Int = 1024): Bitmap? {
     return try {
-      when {
-        uri.startsWith("file://") -> BitmapFactory.decodeFile(uri.removePrefix("file://"))
-        uri.startsWith("/") -> BitmapFactory.decodeFile(uri)
-        uri.startsWith("content://") -> {
-          val cr = NitroModules.applicationContext!!.contentResolver
-          cr.openInputStream(android.net.Uri.parse(uri)).use { BitmapFactory.decodeStream(it) }
-        }
-        else -> URL(uri).openStream().use { BitmapFactory.decodeStream(it) }
+      // http(s) streams can't be rewound for a bounds pass; buffer them once.
+      val bytes: ByteArray? = when {
+        uri.startsWith("file://") || uri.startsWith("/") || uri.startsWith("content://") -> null
+        else -> URL(uri).openStream().use { it.readBytes() }
       }
+
+      val decode = { opts: BitmapFactory.Options ->
+        when {
+          uri.startsWith("file://") -> BitmapFactory.decodeFile(uri.removePrefix("file://"), opts)
+          uri.startsWith("/") -> BitmapFactory.decodeFile(uri, opts)
+          uri.startsWith("content://") -> {
+            val cr = NitroModules.applicationContext!!.contentResolver
+            cr.openInputStream(android.net.Uri.parse(uri)).use { BitmapFactory.decodeStream(it, null, opts) }
+          }
+          else -> BitmapFactory.decodeByteArray(bytes!!, 0, bytes.size, opts)
+        }
+      }
+
+      val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+      decode(bounds)
+      if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+
+      var sample = 1
+      if (targetSize > 0) {
+        val longest = maxOf(bounds.outWidth, bounds.outHeight)
+        while (longest / (sample * 2) >= targetSize) sample *= 2
+      }
+      decode(BitmapFactory.Options().apply { inSampleSize = sample })
     } catch (e: Exception) {
       null
     }

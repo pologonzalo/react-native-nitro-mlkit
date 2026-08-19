@@ -23,7 +23,13 @@ data class FindPeopleOptions(
   val concurrency: Double?,
   @DoNotStrip
   @Keep
-  val minSimilarity: Double?
+  val minSimilarity: Double?,
+  @DoNotStrip
+  @Keep
+  val targetSize: Double?,
+  @DoNotStrip
+  @Keep
+  val allowNetworkAccess: Boolean?
 ) {
   /* primary constructor */
 
@@ -32,12 +38,16 @@ data class FindPeopleOptions(
     if (other !is FindPeopleOptions) return false
     return Objects.deepEquals(this.concurrency, other.concurrency)
       && Objects.deepEquals(this.minSimilarity, other.minSimilarity)
+      && Objects.deepEquals(this.targetSize, other.targetSize)
+      && Objects.deepEquals(this.allowNetworkAccess, other.allowNetworkAccess)
   }
 
   override fun hashCode(): Int {
     return arrayOf<Any?>(
       concurrency,
-      minSimilarity
+      minSimilarity,
+      targetSize,
+      allowNetworkAccess
     ).contentDeepHashCode()
   }
 
@@ -49,8 +59,8 @@ data class FindPeopleOptions(
     @Keep
     @Suppress("unused")
     @JvmStatic
-    private fun fromCpp(concurrency: Double?, minSimilarity: Double?): FindPeopleOptions {
-      return FindPeopleOptions(concurrency, minSimilarity)
+    private fun fromCpp(concurrency: Double?, minSimilarity: Double?, targetSize: Double?, allowNetworkAccess: Boolean?): FindPeopleOptions {
+      return FindPeopleOptions(concurrency, minSimilarity, targetSize, allowNetworkAccess)
     }
   }
 }
