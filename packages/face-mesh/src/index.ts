@@ -2,7 +2,7 @@ export { type FaceMeshDetector } from "./specs/FaceMeshDetector.nitro";
 export type { BatchMeshResult, MeshPoint } from "./specs/FaceMeshDetector.nitro";
 
 import { Platform } from "react-native";
-import { requireOptionalNativeModule } from "expo-modules-core";
+import { requireOptionalNativeModule } from "expo";
 import { NitroModules } from "react-native-nitro-modules";
 import type { FaceMeshDetector } from "./specs/FaceMeshDetector.nitro";
 

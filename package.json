@@ -13,15 +13,17 @@
   "packageManager": "pnpm@10.22.0",
   "devDependencies": {
     "nitrogen": "^0.36.1",
-    "react": "19.2.0",
-    "react-native": "0.83.6",
+    "react": "19.2.3",
+    "react-native": "0.86.2",
     "react-native-nitro-modules": "^0.36.1",
     "typescript": "~5.9.3"
   },
   "pnpm": {
     "overrides": {
-      "react": "19.2.0",
-      "react-native": "0.83.6"
+      "react": "19.2.3",
+      "react-native": "0.86.2",
+      "expo-modules-core": "57.0.11",
+      "expo": "57.0.14"
     }
   }
 }

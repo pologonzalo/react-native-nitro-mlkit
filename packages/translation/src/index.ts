@@ -1,7 +1,7 @@
 export { type Translator } from "./specs/Translator.nitro";
 
 import { Platform } from "react-native";
-import { requireOptionalNativeModule } from "expo-modules-core";
+import { requireOptionalNativeModule } from "expo";
 import { NitroModules } from "react-native-nitro-modules";
 import type { Translator } from "./specs/Translator.nitro";
 

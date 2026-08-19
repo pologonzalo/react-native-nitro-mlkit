@@ -5,7 +5,7 @@ export type {
 } from "./specs/PoseDetector.nitro";
 
 import { Platform } from "react-native";
-import { requireOptionalNativeModule } from "expo-modules-core";
+import { requireOptionalNativeModule } from "expo";
 import { NitroModules } from "react-native-nitro-modules";
 import type { PoseDetector } from "./specs/PoseDetector.nitro";
 

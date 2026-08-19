@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "paths": {
+      // Los paquetes importan `requireOptionalNativeModule` desde "expo"
+      // (que lo reexporta de expo-modules-core; desde SDK 54 ese paquete ya no
+      // se instala por separado). "expo" es dependencia del app consumidor, no
+      // de las librerías, así que en el monorepo NO se declara en ningún
+      // package.json de packages/* — una devDep propia hacía que pnpm
+      // materializara una segunda copia con otro contexto de peers y
+      // expo-doctor lo marcaba como node_modules corrupto (junto con
+      // auto-install-peers=false en .npmrc). Para typecheck basta resolver los
+      // TIPOS contra la única copia real: la del example. En runtime resuelve
+      // el consumidor (Metro), no este mapping.
+      "expo": ["./example/node_modules/expo"]
+    }
+  }
+}

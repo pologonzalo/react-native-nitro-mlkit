@@ -6,7 +6,7 @@
 
 import { NitroFace, PerformanceMode } from "@nitro-mlkit/face-detection";
 import { NitroLabeler } from "@nitro-mlkit/image-labeling";
-import * as MediaLibrary from "expo-media-library";
+import * as MediaLibrary from "expo-media-library/legacy";
 import { Platform } from "react-native";
 import type { CleanerPhoto } from "./photo-quality";
 

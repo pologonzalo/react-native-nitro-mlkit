@@ -6,7 +6,7 @@ export type {
 } from "./specs/SmartReplyGenerator.nitro";
 
 import { Platform } from "react-native";
-import { requireOptionalNativeModule } from "expo-modules-core";
+import { requireOptionalNativeModule } from "expo";
 import { NitroModules } from "react-native-nitro-modules";
 import type {
   ConversationMessage,

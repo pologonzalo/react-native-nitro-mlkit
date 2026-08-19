@@ -2,7 +2,7 @@ export { type SubjectSegmenter } from "./specs/SubjectSegmenter.nitro";
 export type { SubjectSegmentationResult } from "./specs/SubjectSegmenter.nitro";
 
 import { Platform } from "react-native";
-import { requireOptionalNativeModule } from "expo-modules-core";
+import { requireOptionalNativeModule } from "expo";
 import { NitroModules } from "react-native-nitro-modules";
 import type {
   SubjectSegmentationResult,

@@ -2,7 +2,7 @@ export { type EntityExtractor } from "./specs/EntityExtractor.nitro";
 export type { DetectedEntity } from "./specs/EntityExtractor.nitro";
 
 import { Platform } from "react-native";
-import { requireOptionalNativeModule } from "expo-modules-core";
+import { requireOptionalNativeModule } from "expo";
 import { NitroModules } from "react-native-nitro-modules";
 import type {
   DetectedEntity,

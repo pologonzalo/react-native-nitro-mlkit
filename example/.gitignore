@@ -4,3 +4,6 @@
 
 expo-env.d.ts
 # @end expo-cli
+
+# expo export output (artefacto local de validación)
+dist/

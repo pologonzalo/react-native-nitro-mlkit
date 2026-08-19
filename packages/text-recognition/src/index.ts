@@ -9,7 +9,7 @@ export type {
 } from "./specs/TextRecognizer.nitro";
 
 import { Platform } from "react-native";
-import { requireOptionalNativeModule } from "expo-modules-core";
+import { requireOptionalNativeModule } from "expo";
 import { NitroModules } from "react-native-nitro-modules";
 import type { TextRecognizer } from "./specs/TextRecognizer.nitro";
 
