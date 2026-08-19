@@ -5,7 +5,10 @@
   "scripts": {
     "build": "pnpm -r build",
     "lint": "pnpm -r lint",
-    "codegen": "pnpm --filter @nitro-mlkit/face-detection codegen"
+    "codegen": "pnpm --filter @nitro-mlkit/face-detection codegen",
+    "hygiene": "node scripts/check-release-hygiene.mjs",
+    "publish:dry": "node scripts/publish.mjs",
+    "tags": "node scripts/fix-npm-tags.mjs"
   },
   "packageManager": "pnpm@10.22.0",
   "devDependencies": {

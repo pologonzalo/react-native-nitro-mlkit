@@ -315,6 +315,11 @@ Everything below is on `main` (PRs #1 + #2 merged). Verified live on the user's
   entity-extraction, document-scanner). Publish with `scripts/publish-beta.sh`
   (now resilient — skips already-published versions, prints a published/skipped
   summary; needs `npm login`). Install: `npm i @nitro-mlkit/<pkg>@beta` + native rebuild.
+  > **Superseded (2026-08-19):** `publish-beta.sh` was replaced by
+  > `scripts/publish.mjs` (dry-run by default, derives the list from
+  > `package.json`, gated on `scripts/check-release-hygiene.mjs`). The 5
+  > Android-only packages listed above were published as `beta` on 2026-08-19;
+  > `face-recognition` got its iOS implementation and is no longer in that group.
 - **Native: `detectBatch` gained an optional `FaceDetectionOptions` 3rd arg** →
   real per-face `smilingProbability` + `*EyeOpenProbability` across a whole batch
   when `classifications: true`. `detect()` + `detectBatch()` now build & **cache** a

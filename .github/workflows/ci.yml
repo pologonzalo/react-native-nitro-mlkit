@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  typecheck:
+    name: Typecheck & release hygiene
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # tsc --noEmit across all 16 packages.
+      - run: pnpm -r lint
+
+      # Asserts every publishable package has iOS + podspec + the metadata npm
+      # needs, so an Android-only package can't slip onto the registry again.
+      - run: node scripts/check-release-hygiene.mjs
+
+  pack:
+    name: Verify publishable tarballs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # `npm pack --dry-run` resolves the "files" globs for real, so a package
+      # that would publish an empty or broken tarball fails here rather than on
+      # a user's machine. Skips the Android-only packages (private: true).
+      - name: npm pack --dry-run every publishable package
+        run: |
+          set -euo pipefail
+          for dir in packages/*/; do
+            name=$(node -p "require('./${dir}package.json').name")
+            if [ "$(node -p "require('./${dir}package.json').private === true")" = "true" ]; then
+              echo "🔒 skipping $name (held back)"
+              continue
+            fi
+            echo "::group::📦 $name"
+            ( cd "$dir" && npm pack --dry-run )
+            echo "::endgroup::"
+          done
