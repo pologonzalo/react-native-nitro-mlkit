@@ -17,8 +17,21 @@ bounding boxes and coarse category labels. **All on-device.**
 npm install @nitro-mlkit/object-detection@beta react-native-nitro-modules
 ```
 
-No config plugin (it's an autolinked Expo module). Just install and
-`npx expo prebuild`. Not available in Expo Go.
+Add the config plugin to your `app.json`, then prebuild:
+
+```json
+{ "plugins": ["@nitro-mlkit/object-detection"] }
+```
+
+```bash
+npx expo prebuild
+```
+
+The plugin keeps arm64-Simulator builds *linking* on iOS (Google ML Kit ships
+no Simulator slice — on the Simulator every method throws a clear error; run
+on a physical device). It shares its Podfile hook with every other
+`@nitro-mlkit/*` plugin, so any combination works in any order. Not
+available in Expo Go.
 
 ## Usage
 

@@ -1,8 +1,10 @@
 import Foundation
 import UIKit
 import NitroModules
+#if !targetEnvironment(simulator)
 import MLKitTextRecognition
 import MLKitVision
+#endif
 
 /**
  * Native iOS implementation of TextRecognizer.
@@ -16,6 +18,37 @@ class HybridTextRecognizer: HybridTextRecognizerSpec {
 
     // MARK: - HybridObject boilerplate
     var memorySize: Int { MemoryLayout<HybridTextRecognizer>.size }
+
+    #if targetEnvironment(simulator)
+
+    // MARK: - Simulator stub (no arm64-sim slice from Google ML Kit)
+    // Same pattern as @nitro-mlkit/face-detection: ML Kit's vendored frameworks
+    // ship no arm64 iOS-Simulator slice, so on simulator we never import or
+    // call into MLKit — every method throws a clear error instead. The
+    // companion config plugin strips the frameworks from the simulator link.
+
+    private static func simulatorError() -> RuntimeError {
+        RuntimeError.error(withMessage: "Text recognition isn't available on the iOS Simulator — Google ML Kit ships no arm64 Simulator slice. Run on a physical device.")
+    }
+
+    func recognize(imageUri: String) throws -> Promise<RecognizedText> {
+        return Promise.async { throw Self.simulatorError() }
+    }
+
+    func recognizeText(imageUri: String) throws -> Promise<String> {
+        return Promise.async { throw Self.simulatorError() }
+    }
+
+    func recognizeBatch(imageUris: [String], concurrency: Double) throws -> Promise<[BatchTextResult]> {
+        return Promise.async { throw Self.simulatorError() }
+    }
+
+    func isAvailable() throws -> Bool{
+        return false
+    }
+
+    #else
+
 
     private lazy var recognizer: TextRecognizer =
         TextRecognizer.textRecognizer(options: TextRecognizerOptions())
@@ -121,4 +154,6 @@ class HybridTextRecognizer: HybridTextRecognizerSpec {
         }
         return UIImage(contentsOfFile: path)
     }
+
+    #endif
 }

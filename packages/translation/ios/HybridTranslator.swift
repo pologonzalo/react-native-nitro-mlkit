@@ -1,7 +1,9 @@
 import Foundation
 import NitroModules
+#if !targetEnvironment(simulator)
 import MLKitCommon
 import MLKitTranslate
+#endif
 
 /**
  * Native iOS implementation of Translator (MLKit on-device Translation).
@@ -17,6 +19,45 @@ class HybridTranslator: HybridTranslatorSpec {
 
     // MARK: - HybridObject boilerplate
     var memorySize: Int { MemoryLayout<HybridTranslator>.size }
+
+    #if targetEnvironment(simulator)
+
+    // MARK: - Simulator stub (no arm64-sim slice from Google ML Kit)
+    // Same pattern as @nitro-mlkit/face-detection: ML Kit's vendored frameworks
+    // ship no arm64 iOS-Simulator slice, so on simulator we never import or
+    // call into MLKit — every method throws a clear error instead. The
+    // companion config plugin strips the frameworks from the simulator link.
+
+    private static func simulatorError() -> RuntimeError {
+        RuntimeError.error(withMessage: "Translation isn't available on the iOS Simulator — Google ML Kit ships no arm64 Simulator slice. Run on a physical device.")
+    }
+
+    func translate(text: String, sourceLanguage: String, targetLanguage: String) throws -> Promise<String> {
+        return Promise.async { throw Self.simulatorError() }
+    }
+
+    func downloadModel(language: String, requireWifi: Bool) throws -> Promise<Void> {
+        return Promise.async { throw Self.simulatorError() }
+    }
+
+    func isModelDownloaded(language: String) throws -> Promise<Bool> {
+        return Promise.async { throw Self.simulatorError() }
+    }
+
+    func deleteModel(language: String) throws -> Promise<Void> {
+        return Promise.async { throw Self.simulatorError() }
+    }
+
+    func getDownloadedModels() throws -> Promise<[String]> {
+        return Promise.async { throw Self.simulatorError() }
+    }
+
+    func isAvailable() throws -> Bool{
+        return false
+    }
+
+    #else
+
 
     // MARK: - Lazy MLKit model manager
     private lazy var modelManager: ModelManager = ModelManager.modelManager()
@@ -157,4 +198,6 @@ class HybridTranslator: HybridTranslatorSpec {
     func isAvailable() throws -> Bool {
         return true
     }
+
+    #endif
 }

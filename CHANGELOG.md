@@ -5,6 +5,42 @@ the suite; per-package detail lives in each package's README.
 
 Everything is still on the `beta` dist-tag — install with `@beta`.
 
+## 2026-08-19 (later) — pose options + the whole suite works on the Simulator
+
+### `@nitro-mlkit/pose-detection` `0.1.0-beta.1`
+
+- **`PoseDetectionOptions`** on `detect()`/`detectBatch()`:
+  `performanceMode` (`FAST` default / `ACCURATE` — the bigger BlazePose model,
+  both ship in the binary so it's a runtime choice) and `detectorMode`
+  (`SINGLE_IMAGE` default / `STREAM` for consecutive video frames). Detectors
+  are cached natively per option combination, mirroring face-detection.
+- **Pose-classification helpers** (`PoseLandmarkType`, `getLandmark`,
+  `landmarkAngle`) — the primitives of ML Kit's official classification
+  recipe (a squat is a hip–knee–ankle angle under ~120°, etc.). README shows
+  the full recipe.
+- Documented that ML Kit Pose only ever reports **one body per image** — an
+  upstream limitation, not a missing feature.
+
+### Every iOS package `+0.0.1` — real iOS Simulator support
+
+Two halves, both required:
+
+- **Simulator stubs in every Swift impl** (the face-detection pattern,
+  generalized): ML Kit imports live behind `#if !targetEnvironment(simulator)`
+  and every method throws a clear "run on a physical device" error on the
+  Simulator. Without this the pods didn't even *compile* for arm64-sim.
+- **A config plugin in all 11 iOS packages** (previously only the two face
+  packages had one). The shared Podfile hook is now **pattern-based** —
+  strips every `MLKit*`/`MLImage`/`TensorFlowLite*` framework from the
+  simulator link instead of a hand-kept per-package list that missed every
+  other package's frameworks. One block covers the whole suite; plugins
+  cooperate through a shared marker, and a new plugin finding an old
+  list-based block (from a mixed-version install) upgrades it in place.
+
+Verified: all 11 pod targets compile for `iphonesimulator`, the aggregate
+simulator link line contains zero ML Kit/TensorFlow frameworks, and device
+builds are untouched. Install docs in each README now include the plugin.
+
 ## 2026-08-19 — the whole suite is on npm
 
 ### `@nitro-mlkit/face-recognition` `0.1.0-beta.1`

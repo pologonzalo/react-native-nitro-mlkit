@@ -3,9 +3,11 @@ import UIKit
 import CoreVideo
 import CoreGraphics
 import NitroModules
+#if !targetEnvironment(simulator)
 import MLKitSegmentationSelfie
 import MLKitSegmentationCommon
 import MLKitVision
+#endif
 
 /**
  * Native iOS implementation of SelfieSegmenter (MLKit selfie segmentation).
@@ -17,6 +19,33 @@ class HybridSelfieSegmenter: HybridSelfieSegmenterSpec {
 
     // MARK: - HybridObject boilerplate
     var memorySize: Int { MemoryLayout<HybridSelfieSegmenter>.size }
+
+    #if targetEnvironment(simulator)
+
+    // MARK: - Simulator stub (no arm64-sim slice from Google ML Kit)
+    // Same pattern as @nitro-mlkit/face-detection: ML Kit's vendored frameworks
+    // ship no arm64 iOS-Simulator slice, so on simulator we never import or
+    // call into MLKit — every method throws a clear error instead. The
+    // companion config plugin strips the frameworks from the simulator link.
+
+    private static func simulatorError() -> RuntimeError {
+        RuntimeError.error(withMessage: "Selfie segmentation isn't available on the iOS Simulator — Google ML Kit ships no arm64 Simulator slice. Run on a physical device.")
+    }
+
+    func segment(imageUri: String) throws -> Promise<SegmentationResult> {
+        return Promise.async { throw Self.simulatorError() }
+    }
+
+    func segmentBatch(imageUris: [String], concurrency: Double) throws -> Promise<[BatchSegmentationResult]> {
+        return Promise.async { throw Self.simulatorError() }
+    }
+
+    func isAvailable() throws -> Bool{
+        return false
+    }
+
+    #else
+
 
     // MARK: - Lazy MLKit segmenter
 
@@ -171,4 +200,6 @@ class HybridSelfieSegmenter: HybridSelfieSegmenterSpec {
         }
         return UIImage(contentsOfFile: path)
     }
+
+    #endif
 }

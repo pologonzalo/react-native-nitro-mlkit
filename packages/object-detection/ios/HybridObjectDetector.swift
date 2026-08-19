@@ -1,9 +1,11 @@
 import Foundation
 import UIKit
 import NitroModules
+#if !targetEnvironment(simulator)
 import MLKitObjectDetection
 import MLKitObjectDetectionCommon
 import MLKitVision
+#endif
 
 /**
  * Native iOS implementation of ObjectDetector (MLKit object detection).
@@ -14,6 +16,33 @@ class HybridObjectDetector: HybridObjectDetectorSpec {
 
     // MARK: - HybridObject boilerplate
     var memorySize: Int { MemoryLayout<HybridObjectDetector>.size }
+
+    #if targetEnvironment(simulator)
+
+    // MARK: - Simulator stub (no arm64-sim slice from Google ML Kit)
+    // Same pattern as @nitro-mlkit/face-detection: ML Kit's vendored frameworks
+    // ship no arm64 iOS-Simulator slice, so on simulator we never import or
+    // call into MLKit — every method throws a clear error instead. The
+    // companion config plugin strips the frameworks from the simulator link.
+
+    private static func simulatorError() -> RuntimeError {
+        RuntimeError.error(withMessage: "Object detection isn't available on the iOS Simulator — Google ML Kit ships no arm64 Simulator slice. Run on a physical device.")
+    }
+
+    func detect(imageUri: String) throws -> Promise<[DetectedObject]> {
+        return Promise.async { throw Self.simulatorError() }
+    }
+
+    func detectBatch(imageUris: [String], concurrency: Double) throws -> Promise<[BatchObjectResult]> {
+        return Promise.async { throw Self.simulatorError() }
+    }
+
+    func isAvailable() throws -> Bool{
+        return false
+    }
+
+    #else
+
 
     // MARK: - Lazy MLKit detector
 
@@ -122,4 +151,6 @@ class HybridObjectDetector: HybridObjectDetectorSpec {
         }
         return UIImage(contentsOfFile: path)
     }
+
+    #endif
 }

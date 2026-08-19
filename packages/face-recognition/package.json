@@ -1,6 +1,6 @@
 {
   "name": "@nitro-mlkit/face-recognition",
-  "version": "0.1.0-beta.2",
+  "version": "0.1.0-beta.3",
   "description": "On-device face recognition for React Native — register people, find them in photos. ML Kit detection + a TensorFlow Lite face-embedding model (bring your own, e.g. MobileFaceNet). Nitro/JSI, native batch.",
   "main": "src/index.ts",
   "types": "src/index.ts",

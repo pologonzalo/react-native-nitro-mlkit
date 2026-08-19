@@ -1,6 +1,6 @@
 {
   "name": "@nitro-mlkit/selfie-segmentation",
-  "version": "0.1.0-beta.0",
+  "version": "0.1.0-beta.1",
   "description": "High-performance on-device selfie segmentation for React Native — Google ML Kit + Nitro. Foreground/background mask, native batch, zero bridge overhead.",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -45,6 +45,8 @@
     "android/build.gradle",
     "android/CMakeLists.txt",
     "expo-module.config.json",
+    "plugin",
+    "app.plugin.js",
     "nitrogen/generated",
     "*.podspec",
     "nitro.json",
@@ -54,5 +56,8 @@
   "homepage": "https://github.com/pologonzalo/react-native-nitro-mlkit/tree/main/packages/selfie-segmentation#readme",
   "bugs": {
     "url": "https://github.com/pologonzalo/react-native-nitro-mlkit/issues"
+  },
+  "dependencies": {
+    "@expo/config-plugins": ">=55.0.0 <58.0.0"
   }
 }

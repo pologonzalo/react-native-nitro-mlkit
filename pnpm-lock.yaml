@@ -179,6 +179,10 @@ importers:
         version: 6.0.3
 
   packages/barcode-scanning:
+    dependencies:
+      '@expo/config-plugins':
+        specifier: '>=55.0.0 <58.0.0'
+        version: 57.0.8(typescript@5.9.3)
     devDependencies:
       nitro-codegen:
         specifier: '*'
@@ -191,6 +195,10 @@ importers:
         version: 5.9.3
 
   packages/digital-ink:
+    dependencies:
+      '@expo/config-plugins':
+        specifier: '>=55.0.0 <58.0.0'
+        version: 57.0.8(typescript@5.9.3)
     devDependencies:
       nitro-codegen:
         specifier: '*'
@@ -271,6 +279,10 @@ importers:
         version: 5.9.3
 
   packages/image-labeling:
+    dependencies:
+      '@expo/config-plugins':
+        specifier: '>=55.0.0 <58.0.0'
+        version: 57.0.8(typescript@5.9.3)
     devDependencies:
       nitro-codegen:
         specifier: '*'
@@ -283,6 +295,10 @@ importers:
         version: 5.9.3
 
   packages/language-id:
+    dependencies:
+      '@expo/config-plugins':
+        specifier: '>=55.0.0 <58.0.0'
+        version: 57.0.8(typescript@5.9.3)
     devDependencies:
       nitro-codegen:
         specifier: '*'
@@ -295,6 +311,10 @@ importers:
         version: 5.9.3
 
   packages/object-detection:
+    dependencies:
+      '@expo/config-plugins':
+        specifier: '>=55.0.0 <58.0.0'
+        version: 57.0.8(typescript@5.9.3)
     devDependencies:
       nitro-codegen:
         specifier: '*'
@@ -307,6 +327,10 @@ importers:
         version: 5.9.3
 
   packages/pose-detection:
+    dependencies:
+      '@expo/config-plugins':
+        specifier: '>=55.0.0 <58.0.0'
+        version: 57.0.8(typescript@5.9.3)
     devDependencies:
       nitro-codegen:
         specifier: '*'
@@ -319,6 +343,10 @@ importers:
         version: 5.9.3
 
   packages/selfie-segmentation:
+    dependencies:
+      '@expo/config-plugins':
+        specifier: '>=55.0.0 <58.0.0'
+        version: 57.0.8(typescript@5.9.3)
     devDependencies:
       nitro-codegen:
         specifier: '*'
@@ -355,6 +383,10 @@ importers:
         version: 5.9.3
 
   packages/text-recognition:
+    dependencies:
+      '@expo/config-plugins':
+        specifier: '>=55.0.0 <58.0.0'
+        version: 57.0.8(typescript@5.9.3)
     devDependencies:
       nitro-codegen:
         specifier: '*'
@@ -367,6 +399,10 @@ importers:
         version: 5.9.3
 
   packages/translation:
+    dependencies:
+      '@expo/config-plugins':
+        specifier: '>=55.0.0 <58.0.0'
+        version: 57.0.8(typescript@5.9.3)
     devDependencies:
       nitro-codegen:
         specifier: '*'
