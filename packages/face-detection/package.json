@@ -27,7 +27,7 @@
     "directory": "packages/face-detection"
   },
   "dependencies": {
-    "@expo/config-plugins": "^55.0.0"
+    "@expo/config-plugins": ">=55.0.0 <58.0.0"
   },
   "peerDependencies": {
     "expo-modules-core": "*",

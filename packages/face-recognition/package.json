@@ -56,7 +56,7 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@expo/config-plugins": "^55.0.0"
+    "@expo/config-plugins": ">=55.0.0 <58.0.0"
   },
   "homepage": "https://github.com/pologonzalo/react-native-nitro-mlkit/tree/main/packages/face-recognition#readme",
   "bugs": {
