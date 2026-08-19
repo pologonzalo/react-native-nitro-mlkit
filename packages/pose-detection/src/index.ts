@@ -1,8 +1,19 @@
 export { type PoseDetector } from "./specs/PoseDetector.nitro";
+export {
+  PerformanceMode,
+  DetectorMode,
+} from "./specs/PoseDetector.nitro";
 export type {
   BatchPoseResult,
+  PoseDetectionOptions,
   PoseLandmark,
 } from "./specs/PoseDetector.nitro";
+export {
+  PoseLandmarkType,
+  getLandmark,
+  landmarkAngle,
+  type PoseLandmarkTypeName,
+} from "./poseUtils";
 
 import { Platform } from "react-native";
 import { requireOptionalNativeModule } from "expo";

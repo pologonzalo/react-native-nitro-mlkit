@@ -10,8 +10,14 @@
 // Forward declarations of C++ defined types
 // Forward declaration of `BatchPoseResult` to properly resolve imports.
 namespace margelo::nitro::mlkit::pose { struct BatchPoseResult; }
+// Forward declaration of `DetectorMode` to properly resolve imports.
+namespace margelo::nitro::mlkit::pose { enum class DetectorMode; }
 // Forward declaration of `HybridPoseDetectorSpec` to properly resolve imports.
 namespace margelo::nitro::mlkit::pose { class HybridPoseDetectorSpec; }
+// Forward declaration of `PerformanceMode` to properly resolve imports.
+namespace margelo::nitro::mlkit::pose { enum class PerformanceMode; }
+// Forward declaration of `PoseDetectionOptions` to properly resolve imports.
+namespace margelo::nitro::mlkit::pose { struct PoseDetectionOptions; }
 // Forward declaration of `PoseLandmark` to properly resolve imports.
 namespace margelo::nitro::mlkit::pose { struct PoseLandmark; }
 
@@ -21,7 +27,10 @@ namespace NitroMLKitPose { class HybridPoseDetectorSpec_cxx; }
 
 // Include C++ defined types
 #include "BatchPoseResult.hpp"
+#include "DetectorMode.hpp"
 #include "HybridPoseDetectorSpec.hpp"
+#include "PerformanceMode.hpp"
+#include "PoseDetectionOptions.hpp"
 #include "PoseLandmark.hpp"
 #include <NitroModules/Promise.hpp>
 #include <NitroModules/PromiseHolder.hpp>
@@ -104,6 +113,51 @@ namespace margelo::nitro::mlkit::pose::bridge::swift {
   Func_void_std__exception_ptr create_Func_void_std__exception_ptr(void* NON_NULL swiftClosureWrapper) noexcept;
   inline Func_void_std__exception_ptr_Wrapper wrap_Func_void_std__exception_ptr(Func_void_std__exception_ptr value) noexcept {
     return Func_void_std__exception_ptr_Wrapper(std::move(value));
+  }
+  
+  // pragma MARK: std::optional<PerformanceMode>
+  /**
+   * Specialized version of `std::optional<PerformanceMode>`.
+   */
+  using std__optional_PerformanceMode_ = std::optional<PerformanceMode>;
+  inline std::optional<PerformanceMode> create_std__optional_PerformanceMode_(const PerformanceMode& value) noexcept {
+    return std::optional<PerformanceMode>(value);
+  }
+  inline bool has_value_std__optional_PerformanceMode_(const std::optional<PerformanceMode>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline PerformanceMode get_std__optional_PerformanceMode_(const std::optional<PerformanceMode>& optional) noexcept {
+    return optional.value();
+  }
+  
+  // pragma MARK: std::optional<DetectorMode>
+  /**
+   * Specialized version of `std::optional<DetectorMode>`.
+   */
+  using std__optional_DetectorMode_ = std::optional<DetectorMode>;
+  inline std::optional<DetectorMode> create_std__optional_DetectorMode_(const DetectorMode& value) noexcept {
+    return std::optional<DetectorMode>(value);
+  }
+  inline bool has_value_std__optional_DetectorMode_(const std::optional<DetectorMode>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline DetectorMode get_std__optional_DetectorMode_(const std::optional<DetectorMode>& optional) noexcept {
+    return optional.value();
+  }
+  
+  // pragma MARK: std::optional<PoseDetectionOptions>
+  /**
+   * Specialized version of `std::optional<PoseDetectionOptions>`.
+   */
+  using std__optional_PoseDetectionOptions_ = std::optional<PoseDetectionOptions>;
+  inline std::optional<PoseDetectionOptions> create_std__optional_PoseDetectionOptions_(const PoseDetectionOptions& value) noexcept {
+    return std::optional<PoseDetectionOptions>(value);
+  }
+  inline bool has_value_std__optional_PoseDetectionOptions_(const std::optional<PoseDetectionOptions>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline PoseDetectionOptions get_std__optional_PoseDetectionOptions_(const std::optional<PoseDetectionOptions>& optional) noexcept {
+    return optional.value();
   }
   
   // pragma MARK: std::optional<std::string>

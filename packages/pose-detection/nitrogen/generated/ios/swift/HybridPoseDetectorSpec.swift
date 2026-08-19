@@ -13,8 +13,8 @@ public protocol HybridPoseDetectorSpec_protocol: HybridObject {
   
 
   // Methods
-  func detect(imageUri: String) throws -> Promise<[PoseLandmark]>
-  func detectBatch(imageUris: [String], concurrency: Double) throws -> Promise<[BatchPoseResult]>
+  func detect(imageUri: String, options: PoseDetectionOptions?) throws -> Promise<[PoseLandmark]>
+  func detectBatch(imageUris: [String], concurrency: Double, options: PoseDetectionOptions?) throws -> Promise<[BatchPoseResult]>
   func isAvailable() throws -> Bool
 }
 

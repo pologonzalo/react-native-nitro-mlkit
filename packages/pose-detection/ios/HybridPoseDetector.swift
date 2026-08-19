@@ -1,27 +1,85 @@
 import Foundation
 import UIKit
 import NitroModules
+#if !targetEnvironment(simulator)
 import MLKitPoseDetection
+import MLKitPoseDetectionAccurate
 import MLKitPoseDetectionCommon
 import MLKitVision
+#endif
 
 /**
  * Native iOS implementation of PoseDetector (MLKit pose detection).
- * Returns the 33 skeletal landmarks of the primary detected body (SINGLE_IMAGE mode).
+ * Returns the 33 skeletal landmarks of the primary detected body.
  * Conforms to the Nitrogen-generated HybridPoseDetectorSpec protocol.
+ *
+ * Detectors are built (and cached) per PoseDetectionOptions: FAST uses the
+ * base BlazePose model (MLKitPoseDetection), ACCURATE the bigger one
+ * (MLKitPoseDetectionAccurate) — both pods ship in the podspec so the choice
+ * is a runtime option, not an install-time fork.
+ *
+ * Same simulator story as @nitro-mlkit/face-detection: ML Kit's vendored
+ * frameworks ship no arm64 iOS-Simulator slice, so on simulator we never
+ * import or call into MLKit — every method throws a clear error instead. The
+ * companion config plugin strips the frameworks from the simulator link.
  */
 class HybridPoseDetector: HybridPoseDetectorSpec {
 
     // MARK: - HybridObject boilerplate
     var memorySize: Int { MemoryLayout<HybridPoseDetector>.size }
 
-    // MARK: - Lazy MLKit detector
+    #if targetEnvironment(simulator)
 
-    private lazy var detector: PoseDetector = {
-        let opts = PoseDetectorOptions()
-        opts.detectorMode = .singleImage
-        return PoseDetector.poseDetector(options: opts)
-    }()
+    // MARK: - Simulator stub (no arm64-sim slice from Google ML Kit)
+
+    private static func simulatorError() -> RuntimeError {
+        RuntimeError.error(withMessage: "Pose detection isn't available on the iOS Simulator — Google ML Kit ships no arm64 Simulator slice. Run on a physical device.")
+    }
+
+    func detect(imageUri: String, options: PoseDetectionOptions?) throws -> Promise<[PoseLandmark]> {
+        return Promise.async { throw Self.simulatorError() }
+    }
+
+    func detectBatch(imageUris: [String], concurrency: Double, options: PoseDetectionOptions?) throws -> Promise<[BatchPoseResult]> {
+        return Promise.async { throw Self.simulatorError() }
+    }
+
+    func isAvailable() throws -> Bool {
+        return false
+    }
+
+    #else
+
+    // MARK: - Detector cache
+
+    /// MLKit detector instances keyed by options. Detectors are expensive to
+    /// build and safe to reuse; the lock only guards creation (process() calls
+    /// still overlap freely).
+    private var detectorCache: [String: PoseDetector] = [:]
+    private let cacheLock = NSLock()
+
+    private func detectorFor(_ options: PoseDetectionOptions?) -> PoseDetector {
+        let accurate = options?.performanceMode == .accurate
+        let stream = options?.detectorMode == .stream
+        let key = "\(accurate ? "a" : "f")|\(stream ? "s" : "i")"
+
+        cacheLock.lock()
+        defer { cacheLock.unlock() }
+        if let cached = detectorCache[key] { return cached }
+
+        let detector: PoseDetector
+        if accurate {
+            let opts = AccuratePoseDetectorOptions()
+            opts.detectorMode = stream ? .stream : .singleImage
+            detector = PoseDetector.poseDetector(options: opts)
+        } else {
+            let opts = PoseDetectorOptions()
+            opts.detectorMode = stream ? .stream : .singleImage
+            detector = PoseDetector.poseDetector(options: opts)
+        }
+        detectorCache[key] = detector
+        return detector
+    }
 
     /// Maps each iOS `PoseLandmarkType` to the integer index the Kotlin/JS side expects.
     /// This mirrors the Android ML Kit `PoseLandmark.landmarkType` int constants (0..32,
@@ -65,13 +123,13 @@ class HybridPoseDetector: HybridPoseDetectorSpec {
 
     // MARK: - Protocol methods
 
-    func detect(imageUri: String) throws -> Promise<[PoseLandmark]> {
+    func detect(imageUri: String, options: PoseDetectionOptions?) throws -> Promise<[PoseLandmark]> {
         return Promise.async {
-            return try await self.detectImage(imageUri)
+            return try await self.detectImage(imageUri, options: options)
         }
     }
 
-    func detectBatch(imageUris: [String], concurrency: Double) throws -> Promise<[BatchPoseResult]> {
+    func detectBatch(imageUris: [String], concurrency: Double, options: PoseDetectionOptions?) throws -> Promise<[BatchPoseResult]> {
         return Promise.async {
             let maxConcurrent = max(1, Int(concurrency))
             var results = [BatchPoseResult]()
@@ -86,7 +144,7 @@ class HybridPoseDetector: HybridPoseDetectorSpec {
                         let globalIdx = chunkStart + i
                         group.addTask {
                             do {
-                                let landmarks = try await self.detectImage(uri)
+                                let landmarks = try await self.detectImage(uri, options: options)
                                 return (globalIdx, BatchPoseResult(index: Double(globalIdx), landmarks: landmarks, success: true, error: nil))
                             } catch {
                                 return (globalIdx, BatchPoseResult(index: Double(globalIdx), landmarks: [], success: false, error: error.localizedDescription))
@@ -110,14 +168,14 @@ class HybridPoseDetector: HybridPoseDetectorSpec {
 
     // MARK: - Private helpers
 
-    private func detectImage(_ uri: String) async throws -> [PoseLandmark] {
+    private func detectImage(_ uri: String, options: PoseDetectionOptions?) async throws -> [PoseLandmark] {
         guard let image = self.loadImage(from: uri) else {
             throw RuntimeError.error(withMessage: "Failed to load image: \(uri)")
         }
         let visionImage = VisionImage(image: image)
         visionImage.orientation = image.imageOrientation
 
-        let poses = try await detector.process(visionImage)
+        let poses = try await detectorFor(options).process(visionImage)
         guard let pose = poses.first else { return [] }
 
         return pose.landmarks.map { lm in
@@ -143,4 +201,6 @@ class HybridPoseDetector: HybridPoseDetectorSpec {
         }
         return UIImage(contentsOfFile: path)
     }
+
+    #endif
 }

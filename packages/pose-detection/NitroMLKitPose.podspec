@@ -21,6 +21,8 @@ Pod::Spec.new do |s|
   ]
 
   s.dependency "GoogleMLKit/PoseDetection", "~> 7.0"
+  # Modelo accurate — elegible en runtime vía PoseDetectionOptions.performanceMode
+  s.dependency "GoogleMLKit/PoseDetectionAccurate", "~> 7.0"
 
   s.pod_target_xcconfig = {
     "SWIFT_VERSION" => "5.9"

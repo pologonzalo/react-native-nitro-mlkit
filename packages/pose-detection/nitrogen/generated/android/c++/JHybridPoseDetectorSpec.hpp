@@ -54,8 +54,8 @@ namespace margelo::nitro::mlkit::pose {
 
   public:
     // Methods
-    std::shared_ptr<Promise<std::vector<PoseLandmark>>> detect(const std::string& imageUri) override;
-    std::shared_ptr<Promise<std::vector<BatchPoseResult>>> detectBatch(const std::vector<std::string>& imageUris, double concurrency) override;
+    std::shared_ptr<Promise<std::vector<PoseLandmark>>> detect(const std::string& imageUri, const std::optional<PoseDetectionOptions>& options) override;
+    std::shared_ptr<Promise<std::vector<BatchPoseResult>>> detectBatch(const std::vector<std::string>& imageUris, double concurrency, const std::optional<PoseDetectionOptions>& options) override;
     bool isAvailable() override;
 
   private:

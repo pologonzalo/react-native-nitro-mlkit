@@ -11,6 +11,12 @@
 namespace margelo::nitro::mlkit::pose { struct PoseLandmark; }
 // Forward declaration of `BatchPoseResult` to properly resolve imports.
 namespace margelo::nitro::mlkit::pose { struct BatchPoseResult; }
+// Forward declaration of `PoseDetectionOptions` to properly resolve imports.
+namespace margelo::nitro::mlkit::pose { struct PoseDetectionOptions; }
+// Forward declaration of `PerformanceMode` to properly resolve imports.
+namespace margelo::nitro::mlkit::pose { enum class PerformanceMode; }
+// Forward declaration of `DetectorMode` to properly resolve imports.
+namespace margelo::nitro::mlkit::pose { enum class DetectorMode; }
 
 #include "PoseLandmark.hpp"
 #include <vector>
@@ -21,6 +27,12 @@ namespace margelo::nitro::mlkit::pose { struct BatchPoseResult; }
 #include "JBatchPoseResult.hpp"
 #include <string>
 #include <optional>
+#include "PoseDetectionOptions.hpp"
+#include "JPoseDetectionOptions.hpp"
+#include "PerformanceMode.hpp"
+#include "JPerformanceMode.hpp"
+#include "DetectorMode.hpp"
+#include "JDetectorMode.hpp"
 
 namespace margelo::nitro::mlkit::pose {
 
@@ -55,9 +67,9 @@ namespace margelo::nitro::mlkit::pose {
   
 
   // Methods
-  std::shared_ptr<Promise<std::vector<PoseLandmark>>> JHybridPoseDetectorSpec::detect(const std::string& imageUri) {
-    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JPromise::javaobject>(jni::alias_ref<jni::JString> /* imageUri */)>("detect");
-    auto __result = method(_javaPart, jni::make_jstring(imageUri));
+  std::shared_ptr<Promise<std::vector<PoseLandmark>>> JHybridPoseDetectorSpec::detect(const std::string& imageUri, const std::optional<PoseDetectionOptions>& options) {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JPromise::javaobject>(jni::alias_ref<jni::JString> /* imageUri */, jni::alias_ref<JPoseDetectionOptions> /* options */)>("detect");
+    auto __result = method(_javaPart, jni::make_jstring(imageUri), options.has_value() ? JPoseDetectionOptions::fromCpp(options.value()) : nullptr);
     return [&]() {
       auto __promise = Promise<std::vector<PoseLandmark>>::create();
       __result->cthis()->addOnResolvedListener([=](const jni::alias_ref<jni::JObject>& __boxedResult) {
@@ -80,8 +92,8 @@ namespace margelo::nitro::mlkit::pose {
       return __promise;
     }();
   }
-  std::shared_ptr<Promise<std::vector<BatchPoseResult>>> JHybridPoseDetectorSpec::detectBatch(const std::vector<std::string>& imageUris, double concurrency) {
-    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JPromise::javaobject>(jni::alias_ref<jni::JArrayClass<jni::JString>> /* imageUris */, double /* concurrency */)>("detectBatch");
+  std::shared_ptr<Promise<std::vector<BatchPoseResult>>> JHybridPoseDetectorSpec::detectBatch(const std::vector<std::string>& imageUris, double concurrency, const std::optional<PoseDetectionOptions>& options) {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JPromise::javaobject>(jni::alias_ref<jni::JArrayClass<jni::JString>> /* imageUris */, double /* concurrency */, jni::alias_ref<JPoseDetectionOptions> /* options */)>("detectBatch");
     auto __result = method(_javaPart, [&](auto&& __input) {
       size_t __size = __input.size();
       jni::local_ref<jni::JArrayClass<jni::JString>> __array = jni::JArrayClass<jni::JString>::newArray(__size);
@@ -91,7 +103,7 @@ namespace margelo::nitro::mlkit::pose {
         __array->setElement(__i, *__elementJni);
       }
       return __array;
-    }(imageUris), concurrency);
+    }(imageUris), concurrency, options.has_value() ? JPoseDetectionOptions::fromCpp(options.value()) : nullptr);
     return [&]() {
       auto __promise = Promise<std::vector<BatchPoseResult>>::create();
       __result->cthis()->addOnResolvedListener([=](const jni::alias_ref<jni::JObject>& __boxedResult) {

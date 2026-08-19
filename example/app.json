@@ -22,6 +22,15 @@
       "expo-camera",
       "@nitro-mlkit/face-detection",
       "@nitro-mlkit/face-recognition",
+      "@nitro-mlkit/barcode-scanning",
+      "@nitro-mlkit/digital-ink",
+      "@nitro-mlkit/image-labeling",
+      "@nitro-mlkit/language-id",
+      "@nitro-mlkit/object-detection",
+      "@nitro-mlkit/pose-detection",
+      "@nitro-mlkit/selfie-segmentation",
+      "@nitro-mlkit/text-recognition",
+      "@nitro-mlkit/translation",
       [
         "expo-media-library",
         {

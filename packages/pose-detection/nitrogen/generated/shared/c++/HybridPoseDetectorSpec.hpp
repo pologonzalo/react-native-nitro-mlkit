@@ -15,6 +15,8 @@
 
 // Forward declaration of `PoseLandmark` to properly resolve imports.
 namespace margelo::nitro::mlkit::pose { struct PoseLandmark; }
+// Forward declaration of `PoseDetectionOptions` to properly resolve imports.
+namespace margelo::nitro::mlkit::pose { struct PoseDetectionOptions; }
 // Forward declaration of `BatchPoseResult` to properly resolve imports.
 namespace margelo::nitro::mlkit::pose { struct BatchPoseResult; }
 
@@ -22,6 +24,8 @@ namespace margelo::nitro::mlkit::pose { struct BatchPoseResult; }
 #include <vector>
 #include <NitroModules/Promise.hpp>
 #include <string>
+#include "PoseDetectionOptions.hpp"
+#include <optional>
 #include "BatchPoseResult.hpp"
 
 namespace margelo::nitro::mlkit::pose {
@@ -55,8 +59,8 @@ namespace margelo::nitro::mlkit::pose {
 
     public:
       // Methods
-      virtual std::shared_ptr<Promise<std::vector<PoseLandmark>>> detect(const std::string& imageUri) = 0;
-      virtual std::shared_ptr<Promise<std::vector<BatchPoseResult>>> detectBatch(const std::vector<std::string>& imageUris, double concurrency) = 0;
+      virtual std::shared_ptr<Promise<std::vector<PoseLandmark>>> detect(const std::string& imageUri, const std::optional<PoseDetectionOptions>& options) = 0;
+      virtual std::shared_ptr<Promise<std::vector<BatchPoseResult>>> detectBatch(const std::vector<std::string>& imageUris, double concurrency, const std::optional<PoseDetectionOptions>& options) = 0;
       virtual bool isAvailable() = 0;
 
     protected:
