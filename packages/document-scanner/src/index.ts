@@ -2,7 +2,7 @@ export { type DocumentScanner } from "./specs/DocumentScanner.nitro";
 export type { ScannedDocument } from "./specs/DocumentScanner.nitro";
 
 import { Platform } from "react-native";
-import { requireOptionalNativeModule } from "expo-modules-core";
+import { requireOptionalNativeModule } from "expo";
 import { NitroModules } from "react-native-nitro-modules";
 import type {
   DocumentScanner,

@@ -321,7 +321,7 @@ const ui = StyleSheet.create({
   },
   polaroidImg: { width: "100%", height: 78, borderRadius: 8, backgroundColor: C.surfaceAlt },
   polaroidLabel: { fontFamily: F.bodySemi, color: C.dim, fontSize: 11, textAlign: "center", marginTop: 5 },
-  thumbOverlay: { ...StyleSheet.absoluteFillObject, alignItems: "center", justifyContent: "center", backgroundColor: "#000A", borderRadius: 14 },
+  thumbOverlay: { ...StyleSheet.absoluteFill, alignItems: "center", justifyContent: "center", backgroundColor: "#000A", borderRadius: 14 },
   check: { position: "absolute", top: 8, right: 8, width: 20, height: 20, borderRadius: 10, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: C.ink },
   checkMark: { color: "#fff", fontSize: 11, fontWeight: "900" },
 

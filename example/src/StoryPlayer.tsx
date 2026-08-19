@@ -192,12 +192,12 @@ function StorySlide({
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#06060F" },
   mosaic: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     flexDirection: "row",
     flexWrap: "wrap",
     overflow: "hidden",
   },
-  scrim: { ...StyleSheet.absoluteFillObject },
+  scrim: { ...StyleSheet.absoluteFill },
   scrimBottom: {
     position: "absolute",
     left: 0,

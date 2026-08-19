@@ -1,5 +1,5 @@
 import { Image as ExpoImage } from "expo-image";
-import * as MediaLibrary from "expo-media-library";
+import * as MediaLibrary from "expo-media-library/legacy";
 import { type ReactNode, useMemo, useState } from "react";
 import {
   ActivityIndicator,

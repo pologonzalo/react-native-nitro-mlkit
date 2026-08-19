@@ -54,7 +54,7 @@ post_integrate do |installer|
       lines = File.read(xcconfig_path).split("\\n")
       base_idx = lines.index { |l| l.start_with?('OTHER_LDFLAGS = ') }
       sim_idx = lines.index { |l| l.start_with?('OTHER_LDFLAGS[sdk=iphonesimulator*] = ') }
-      next unless base_idx && sim_idx
+      next unless base_idx
       base = lines[base_idx].sub('OTHER_LDFLAGS = ', '').gsub('$(inherited)', '').strip
       mlkit_frameworks.each do |fw|
         base = base.gsub(/-framework\\s+"#{fw}"\\s*/, '')
@@ -62,8 +62,15 @@ post_integrate do |installer|
       mlkit_libs.each do |lib|
         base = base.gsub(/-l"#{lib}"\\s*/, '')
       end
-      sim_extra = lines[sim_idx].sub('OTHER_LDFLAGS[sdk=iphonesimulator*] = ', '').gsub('$(inherited)', '').strip
-      lines[sim_idx] = "OTHER_LDFLAGS[sdk=iphonesimulator*] = #{base} #{sim_extra}".strip
+      # SDK 55 generated a simulator-specific OTHER_LDFLAGS line we could edit;
+      # SDK 57 / RN 0.86 no longer does, so create it when it's missing — an
+      # sdk-qualified line fully overrides the base one for simulator builds.
+      if sim_idx
+        sim_extra = lines[sim_idx].sub('OTHER_LDFLAGS[sdk=iphonesimulator*] = ', '').gsub('$(inherited)', '').strip
+        lines[sim_idx] = "OTHER_LDFLAGS[sdk=iphonesimulator*] = #{base} #{sim_extra}".strip
+      else
+        lines.insert(base_idx + 1, "OTHER_LDFLAGS[sdk=iphonesimulator*] = #{base}".strip)
+      end
       File.write(xcconfig_path, lines.join("\\n"))
     end
   end

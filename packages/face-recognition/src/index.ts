@@ -8,7 +8,7 @@ export type {
 } from "./specs/FaceRecognizer.nitro";
 
 import { Platform } from "react-native";
-import { requireOptionalNativeModule } from "expo-modules-core";
+import { requireOptionalNativeModule } from "expo";
 import { NitroModules } from "react-native-nitro-modules";
 import type { FaceRecognizer } from "./specs/FaceRecognizer.nitro";
 

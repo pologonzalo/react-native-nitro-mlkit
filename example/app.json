@@ -34,7 +34,7 @@
         "expo-build-properties",
         {
           "ios": {
-            "deploymentTarget": "15.5"
+            "deploymentTarget": "16.4"
           },
           "android": {
             "minSdkVersion": 26
@@ -42,10 +42,12 @@
         }
       ],
       "expo-image",
-      "expo-font"
+      "expo-font",
+      "expo-splash-screen"
     ],
     "experiments": {
-      "typedRoutes": true
+      "typedRoutes": true,
+      "reactCompiler": true
     },
     "extra": {
       "router": {},
