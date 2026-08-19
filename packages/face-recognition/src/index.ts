@@ -12,24 +12,29 @@ import { requireOptionalNativeModule } from "expo-modules-core";
 import { NitroModules } from "react-native-nitro-modules";
 import type { FaceRecognizer } from "./specs/FaceRecognizer.nitro";
 
-const ANDROID_ONLY =
-  "@nitro-mlkit/face-recognition is Android-only for now — the iOS TensorFlow Lite embedding path is not implemented yet (planned for v0.2).";
+const UNSUPPORTED =
+  "@nitro-mlkit/face-recognition runs on Android and iOS only.";
 
 let instance: FaceRecognizer | undefined;
 
 function getInstance(): FaceRecognizer {
-  if (Platform.OS !== "android") throw new Error(ANDROID_ONLY);
+  if (Platform.OS !== "android" && Platform.OS !== "ios") {
+    throw new Error(UNSUPPORTED);
+  }
   if (!instance) {
-    // Force the Expo module to instantiate so libNitroMLKitRecognition.so loads
-    // and registers the FaceRecognizer HybridObject before it's requested.
-    requireOptionalNativeModule("NitroMLKitRecognition");
+    if (Platform.OS === "android") {
+      // Force the Expo module to instantiate so libNitroMLKitRecognition.so
+      // loads and registers the FaceRecognizer HybridObject before it's
+      // requested. iOS links statically — nothing to force there.
+      requireOptionalNativeModule("NitroMLKitRecognition");
+    }
     instance = NitroModules.createHybridObject<FaceRecognizer>("FaceRecognizer");
   }
   return instance;
 }
 
 /**
- * The shared FaceRecognizer instance (Android-only for now).
+ * The shared FaceRecognizer instance (Android + iOS).
  *
  * Recognition needs a face-embedding model (ML Kit only does detection).
  * Provide one once via `downloadModel(url)` (cached on disk) or `loadModel(uri)`.
@@ -44,15 +49,17 @@ function getInstance(): FaceRecognizer {
  * NitroRecognizer.clearRegistry(); // end of game
  * ```
  *
- * `isSupported()` returns false off Android; every other member throws there.
- * Accessed lazily through a Proxy so merely importing this module never crashes
- * on iOS — only *calling* a method off-Android throws.
+ * `isSupported()` returns false off Android/iOS; every other member throws
+ * there. On the iOS *Simulator* recognition methods throw at call time (Google
+ * ML Kit ships no arm64 Simulator slice) — run on a physical device.
+ * Accessed lazily through a Proxy so merely importing this module never
+ * crashes — only *calling* a method on an unsupported platform throws.
  */
 export const NitroRecognizer: FaceRecognizer & { isSupported(): boolean } =
   new Proxy({} as FaceRecognizer & { isSupported(): boolean }, {
     get(_target, prop) {
       if (prop === "isSupported") {
-        return () => Platform.OS === "android";
+        return () => Platform.OS === "android" || Platform.OS === "ios";
       }
       const inst = getInstance() as unknown as Record<string | symbol, unknown>;
       const value = inst[prop];

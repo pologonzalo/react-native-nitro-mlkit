@@ -40,6 +40,21 @@ export interface FindPeopleOptions {
   concurrency?: number;
   /** Minimum similarity to count as a match (0..1). Default: 0.6 */
   minSimilarity?: number;
+  /**
+   * Longest-side target, in pixels, to decode each photo at (default: 1024).
+   * Detection doesn't need originals, and on iOS this is what makes `ph://`
+   * scanning cheap: PhotoKit serves a locally-cached rendition at this size
+   * instead of the full-resolution file.
+   */
+  targetSize?: number;
+  /**
+   * iOS + `ph://` only: whether a photo whose local rendition is missing may
+   * be fetched from iCloud (default: false). When false, such photos come
+   * back as `success: false` with error "icloud" — count them and offer the
+   * user a second, network-allowed pass instead of silently eating their
+   * data plan.
+   */
+  allowNetworkAccess?: boolean;
 }
 
 /**
@@ -71,6 +86,7 @@ export interface PhotoPersonResult {
  */
 export interface FaceRecognizer extends HybridObject<{
   android: "kotlin";
+  ios: "swift";
 }> {
   // ─── Model ────────────────────────────────────────────────────────────────
   // Recognition needs a face-embedding model (e.g. MobileFaceNet, ~5 MB,

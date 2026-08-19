@@ -41,10 +41,12 @@ namespace margelo::nitro::mlkit::recognition {
   public:
     std::optional<double> concurrency     SWIFT_PRIVATE;
     std::optional<double> minSimilarity     SWIFT_PRIVATE;
+    std::optional<double> targetSize     SWIFT_PRIVATE;
+    std::optional<bool> allowNetworkAccess     SWIFT_PRIVATE;
 
   public:
     FindPeopleOptions() = default;
-    explicit FindPeopleOptions(std::optional<double> concurrency, std::optional<double> minSimilarity): concurrency(concurrency), minSimilarity(minSimilarity) {}
+    explicit FindPeopleOptions(std::optional<double> concurrency, std::optional<double> minSimilarity, std::optional<double> targetSize, std::optional<bool> allowNetworkAccess): concurrency(concurrency), minSimilarity(minSimilarity), targetSize(targetSize), allowNetworkAccess(allowNetworkAccess) {}
 
   public:
     friend bool operator==(const FindPeopleOptions& lhs, const FindPeopleOptions& rhs) = default;
@@ -61,13 +63,17 @@ namespace margelo::nitro {
       jsi::Object obj = arg.asObject(runtime);
       return margelo::nitro::mlkit::recognition::FindPeopleOptions(
         JSIConverter<std::optional<double>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "concurrency"))),
-        JSIConverter<std::optional<double>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "minSimilarity")))
+        JSIConverter<std::optional<double>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "minSimilarity"))),
+        JSIConverter<std::optional<double>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "targetSize"))),
+        JSIConverter<std::optional<bool>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "allowNetworkAccess")))
       );
     }
     static inline jsi::Value toJSI(jsi::Runtime& runtime, const margelo::nitro::mlkit::recognition::FindPeopleOptions& arg) {
       jsi::Object obj(runtime);
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "concurrency"), JSIConverter<std::optional<double>>::toJSI(runtime, arg.concurrency));
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "minSimilarity"), JSIConverter<std::optional<double>>::toJSI(runtime, arg.minSimilarity));
+      obj.setProperty(runtime, PropNameIDCache::get(runtime, "targetSize"), JSIConverter<std::optional<double>>::toJSI(runtime, arg.targetSize));
+      obj.setProperty(runtime, PropNameIDCache::get(runtime, "allowNetworkAccess"), JSIConverter<std::optional<bool>>::toJSI(runtime, arg.allowNetworkAccess));
       return obj;
     }
     static inline bool canConvert(jsi::Runtime& runtime, const jsi::Value& value) {
@@ -80,6 +86,8 @@ namespace margelo::nitro {
       }
       if (!JSIConverter<std::optional<double>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "concurrency")))) return false;
       if (!JSIConverter<std::optional<double>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "minSimilarity")))) return false;
+      if (!JSIConverter<std::optional<double>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "targetSize")))) return false;
+      if (!JSIConverter<std::optional<bool>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "allowNetworkAccess")))) return false;
       return true;
     }
   };
