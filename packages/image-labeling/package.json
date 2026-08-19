@@ -5,8 +5,9 @@
   "main": "src/index.ts",
   "types": "src/index.ts",
   "scripts": {
-    "codegen": "nitro-codegen",
-    "build": "tsc --noEmit"
+    "codegen": "nitrogen",
+    "build": "tsc --noEmit",
+    "lint": "tsc --noEmit"
   },
   "keywords": [
     "react-native",
@@ -22,14 +23,14 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/pologonzalo/react-native-nitro-mlkit",
+    "url": "git+https://github.com/pologonzalo/react-native-nitro-mlkit.git",
     "directory": "packages/image-labeling"
   },
   "peerDependencies": {
     "expo-modules-core": "*",
     "react": ">=18",
     "react-native": ">=0.76",
-    "react-native-nitro-modules": ">=0.20"
+    "react-native-nitro-modules": ">=0.36.0 <1.0.0"
   },
   "devDependencies": {
     "expo-modules-core": "*",
@@ -49,5 +50,9 @@
     "nitro.json",
     "README.md",
     "LICENSE"
-  ]
+  ],
+  "homepage": "https://github.com/pologonzalo/react-native-nitro-mlkit/tree/main/packages/image-labeling#readme",
+  "bugs": {
+    "url": "https://github.com/pologonzalo/react-native-nitro-mlkit/issues"
+  }
 }
