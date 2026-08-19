@@ -2,8 +2,9 @@
 
 **`@nitro-mlkit/face-recognition`** · on-device Google ML Kit via [Nitro Modules](https://github.com/mrousavy/nitro) — JSI, no bridge.
 
-> ⚠️ **Beta (`0.1.0-beta.x`).** Android verified on-device; iOS impl pending
-> (see [Platform status](#platform-status)). **You provide the embedding model.**
+> ⚠️ **Beta (`0.1.0-beta.x`).** Android verified on-device; iOS implemented,
+> on-device validation pending (see [Platform status](#platform-status)).
+> **You provide the embedding model.**
 
 On-device **face recognition** for React Native, built with
 [Nitro Modules](https://github.com/mrousavy/nitro) (JSI, no bridge).
@@ -26,8 +27,21 @@ gallery to find which photos each player appears in.
 npm install @nitro-mlkit/face-recognition react-native-nitro-modules
 ```
 
-No config plugin (autolinked Expo module). Install and `npx expo prebuild`.
-Not available in Expo Go.
+Add the config plugin to your `app.json`, then prebuild:
+
+```json
+{ "plugins": ["@nitro-mlkit/face-recognition"] }
+```
+
+```bash
+npx expo prebuild
+```
+
+The plugin keeps arm64-Simulator builds linking on iOS (Google ML Kit and
+TensorFlowLiteC ship no Simulator slice — recognition itself needs a physical
+device) and pins ML Kit's bundled face model on Android. It shares its Podfile
+hook with `@nitro-mlkit/face-detection`, so using both plugins together is
+fine in any order. Not available in Expo Go.
 
 ## Usage
 
@@ -74,7 +88,12 @@ models is planned for a later release.
 | Platform | Min | Status |
 | -------- | --- | ------ |
 | Android  | API 26+ | ✅ Verified on-device (Pixel 9, API 36): register + find + compare |
-| iOS      | 15.5+   | 🔨 Swift impl pending (GoogleMLKit + TensorFlowLite) |
+| iOS      | 15.5+   | 🔨 Implemented (GoogleMLKit + TensorFlowLiteSwift); on-device validation pending¹ |
+
+¹ Google ML Kit's and TensorFlowLiteC's pods ship no arm64 **Simulator**
+slice, so recognition must be validated on a physical iPhone. On the
+Simulator every recognition method throws a clear error; `compare()` and the
+registry work everywhere.
 
 ## Part of `nitro-mlkit`
 
