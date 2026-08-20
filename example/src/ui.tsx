@@ -13,6 +13,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { CameraCapture } from "./CameraCapture";
 import { C, F, keycap, R, T, tint } from "./theme";
 
 export type Sample = { label: string; url: string; name?: string };
@@ -91,6 +92,7 @@ export function SamplePicker({
   const [mode, setMode] = useState<0 | 1 | 2>(2); // default: Stock strip open
   const [selected, setSelected] = useState<number | null>(null);
   const [busy, setBusy] = useState<number | null>(null);
+  const [camOpen, setCamOpen] = useState(false);
   const [w, setW] = useState(0);
   const puck = useRef(new Animated.Value(2)).current;
   const lock = disabled || busy !== null;
@@ -106,15 +108,11 @@ export function SamplePicker({
     }).start();
   }
 
-  async function fromCamera() {
+  function fromCamera() {
+    // In-app camera instead of ImagePicker.launchCameraAsync: the system
+    // picker never offers the ultra-wide (0.5x) lens on iOS.
     slide(1);
-    const perm = await ImagePicker.requestCameraPermissionsAsync();
-    if (!perm.granted) return Alert.alert("Camera", "Camera permission is required.");
-    const res = await ImagePicker.launchCameraAsync({ quality: 1 });
-    if (!res.canceled && res.assets[0]) {
-      setSelected(null);
-      onPick(res.assets[0].uri);
-    }
+    setCamOpen(true);
   }
   async function fromGallery() {
     slide(0);
@@ -191,6 +189,16 @@ export function SamplePicker({
           ))}
         </ScrollView>
       )}
+
+      <CameraCapture
+        visible={camOpen}
+        accent={accent}
+        onClose={() => setCamOpen(false)}
+        onCapture={(uri) => {
+          setSelected(null);
+          onPick(uri);
+        }}
+      />
     </View>
   );
 }
