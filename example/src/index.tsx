@@ -1,134 +1,76 @@
-import { type Href, Link } from "expo-router";
-import type { ReactNode } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { FEATURES } from "./features";
-import { PlatformBadge } from "./PlatformBadge";
-import { C, F, keycap, R, tint, wash } from "./theme";
+import { DrawerActions } from "expo-router/react-navigation";
+import { useNavigation } from "expo-router";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { C, F, wash } from "./theme";
+import { Button } from "./ui";
 
-const href = (route: string) => ("/" + route) as unknown as Href;
-
+/**
+ * Home = the pitch, not the catalog. A short explanation of what the project
+ * is, then one big button that opens the drawer — where everything lives.
+ */
 export default function HomeScreen() {
+  const navigation = useNavigation();
+  const openDrawer = () => navigation.dispatch(DrawerActions.openDrawer());
+
   return (
     <ScrollView style={s.container} contentContainerStyle={s.content}>
-      {/* Cover */}
+      {/* The pitch */}
       <Text style={s.logo}>
         GIZM<Text style={s.logoO}>O</Text>
       </Text>
-      <Text style={s.tagline}>The Nitro toy lab.</Text>
-      <View style={s.chips}>
-        <Chip>on-device</Chip>
-        <Chip>JSI · no bridge</Chip>
-        <Chip mint>0 bytes ↑</Chip>
+      <Text style={s.tagline}>
+        Every Google ML Kit feature, running on-device in React Native.
+      </Text>
+      <Text style={s.body}>
+        This app is the living demo of <Text style={s.mono}>react-native-nitro-mlkit</Text> — 16
+        independent packages wrapping Google's ML Kit with Nitro Modules.
+      </Text>
+
+      <View style={s.points}>
+        <Point emoji="🧩" accent={C.blue} title="16 packages" text="Faces, OCR, poses, barcodes, translation, segmentation… install only what you use." />
+        <Point emoji="⚡" accent={C.orange} title="Nitro fast" text="JSI instead of the classic bridge — plus native batching for whole photo libraries." />
+        <Point emoji="🔒" accent={C.green} title="100% on-device" text="Every model runs locally. Zero bytes leave the phone." />
       </View>
 
-      {/* Gallery Wrapped cartridge */}
-      <Link href={href("gallery")} asChild>
-        <Pressable style={s.cartridge}>
-          <View style={s.cartArt}>
-            <Text style={s.cartEmoji}>✨</Text>
-            <View style={[s.dot, { backgroundColor: C.orange, top: 12, left: 20 }]} />
-            <View style={[s.dot, { backgroundColor: C.blue, top: 30, right: 24 }]} />
-            <View style={[s.dot, { backgroundColor: C.mint, bottom: 14, left: 40 }]} />
-          </View>
-          <Text style={s.cartTitle}>Gallery Wrapped ✨</Text>
-          <Text style={s.cartSub}>Scan your whole camera roll on-device → a playful recap + Memories.</Text>
-          <View style={s.playPill}>
-            <Text style={s.playText}>▶ Play memories</Text>
-          </View>
-        </Pressable>
-      </Link>
-
-      {/* Photo Cleaner */}
-      <Link href={href("cleaner")} asChild>
-        <Pressable style={s.cleaner}>
-          <Text style={s.raceEmoji}>🧹</Text>
-          <View style={{ flex: 1 }}>
-            <Text style={s.raceTitle}>Photo Cleaner</Text>
-            <Text style={s.raceSub}>Best-shot picker + screenshot purge, on-device</Text>
-          </View>
-          <Text style={s.cleanerGo}>›</Text>
-        </Pressable>
-      </Link>
-
-      {/* The Race */}
-      <Link href={href("benchmark")} asChild>
-        <Pressable style={s.race}>
-          <Text style={s.raceEmoji}>🏁</Text>
-          <View style={{ flex: 1 }}>
-            <Text style={s.raceTitle}>The Race</Text>
-            <Text style={s.raceSub}>Nitro-JSI vs the classic bridge — watch it run</Text>
-          </View>
-          <Text style={s.raceGo}>›</Text>
-        </Pressable>
-      </Link>
-
-      {/* All gizmos */}
-      <Text style={s.section}>The toy box</Text>
-      <View style={s.grid}>
-        {FEATURES.map((f) => (
-          <Link key={f.route} href={href(f.route)} asChild>
-            <Pressable style={{ ...s.tile, borderColor: C.ink }}>
-              <View style={{ ...s.tileChip, backgroundColor: tint(f.accent, 0.18) }}>
-                <Text style={s.tileEmoji}>{f.emoji}</Text>
-              </View>
-              <Text style={s.tileTitle} numberOfLines={1}>{f.title}</Text>
-              <Text style={s.tileTag} numberOfLines={1}>{f.tag}</Text>
-              <View style={s.tileBadge}>
-                <PlatformBadge androidOnly={f.android} size={14} />
-              </View>
-            </Pressable>
-          </Link>
-        ))}
-      </View>
-
-      <Text style={s.footer}>Swipe from the left edge or tap ☰ for the toy box.</Text>
+      {/* The catalog is one tap away */}
+      <Button title="Explore the examples" onPress={openDrawer} accent={C.green} />
+      <Text style={s.hint}>
+        Showcases, benchmarks and all 16 gizmos live in the drawer — swipe from the left edge
+        anytime.
+      </Text>
     </ScrollView>
   );
 }
 
-function Chip({ children, mint }: { children: ReactNode; mint?: boolean }) {
+function Point({ emoji, accent, title, text }: { emoji: string; accent: string; title: string; text: string }) {
   return (
-    <View style={{ ...s.chip, ...(mint ? { backgroundColor: C.mint, borderColor: C.mintInk } : {}) }}>
-      <Text style={{ ...s.chipText, ...(mint ? { color: "#08301F" } : {}) }}>{children}</Text>
+    <View style={s.point}>
+      <View style={{ ...s.pointChip, backgroundColor: wash(accent, 0.14) }}>
+        <Text style={s.pointEmoji}>{emoji}</Text>
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={s.pointTitle}>{title}</Text>
+        <Text style={s.pointText}>{text}</Text>
+      </View>
     </View>
   );
 }
 
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.bg },
-  content: { padding: 20, paddingTop: 8, paddingBottom: 44 },
-  logo: { fontFamily: F.display, fontSize: 56, color: C.orange, lineHeight: 60, letterSpacing: -1 },
+  content: { flexGrow: 1, padding: 24, paddingTop: 12, paddingBottom: 36 },
+  logo: { fontFamily: F.display, fontSize: 52, color: C.green, lineHeight: 58, letterSpacing: -1 },
   logoO: { color: C.blue },
-  tagline: { fontFamily: F.displaySemi, fontSize: 18, color: C.ink, marginTop: -2 },
-  chips: { flexDirection: "row", flexWrap: "wrap", gap: 7, marginTop: 12, marginBottom: 20 },
-  chip: { backgroundColor: C.surface, borderWidth: 2, borderColor: C.ink, borderRadius: R.pill, paddingVertical: 4, paddingHorizontal: 11, ...keycap(3) },
-  chipText: { fontFamily: F.mono, fontSize: 11, color: C.ink },
+  tagline: { fontFamily: F.display, fontSize: 19, color: C.ink, marginTop: 2, lineHeight: 25 },
+  body: { fontFamily: F.body, fontSize: 14.5, color: C.dim, lineHeight: 21, marginTop: 10 },
+  mono: { fontFamily: F.mono, fontSize: 13, color: C.ink },
 
-  cartridge: { backgroundColor: C.surface, borderWidth: 2, borderColor: C.ink, borderRadius: R.xl, padding: 16, marginBottom: 14, ...keycap(6) },
-  cartArt: { height: 92, borderRadius: R.lg, backgroundColor: "#FBE3F1", borderWidth: 2, borderColor: C.ink, alignItems: "center", justifyContent: "center", marginBottom: 12, overflow: "hidden" },
-  cartEmoji: { fontSize: 40 },
-  dot: { position: "absolute", width: 14, height: 14, borderRadius: 7, borderWidth: 2, borderColor: C.ink },
-  cartTitle: { fontFamily: F.display, fontSize: 22, color: C.ink },
-  cartSub: { fontFamily: F.bodySemi, fontSize: 13, color: C.dim, marginTop: 3, marginBottom: 14 },
-  playPill: { alignSelf: "flex-start", backgroundColor: C.orange, borderWidth: 2, borderColor: C.ink, borderRadius: R.pill, paddingVertical: 10, paddingHorizontal: 20, ...keycap(4) },
-  playText: { fontFamily: F.display, fontSize: 15, color: "#fff" },
+  points: { gap: 16, marginTop: 24, marginBottom: "auto", paddingBottom: 28 },
+  point: { flexDirection: "row", gap: 12, alignItems: "flex-start" },
+  pointChip: { width: 44, height: 44, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+  pointEmoji: { fontSize: 22 },
+  pointTitle: { fontFamily: F.bodyBold, fontSize: 15, color: C.ink },
+  pointText: { fontFamily: F.body, fontSize: 13, color: C.dim, lineHeight: 18, marginTop: 1 },
 
-  cleaner: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: wash(C.mint, 0.16), borderWidth: 2, borderColor: C.mintInk, borderRadius: R.lg, padding: 15, marginBottom: 12, ...keycap(4) },
-  cleanerGo: { fontFamily: F.display, fontSize: 24, color: C.mintInk },
-  race: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: wash(C.blue, 0.14), borderWidth: 2, borderColor: C.blue, borderRadius: R.lg, padding: 15, marginBottom: 22, ...keycap(4) },
-  raceEmoji: { fontSize: 28 },
-  raceTitle: { fontFamily: F.display, fontSize: 17, color: C.ink },
-  raceSub: { fontFamily: F.bodySemi, fontSize: 12, color: C.dim, marginTop: 1 },
-  raceGo: { fontFamily: F.display, fontSize: 24, color: C.blue },
-
-  section: { fontFamily: F.bodyBold, fontSize: 13, color: C.dim, textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 12 },
-  grid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
-  tile: { width: "47%", backgroundColor: C.surface, borderWidth: 2, borderRadius: R.lg, padding: 13, ...keycap(5) },
-  tileChip: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", marginBottom: 9 },
-  tileEmoji: { fontSize: 21 },
-  tileTitle: { fontFamily: F.display, fontSize: 15, color: C.ink },
-  tileTag: { fontFamily: F.body, fontSize: 11.5, color: C.dim, marginTop: 1 },
-  tileBadge: { position: "absolute", top: 12, right: 12 },
-
-  footer: { fontFamily: F.mono, fontSize: 11, color: C.faint, textAlign: "center", marginTop: 26 },
+  hint: { fontFamily: F.body, fontSize: 12, color: C.faint, textAlign: "center", marginTop: 14, lineHeight: 17 },
 });

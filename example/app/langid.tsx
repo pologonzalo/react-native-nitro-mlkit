@@ -1,10 +1,10 @@
 import { NitroLanguageId } from "@nitro-mlkit/language-id";
 import { useState } from "react";
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { C, F, R, T, keycap, tint, wash } from "../src/theme";
+import { C, F, R, T, keycap, shade, wash } from "../src/theme";
 import { Card, Meter, Pill, TitleBlock } from "../src/ui";
 
-const ACCENT = "#0ea5e9";
+const ACCENT = C.blue;
 const SAMPLES = [
   "The quick brown fox jumps over the lazy dog",
   "El veloz murciélago hindú comía feliz cardillo",
@@ -43,7 +43,16 @@ export default function LangIdScreen() {
 
       <View style={s.chips}>
         {SAMPLES.map((t, i) => (
-          <Pressable key={i} style={s.chip} onPress={() => identify(t)} disabled={loading}>
+          <Pressable
+            key={i}
+            onPress={() => identify(t)}
+            disabled={loading}
+            style={({ pressed }) => ({
+              ...s.chip,
+              ...keycap(pressed ? 0 : 3, wash(ACCENT, 0.4)),
+              transform: [{ translateY: pressed ? 3 : 0 }],
+            })}
+          >
             <Text style={s.chipText} numberOfLines={1}>{t}</Text>
           </Pressable>
         ))}
@@ -82,17 +91,16 @@ const s = StyleSheet.create({
   chips: { gap: 8 },
   chip: {
     backgroundColor: wash(ACCENT, 0.14),
-    borderColor: tint(ACCENT, 0.55),
+    borderColor: wash(ACCENT, 0.4),
     borderWidth: 2,
     borderRadius: R.md,
     paddingVertical: 11,
     paddingHorizontal: 14,
-    ...keycap(3),
   },
   chipText: { color: C.text, fontFamily: F.bodySemi, fontSize: 13.5 },
   statusRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginVertical: 16 },
   status: { fontFamily: F.bodySemi, color: C.gold, fontSize: 14, textAlign: "center" },
   head: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 4 },
-  big: { color: ACCENT, fontFamily: F.display, fontSize: 26, textTransform: "uppercase" },
+  big: { color: shade(ACCENT, 0.15), fontFamily: F.display, fontSize: 26, textTransform: "uppercase" },
   pRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 4 },
 });

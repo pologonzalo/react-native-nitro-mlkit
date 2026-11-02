@@ -143,6 +143,29 @@ class HybridTextRecognizer: HybridTextRecognizerSpec {
     }
 
     private func loadImage(from uri: String) -> UIImage? {
+        guard let raw = self.loadRawImage(from: uri) else { return nil }
+        // Redraw upright before any ML Kit call. ML Kit reports coordinates in
+        // the image's RAW pixel buffer (the orientation flag only tells it
+        // where "up" is), while JS measures the image at its EXIF-oriented
+        // size — so portrait iPhone photos (landscape buffer + rotation flag)
+        // came back with coordinates in the wrong space and overlays painted
+        // off-body. Same fix face-recognition ships for cropping.
+        return Self.uprightImage(raw)
+    }
+
+    /// Returns the image redrawn with orientation .up, so its pixel buffer
+    /// matches its display size. `UIImage.size` already accounts for the
+    /// orientation flag, so drawing into it bakes the rotation in.
+    private static func uprightImage(_ image: UIImage) -> UIImage {
+        guard image.imageOrientation != .up else { return image }
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        return UIGraphicsImageRenderer(size: image.size, format: format).image { _ in
+            image.draw(in: CGRect(origin: .zero, size: image.size))
+        }
+    }
+
+    private func loadRawImage(from uri: String) -> UIImage? {
         let path: String
         if uri.hasPrefix("file://") {
             path = String(uri.dropFirst(7))

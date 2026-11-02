@@ -1,11 +1,11 @@
 import { NitroObjects } from "@nitro-mlkit/object-detection";
 import { useState } from "react";
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View } from "react-native";
-import { SCENES } from "../src/samples";
+import { OBJECTS } from "../src/samples";
 import { C, F, R, T } from "../src/theme";
 import { AnnotatedImage, Card, Pill, SamplePicker, TitleBlock, imageSize } from "../src/ui";
 
-const ACCENT = "#22c55e";
+const ACCENT = C.green;
 
 export default function ObjectsScreen() {
   const [uri, setUri] = useState<string | null>(null);
@@ -43,7 +43,7 @@ export default function ObjectsScreen() {
   return (
     <ScrollView style={s.container} contentContainerStyle={s.content}>
       <TitleBlock name="@nitro-mlkit/object-detection" tagline="Bounding boxes + labels, drawn on the photo" />
-      <SamplePicker samples={SCENES} accent={ACCENT} onPick={run} disabled={loading} />
+      <SamplePicker samples={OBJECTS} accent={ACCENT} onPick={run} disabled={loading} />
 
       {uri && (
         <AnnotatedImage uri={uri} imageW={size.w} imageH={size.h} accent={ACCENT} boxes={boxes} />

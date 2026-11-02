@@ -1,11 +1,11 @@
 import { NitroSelfieSegmenter } from "@nitro-mlkit/selfie-segmentation";
 import { useState } from "react";
 import { ActivityIndicator, Alert, Image, ScrollView, StyleSheet, Text, View } from "react-native";
-import { FACES } from "../src/samples";
-import { C, F, R, T } from "../src/theme";
+import { PEOPLE } from "../src/samples";
+import { C, F, R, T, shade } from "../src/theme";
 import { Card, Meter, Pill, SamplePicker, TitleBlock } from "../src/ui";
 
-const ACCENT = "#14b8a6";
+const ACCENT = C.green;
 
 export default function SelfieSegScreen() {
   const [uri, setUri] = useState<string | null>(null);
@@ -35,7 +35,7 @@ export default function SelfieSegScreen() {
   return (
     <ScrollView style={s.container} contentContainerStyle={s.content}>
       <TitleBlock name="@nitro-mlkit/selfie-segmentation" tagline="Person vs background · compare input & mask" />
-      <SamplePicker samples={FACES} accent={ACCENT} onPick={run} disabled={loading} />
+      <SamplePicker samples={PEOPLE} accent={ACCENT} onPick={run} disabled={loading} />
 
       {uri && (
         <View style={s.compare}>
@@ -46,7 +46,7 @@ export default function SelfieSegScreen() {
           <View style={s.col}>
             <Text style={s.colLabel}>MASK</Text>
             {maskUri ? (
-              <Image source={{ uri: maskUri }} style={{ ...s.img, backgroundColor: "#0b3b36" }} resizeMode="cover" />
+              <Image source={{ uri: maskUri }} style={{ ...s.img, backgroundColor: shade(ACCENT, 0.65) }} resizeMode="cover" />
             ) : (
               <View style={{ ...s.img, ...s.placeholder }}>
                 {loading && <ActivityIndicator color={ACCENT} />}
@@ -83,7 +83,7 @@ const s = StyleSheet.create({
   compare: { flexDirection: "row", gap: 10, marginTop: 16 },
   col: { flex: 1 },
   colLabel: { color: C.faint, fontFamily: F.bodyBold, fontSize: 11, marginBottom: 6, letterSpacing: 1 },
-  img: { width: "100%", height: 220, borderRadius: R.lg, backgroundColor: C.surfaceAlt, borderWidth: 2, borderColor: C.ink },
+  img: { width: "100%", height: 220, borderRadius: R.lg, backgroundColor: C.surfaceAlt, borderWidth: 2, borderColor: C.border },
   placeholder: { alignItems: "center", justifyContent: "center" },
   statusRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginVertical: 14 },
   status: { fontFamily: F.bodySemi, color: C.gold, fontSize: 13, textAlign: "center" },

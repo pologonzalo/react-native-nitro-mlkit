@@ -4,17 +4,16 @@ import RNMLKitClassic from "@react-native-ml-kit/face-detection";
 import { Directory, File, Paths } from "expo-file-system";
 import { useRef, useState } from "react";
 import {
-  ActivityIndicator,
   Animated,
   NativeModules,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import { BENCH } from "../src/samples";
 import { C, F, keycap, R, tint, wash } from "../src/theme";
-import { Card } from "../src/ui";
+import { Button, Card } from "../src/ui";
 
 /**
  * THE RACE — three ML Kit face-detection wrappers, one engine, drag-strip UI.
@@ -30,13 +29,14 @@ import { Card } from "../src/ui";
  * Architecture), we race whoever IS present instead of crashing the whole run.
  */
 
-const IMAGE_COUNT = 40;
+const IMAGE_COUNT = BENCH.length;
 const GALLERY_SIZE = 150; // snappy but real
 const SINGLE_ITERS = 24;
 const WARMUP = 10;
 const CONCURRENCIES = [2, 4, 8];
 
-const benchDir = new Directory(Paths.document, "bench");
+// v2: the old "bench" dir holds 128px avatars under these same names.
+const benchDir = new Directory(Paths.document, "bench-v2");
 const fileName = (i: number) => `face_${String(i % IMAGE_COUNT).padStart(3, "0")}.jpg`;
 const now = () => (globalThis as any).performance?.now?.() ?? Date.now();
 const median = (n: number[]) => {
@@ -51,9 +51,7 @@ async function ensureImages(onProgress: (n: number) => void): Promise<string[]> 
   for (let i = 0; i < IMAGE_COUNT; i++) {
     const dest = new File(benchDir, fileName(i));
     if (!dest.exists) {
-      const gender = i % 2 === 0 ? "men" : "women";
-      const url = `https://randomuser.me/api/portraits/${gender}/${i % 100}.jpg`;
-      await File.downloadFileAsync(url, dest);
+      await File.downloadFileAsync(BENCH[i], dest);
     }
     uris.push(dest.uri);
     onProgress(i + 1);
@@ -93,9 +91,9 @@ const syncPresent = {
 
 type Racer = { key: string; name: string; car: string; accent: string; bridge: boolean };
 const RACERS: Racer[] = [
-  { key: "nitro", name: "Nitro · JSI", car: "🏎️", accent: C.orange, bridge: false },
+  { key: "nitro", name: "Nitro · JSI", car: "🏎️", accent: C.green, bridge: false },
   { key: "classic", name: "RN-ML-Kit · bridge", car: "🚗", accent: C.blue, bridge: true },
-  { key: "infinite", name: "InfiniteRed · Expo", car: "🚙", accent: "#8B5CF6", bridge: true },
+  { key: "infinite", name: "InfiniteRed · Expo", car: "🚙", accent: C.purple, bridge: true },
 ];
 
 type Result = {
@@ -139,8 +137,8 @@ export default function BenchmarkScreen() {
     setPhase("running");
     setResult(null);
     try {
-      setStatus("Downloading faces…");
-      const uris = await ensureImages((n) => setStatus(`Downloading faces… ${n}/${IMAGE_COUNT}`));
+      setStatus("Downloading photos… (~11 MB, cached after this)");
+      const uris = await ensureImages((n) => setStatus(`Downloading photos… ${n}/${IMAGE_COUNT}`));
       const gallery = Array.from({ length: GALLERY_SIZE }, (_, i) => uris[i % IMAGE_COUNT]);
 
       // Probe which competitors are actually linked into THIS build.
@@ -262,10 +260,14 @@ export default function BenchmarkScreen() {
         })}
       </View>
 
-      <Pressable style={{ ...s.flag, opacity: phase === "running" ? 0.6 : 1 }} onPress={run} disabled={phase === "running"}>
-        {phase === "running" && <ActivityIndicator color="#fff" style={{ marginRight: 8 }} />}
-        <Text style={s.flagText}>{phase === "running" ? "Racing…" : phase === "done" ? "Race again 🏁" : "Drop the flag 🏁"}</Text>
-      </Pressable>
+      <Button
+        title={phase === "running" ? "Racing…" : phase === "done" ? "Race again 🏁" : "Drop the flag 🏁"}
+        onPress={run}
+        accent={C.green}
+        disabled={phase === "running"}
+        loading={phase === "running"}
+        style={{ marginTop: 18 }}
+      />
       <Text style={s.status}>{status}</Text>
 
       {result && (
@@ -288,7 +290,7 @@ export default function BenchmarkScreen() {
               </View>
             ))}
             {result.bestBatch > 0 && (
-              <View style={{ ...s.statRow, borderTopWidth: 2, borderTopColor: C.ink, marginTop: 6, paddingTop: 10 }}>
+              <View style={{ ...s.statRow, borderTopWidth: 2, borderTopColor: C.border, marginTop: 6, paddingTop: 10 }}>
                 <View style={{ ...s.statDot, backgroundColor: C.mint }} />
                 <Text style={s.statName}>Nitro · native batch</Text>
                 <Text style={{ ...s.statVal, color: C.mintInk }}>{(result.bestBatch / 1000).toFixed(2)}s<Text style={s.statUnit}> best</Text></Text>
@@ -308,7 +310,7 @@ const s = StyleSheet.create({
   h1: { fontFamily: F.display, fontSize: 30, color: C.ink },
   sub: { fontFamily: F.body, fontSize: 13.5, color: C.dim, marginTop: 2, marginBottom: 20 },
 
-  track: { backgroundColor: C.surface, borderWidth: 2, borderColor: C.ink, borderRadius: R.lg, padding: 14, gap: 14, ...keycap(6) },
+  track: { backgroundColor: C.surface, borderWidth: 2, borderColor: C.border, borderRadius: R.lg, padding: 14, gap: 14, ...keycap(2) },
   lane: { gap: 6 },
   laneHead: { flexDirection: "row", alignItems: "center", gap: 8 },
   laneName: { fontFamily: F.bodyBold, fontSize: 13, color: C.ink },
@@ -319,17 +321,15 @@ const s = StyleSheet.create({
   finish: { position: "absolute", right: 4, top: 0, bottom: 0, width: 8, backgroundColor: C.ink, opacity: 0.15 },
   car: { position: "absolute", left: 4, fontSize: 26 },
 
-  flag: { flexDirection: "row", alignItems: "center", justifyContent: "center", backgroundColor: C.orange, borderWidth: 2, borderColor: C.ink, borderRadius: R.pill, paddingVertical: 15, marginTop: 18, ...keycap(6) },
-  flagText: { fontFamily: F.display, fontSize: 17, color: "#fff" },
   status: { fontFamily: F.mono, fontSize: 12, color: C.gold, textAlign: "center", marginTop: 12 },
 
-  trophy: { alignItems: "center", backgroundColor: wash(C.mint, 0.22), borderWidth: 2, borderColor: C.mintInk, borderRadius: R.xl, padding: 18, marginTop: 18, ...keycap(5) },
+  trophy: { alignItems: "center", backgroundColor: wash(C.green, 0.14), borderWidth: 2, borderColor: wash(C.green, 0.45), borderRadius: R.xl, padding: 18, marginTop: 18, ...keycap(2, wash(C.green, 0.45)) },
   trophyBig: { fontFamily: F.display, fontSize: 52, color: C.mintInk, lineHeight: 56 },
   trophySub: { fontFamily: F.bodySemi, fontSize: 12.5, color: C.dim, textAlign: "center", marginTop: 2 },
 
   cardTitle: { fontFamily: F.display, fontSize: 16, color: C.ink, marginBottom: 10 },
   statRow: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 6 },
-  statDot: { width: 12, height: 12, borderRadius: 6, borderWidth: 1.5, borderColor: C.ink },
+  statDot: { width: 12, height: 12, borderRadius: 6 },
   statName: { fontFamily: F.bodySemi, fontSize: 12.5, color: C.ink, flex: 1 },
   statVal: { fontFamily: F.mono, fontSize: 12, color: C.ink, fontVariant: ["tabular-nums"], width: 92, textAlign: "right" },
   statUnit: { fontFamily: F.mono, fontSize: 9, color: C.faint },

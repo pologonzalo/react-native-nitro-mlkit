@@ -169,9 +169,16 @@ class HybridPoseDetector: HybridPoseDetectorSpec {
     // MARK: - Private helpers
 
     private func detectImage(_ uri: String, options: PoseDetectionOptions?) async throws -> [PoseLandmark] {
-        guard let image = self.loadImage(from: uri) else {
+        guard let loaded = self.loadImage(from: uri) else {
             throw RuntimeError.error(withMessage: "Failed to load image: \(uri)")
         }
+        // Redraw upright before detecting. ML Kit reports landmark positions in
+        // the image's RAW pixel buffer (the orientation flag only tells it where
+        // "up" is), while JS measures the image at its EXIF-oriented size — so a
+        // portrait iPhone photo (landscape buffer + rotation flag) came back
+        // with landmarks up to 4032 wide on a 3024-wide image and the overlay
+        // painted them off-body. Same fix face-recognition ships for cropping.
+        let image = Self.uprightImage(loaded)
         let visionImage = VisionImage(image: image)
         visionImage.orientation = image.imageOrientation
 
@@ -186,6 +193,18 @@ class HybridPoseDetector: HybridPoseDetectorSpec {
                 z: Double(lm.position.z),
                 inFrameLikelihood: Double(lm.inFrameLikelihood)
             )
+        }
+    }
+
+    /// Returns the image redrawn with orientation .up, so its pixel buffer
+    /// matches its display size. `UIImage.size` already accounts for the
+    /// orientation flag, so drawing into it bakes the rotation in.
+    private static func uprightImage(_ image: UIImage) -> UIImage {
+        guard image.imageOrientation != .up else { return image }
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        return UIGraphicsImageRenderer(size: image.size, format: format).image { _ in
+            image.draw(in: CGRect(origin: .zero, size: image.size))
         }
     }
 

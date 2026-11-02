@@ -3,19 +3,11 @@ import {
   type ScannedDocument,
 } from "@nitro-mlkit/document-scanner";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import { C, F, R, T, keycap } from "../src/theme";
-import { Card, Pill, TitleBlock } from "../src/ui";
+import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
+import { C, F, R, T } from "../src/theme";
+import { Button, Card, Pill, TitleBlock } from "../src/ui";
 
-const ACCENT = "#f97316";
+const ACCENT = C.orange;
 
 export default function DocScannerScreen() {
   const available = NitroDocumentScanner.isAvailable();
@@ -44,13 +36,13 @@ export default function DocScannerScreen() {
     <ScrollView style={s.container} contentContainerStyle={s.content}>
       <TitleBlock name="@nitro-mlkit/document-scanner" tagline="Full-screen scanner UI → JPEG + PDF · Android-only" />
 
-      <Pressable style={s.scanBtn} onPress={scan} disabled={loading || !available}>
-        {loading ? (
-          <ActivityIndicator color="#1a0f02" />
-        ) : (
-          <Text style={s.scanText}>📄  Scan a document</Text>
-        )}
-      </Pressable>
+      <Button
+        title="📄 Scan a document"
+        onPress={scan}
+        accent={ACCENT}
+        disabled={!available}
+        loading={loading}
+      />
 
       <View style={s.statusRow}>
         <Text style={s.status}>{status}</Text>
@@ -93,17 +85,6 @@ export default function DocScannerScreen() {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.bg },
   content: { padding: 20, paddingTop: 16, paddingBottom: 40 },
-  scanBtn: {
-    backgroundColor: ACCENT,
-    paddingVertical: 18,
-    borderRadius: R.lg,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2,
-    borderColor: C.ink,
-    ...keycap(6),
-  },
-  scanText: { color: "#1a0f02", fontFamily: F.display, fontSize: 18 },
   statusRow: { alignItems: "center", marginVertical: 16 },
   status: { fontFamily: F.bodySemi, color: C.gold, fontSize: 14, textAlign: "center" },
   head: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
@@ -114,6 +95,6 @@ const s = StyleSheet.create({
     marginRight: 10,
     backgroundColor: C.surfaceAlt,
     borderWidth: 2,
-    borderColor: C.ink,
+    borderColor: C.border,
   },
 });

@@ -20,12 +20,18 @@ import { C, F } from "./theme";
  * Lens pills only render when the device reports more than one lens for the
  * current facing (Android and front cameras typically report none/one).
  */
-const LENS_LABEL: Record<string, string> = {
-  builtInUltraWideCamera: "0.5x",
-  builtInWideAngleCamera: "1x",
-  builtInTelephotoCamera: "Tele",
-};
-const LENS_ORDER = Object.keys(LENS_LABEL);
+// getAvailableLensesAsync returns AVCaptureDevice.localizedName strings
+// ("Back Ultra Wide Camera" — or their system-language translation, e.g.
+// "Cámara ultra gran angular trasera"), NOT the builtIn* device-type ids.
+// Classify by substring so pills work in any language; unknown lenses still
+// get a pill with their raw name.
+function lensLabel(name: string): string {
+  const n = name.toLowerCase();
+  if (n.includes("ultra")) return "0.5x";
+  if (n.includes("tele")) return "Tele";
+  return "1x";
+}
+const LENS_RANK: Record<string, number> = { "0.5x": 0, "1x": 1, Tele: 2 };
 
 export function CameraCapture({
   visible,
@@ -49,10 +55,16 @@ export function CameraCapture({
     if (visible && perm && !perm.granted && perm.canAskAgain) requestPerm();
   }, [visible, perm, requestPerm]);
 
+  function onLenses(available: string[]) {
+    const sorted = [...available].sort(
+      (a, b) => (LENS_RANK[lensLabel(a)] ?? 9) - (LENS_RANK[lensLabel(b)] ?? 9),
+    );
+    setLenses(sorted);
+  }
+
   async function onReady() {
     try {
-      const available = (await camRef.current?.getAvailableLensesAsync()) ?? [];
-      setLenses(LENS_ORDER.filter((l) => available.includes(l)));
+      onLenses((await camRef.current?.getAvailableLensesAsync()) ?? []);
     } catch {
       setLenses([]); // Android / older devices: no lens API, default lens only
     }
@@ -88,6 +100,9 @@ export function CameraCapture({
             facing={facing}
             selectedLens={lens}
             onCameraReady={onReady}
+            onAvailableLensesChanged={({ lenses: available }) =>
+              onLenses(available)
+            }
           />
         ) : (
           <View style={s.permBox}>
@@ -110,7 +125,7 @@ export function CameraCapture({
         {lenses.length > 1 && (
           <View style={s.lensRow}>
             {lenses.map((l) => {
-              const active = l === lens || (!lens && l === "builtInWideAngleCamera");
+              const active = l === lens || (!lens && lensLabel(l) === "1x");
               return (
                 <Pressable
                   key={l}
@@ -118,7 +133,7 @@ export function CameraCapture({
                   style={[s.lensPill, active && { backgroundColor: accent }]}
                 >
                   <Text style={[s.lensText, active && { color: "#fff" }]}>
-                    {LENS_LABEL[l]}
+                    {lensLabel(l)}
                   </Text>
                 </Pressable>
               );

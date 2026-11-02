@@ -1,11 +1,11 @@
 import { NitroBarcode } from "@nitro-mlkit/barcode-scanning";
 import { useState } from "react";
-import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 import { CODES } from "../src/samples";
-import { C, F, R, T, keycap, tint, wash } from "../src/theme";
-import { AnnotatedImage, Card, Pill, SamplePicker, TitleBlock, imageSize } from "../src/ui";
+import { C, F, T } from "../src/theme";
+import { AnnotatedImage, Button, Card, Pill, SamplePicker, TitleBlock, imageSize } from "../src/ui";
 
-const ACCENT = "#d97706";
+const ACCENT = C.orange;
 
 type Barcode = {
   rawValue: string;
@@ -78,9 +78,15 @@ export default function BarcodeScreen() {
       </View>
 
       {uri && (
-        <Pressable style={s.batch} onPress={batch} disabled={loading}>
-          <Text style={s.batchText}>Batch 20× 🚀</Text>
-        </Pressable>
+        <Button
+          title="Batch 20× 🚀"
+          onPress={batch}
+          disabled={loading}
+          accent={ACCENT}
+          variant="soft"
+          small
+          style={{ marginBottom: 14 }}
+        />
       )}
 
       {codes.map((b, i) => (
@@ -103,17 +109,6 @@ const s = StyleSheet.create({
   content: { padding: 20, paddingTop: 16, paddingBottom: 40 },
   statusRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginVertical: 14 },
   status: { fontFamily: F.bodySemi, color: C.gold, fontSize: 14, textAlign: "center" },
-  batch: {
-    backgroundColor: wash(ACCENT, 0.16),
-    borderColor: ACCENT,
-    borderWidth: 2,
-    paddingVertical: 12,
-    borderRadius: R.md,
-    alignItems: "center",
-    marginBottom: 14,
-    ...keycap(4),
-  },
-  batchText: { color: ACCENT, fontFamily: F.bodyBold, fontSize: 14 },
   head: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
   raw: { color: C.text, fontFamily: F.body, fontSize: 14 },
 });

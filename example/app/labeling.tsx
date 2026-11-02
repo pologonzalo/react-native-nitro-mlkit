@@ -1,11 +1,11 @@
 import { NitroLabeler } from "@nitro-mlkit/image-labeling";
 import { useState } from "react";
-import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Image, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SCENES } from "../src/samples";
-import { C, F, R, T, keycap, tint, wash } from "../src/theme";
-import { Card, Meter, SamplePicker, TitleBlock } from "../src/ui";
+import { C, F, R, T } from "../src/theme";
+import { Button, Card, Meter, SamplePicker, TitleBlock } from "../src/ui";
 
-const ACCENT = "#06b6d4";
+const ACCENT = C.green;
 type Label = { text: string; confidence: number; index: number };
 
 export default function LabelingScreen() {
@@ -61,9 +61,7 @@ export default function LabelingScreen() {
       </View>
 
       {uri && (
-        <Pressable style={s.batch} onPress={batch} disabled={loading}>
-          <Text style={s.batchText}>Batch 20× 🚀</Text>
-        </Pressable>
+        <Button title="Batch 20× 🚀" onPress={batch} disabled={loading} accent={ACCENT} variant="soft" small style={{ marginBottom: 14 }} />
       )}
 
       {labels.length > 0 && (
@@ -86,19 +84,8 @@ export default function LabelingScreen() {
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.bg },
   content: { padding: 20, paddingTop: 16, paddingBottom: 40 },
-  preview: { width: "100%", height: 240, borderRadius: R.lg, marginTop: 16, backgroundColor: C.surfaceAlt, borderWidth: 2, borderColor: C.ink },
+  preview: { width: "100%", height: 240, borderRadius: R.lg, marginTop: 16, backgroundColor: C.surfaceAlt, borderWidth: 2, borderColor: C.border },
   statusRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginVertical: 14 },
   status: { fontFamily: F.bodySemi, color: C.gold, fontSize: 14, textAlign: "center" },
-  batch: {
-    backgroundColor: wash(ACCENT, 0.16),
-    borderColor: ACCENT,
-    borderWidth: 2,
-    paddingVertical: 12,
-    borderRadius: R.md,
-    alignItems: "center",
-    marginBottom: 14,
-    ...keycap(4),
-  },
-  batchText: { color: ACCENT, fontFamily: F.bodyBold, fontSize: 14 },
   labelHead: { flexDirection: "row", justifyContent: "space-between", marginBottom: 5 },
 });

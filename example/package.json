@@ -9,7 +9,6 @@
     "android": "expo run:android"
   },
   "dependencies": {
-    "@expo-google-fonts/fredoka": "^0.4.1",
     "@expo-google-fonts/nunito": "^0.4.2",
     "@expo-google-fonts/space-mono": "^0.4.2",
     "@expo/metro-runtime": "~57.0.11",
@@ -33,7 +32,6 @@
     "@nitro-mlkit/text-recognition": "workspace:*",
     "@nitro-mlkit/translation": "workspace:*",
     "@react-native-ml-kit/face-detection": "2.0.1",
-    "@react-navigation/drawer": "^7.12.8",
     "expo": "~57.0.14",
     "expo-build-properties": "~57.0.12",
     "expo-camera": "~57.0.3",

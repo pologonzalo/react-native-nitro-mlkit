@@ -148,6 +148,11 @@ class HybridFaceDetector: HybridFaceDetectorSpec {
                                     return (globalIdx, BatchCropResult(index: Double(globalIdx), faces: [], crops: [], success: false))
                                 }
                                 let visionImage = VisionImage(image: img)
+                                // Sin esto ML Kit ve los pixeles tal y como estan
+                                // en el fichero e ignora la orientacion EXIF: una
+                                // foto vertical de iPhone llega tumbada y el
+                                // detector no reconoce una cara girada 90 grados.
+                                visionImage.orientation = img.imageOrientation
                                 let mlFaces = try await detector.process(visionImage)
                                 let faces = mlFaces.map { self.mapFace($0, withLandmarks: withLandmarks) }
                                 return (globalIdx, BatchCropResult(index: Double(globalIdx), faces: faces, crops: [], success: true))
@@ -173,6 +178,7 @@ class HybridFaceDetector: HybridFaceDetectorSpec {
                 throw RuntimeError.error(withMessage: "Failed to load image: \(imageUri)")
             }
             let visionImage = VisionImage(image: image)
+            visionImage.orientation = image.imageOrientation
             let mlFaces = try await self.accurateDetector.process(visionImage)
 
             guard let largest = mlFaces.max(by: {
@@ -191,6 +197,7 @@ class HybridFaceDetector: HybridFaceDetectorSpec {
                 throw RuntimeError.error(withMessage: "Failed to load image")
             }
             let visionImage = VisionImage(image: image)
+            visionImage.orientation = image.imageOrientation
             let mlFaces = try await self.fastDetector.process(visionImage)
 
             let imgW = Double(cgImage.width)
@@ -253,6 +260,29 @@ class HybridFaceDetector: HybridFaceDetectorSpec {
     }
 
     private func loadImage(from uri: String) -> UIImage? {
+        guard let raw = self.loadRawImage(from: uri) else { return nil }
+        // Redraw upright before any ML Kit call. ML Kit reports coordinates in
+        // the image's RAW pixel buffer (the orientation flag only tells it
+        // where "up" is), while JS measures the image at its EXIF-oriented
+        // size — so portrait iPhone photos (landscape buffer + rotation flag)
+        // came back with coordinates in the wrong space and overlays painted
+        // off-body. Same fix face-recognition ships for cropping.
+        return Self.uprightImage(raw)
+    }
+
+    /// Returns the image redrawn with orientation .up, so its pixel buffer
+    /// matches its display size. `UIImage.size` already accounts for the
+    /// orientation flag, so drawing into it bakes the rotation in.
+    private static func uprightImage(_ image: UIImage) -> UIImage {
+        guard image.imageOrientation != .up else { return image }
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        return UIGraphicsImageRenderer(size: image.size, format: format).image { _ in
+            image.draw(in: CGRect(origin: .zero, size: image.size))
+        }
+    }
+
+    private func loadRawImage(from uri: String) -> UIImage? {
         let path: String
         if uri.hasPrefix("file://") {
             path = String(uri.dropFirst(7))

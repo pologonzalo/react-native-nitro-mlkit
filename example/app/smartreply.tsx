@@ -5,10 +5,10 @@ import {
 } from "@nitro-mlkit/smart-reply";
 import { useState } from "react";
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { C, F, R, T, keycap, tint, wash } from "../src/theme";
-import { Card, Pill, TitleBlock } from "../src/ui";
+import { C, F, R, T, keycap, shade, wash } from "../src/theme";
+import { Card, TitleBlock } from "../src/ui";
 
-const ACCENT = "#f59e0b";
+const ACCENT = C.orange;
 
 // Each sample ends with a REMOTE-user message; Smart Reply suggests replies.
 const SAMPLES: { label: string; messages: string[] }[] = [
@@ -77,7 +77,16 @@ export default function SmartReplyScreen() {
 
       <View style={s.chips}>
         {SAMPLES.map((sample, i) => (
-          <Pressable key={i} style={s.chip} onPress={() => suggest(sample)} disabled={loading || !available}>
+          <Pressable
+            key={i}
+            onPress={() => suggest(sample)}
+            disabled={loading || !available}
+            style={({ pressed }) => ({
+              ...s.chip,
+              ...keycap(pressed ? 0 : 3, wash(ACCENT, 0.4)),
+              transform: [{ translateY: pressed ? 3 : 0 }],
+            })}
+          >
             <Text style={s.chipText} numberOfLines={1}>
               {sample.label}: “{sample.messages[sample.messages.length - 1]}”
             </Text>
@@ -116,26 +125,22 @@ const s = StyleSheet.create({
   content: { padding: 20, paddingTop: 16, paddingBottom: 40 },
   chips: { gap: 8 },
   chip: {
-    backgroundColor: wash(ACCENT, 0.14),
-    borderColor: tint(ACCENT, 0.5),
+    backgroundColor: wash(ACCENT, 0.12),
+    borderColor: wash(ACCENT, 0.4),
     borderWidth: 2,
     borderRadius: R.md,
     paddingVertical: 11,
     paddingHorizontal: 14,
-    ...keycap(3),
   },
   chipText: { color: C.text, fontFamily: F.bodySemi, fontSize: 13.5 },
   statusRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginVertical: 16 },
   status: { fontFamily: F.bodySemi, color: C.gold, fontSize: 14, textAlign: "center" },
   suggestions: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   suggestion: {
-    backgroundColor: wash(ACCENT, 0.16),
-    borderColor: ACCENT,
-    borderWidth: 2,
+    backgroundColor: wash(ACCENT, 0.14),
     borderRadius: R.pill,
     paddingVertical: 8,
     paddingHorizontal: 14,
-    ...keycap(3),
   },
-  suggestionText: { color: C.gold, fontFamily: F.bodyBold, fontSize: 14 },
+  suggestionText: { color: shade(ACCENT, 0.15), fontFamily: F.bodyBold, fontSize: 14 },
 });

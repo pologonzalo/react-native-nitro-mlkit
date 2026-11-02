@@ -18,10 +18,10 @@ import {
 } from "../src/gallery-insights";
 import { PERMISSION_DENIED, scanGallery } from "../src/photo-scan";
 import { StoryPlayer } from "../src/StoryPlayer";
-import { C, F, R, T, keycap, wash } from "../src/theme";
-import { Card, Meter } from "../src/ui";
+import { C, F, R, T, keycap, shade, wash } from "../src/theme";
+import { Button, Card, Meter } from "../src/ui";
 
-const ACCENT = "#8B5CF6";
+const ACCENT = C.purple;
 const SCAN_CAP = 1000; // shown in the privacy copy
 
 type Phase = "idle" | "scanning" | "done";
@@ -149,9 +149,12 @@ export default function GalleryScreen() {
               <Bullet emoji="🧠">Sort them into smart "memories" — parties, pets, beaches…</Bullet>
               <Bullet emoji="🔒">0 bytes leave the device</Bullet>
             </Card>
-            <Pressable style={s.cta} onPress={() => scan()}>
-              <Text style={s.ctaText}>Scan my gallery ✨</Text>
-            </Pressable>
+            <Button
+              title="Scan my gallery ✨"
+              accent={ACCENT}
+              onPress={() => scan()}
+              style={{ marginBottom: 12 }}
+            />
             <Text style={s.privacy}>
               We ask for photo permission, read up to {SCAN_CAP} recent photos, and
               keep everything on-device.
@@ -186,7 +189,14 @@ export default function GalleryScreen() {
             </View>
 
             {/* Memories / Stories CTA */}
-            <Pressable style={s.stories} onPress={() => openStories()}>
+            <Pressable
+              style={({ pressed }) => ({
+                ...s.stories,
+                ...keycap(pressed ? 0 : 4, shade(ACCENT)),
+                transform: [{ translateY: pressed ? 4 : 0 }],
+              })}
+              onPress={() => openStories()}
+            >
               <Text style={s.storiesEmoji}>▶</Text>
               <View style={{ flex: 1 }}>
                 <Text style={s.storiesTitle}>Play your memories</Text>
@@ -230,9 +240,13 @@ export default function GalleryScreen() {
               <Card style={{ marginBottom: 14 }}>
                 <View style={s.repHead}>
                   <Text style={T.label}>🧪 Calibration report</Text>
-                  <Pressable style={s.repBtn} onPress={() => Share.share({ message: report })}>
-                    <Text style={s.repBtnText}>Share ↗</Text>
-                  </Pressable>
+                  <Button
+                    title="Share ↗"
+                    variant="soft"
+                    small
+                    accent={C.blue}
+                    onPress={() => Share.share({ message: report })}
+                  />
                 </View>
                 <Text style={{ ...T.faint, marginBottom: 10 }}>
                   Copy or share this and paste it back to me — I'll tune the memories to your real labels.
@@ -243,9 +257,7 @@ export default function GalleryScreen() {
               </Card>
             )}
 
-            <Pressable style={s.rescan} onPress={() => scan(true)}>
-              <Text style={s.rescanText}>Scan again 🔄</Text>
-            </Pressable>
+            <Button title="Scan again 🔄" variant="soft" small accent={ACCENT} onPress={() => scan(true)} />
           </>
         )}
 
@@ -293,7 +305,14 @@ function Stat({ big, label }: { big: number; label: string }) {
 /** A memory tile: real cover photo + title + count, taps into the story. */
 function MemoryCard({ m, onPress }: { m: Memory; onPress: () => void }) {
   return (
-    <Pressable style={s.memCard} onPress={onPress}>
+    <Pressable
+      style={({ pressed }) => ({
+        ...s.memCard,
+        ...keycap(pressed ? 0 : 2),
+        transform: [{ translateY: pressed ? 2 : 0 }],
+      })}
+      onPress={onPress}
+    >
       {m.photos[0] ? (
         <ExpoImage source={{ uri: m.photos[0] }} style={s.memCover} contentFit="cover" transition={150} />
       ) : (
@@ -306,7 +325,7 @@ function MemoryCard({ m, onPress }: { m: Memory; onPress: () => void }) {
         <Text style={s.memBlurb} numberOfLines={2}>{m.blurb}</Text>
       </View>
       <View style={{ ...s.memCount, backgroundColor: wash(m.accent, 0.18), borderColor: m.accent }}>
-        <Text style={{ ...s.memCountText, color: m.accent }}>{m.count}</Text>
+        <Text style={{ ...s.memCountText, color: shade(m.accent, 0.1) }}>{m.count}</Text>
       </View>
     </Pressable>
   );
@@ -323,17 +342,6 @@ const s = StyleSheet.create({
   bulletEmoji: { fontSize: 18, width: 22, textAlign: "center" },
   bulletText: { color: C.dim, fontFamily: F.body, fontSize: 14, flex: 1 },
 
-  cta: {
-    backgroundColor: ACCENT,
-    borderWidth: 2,
-    borderColor: C.ink,
-    borderRadius: R.lg,
-    paddingVertical: 16,
-    alignItems: "center",
-    marginBottom: 12,
-    ...keycap(6),
-  },
-  ctaText: { color: "#fff", fontFamily: F.display, fontSize: 18 },
   privacy: { color: C.faint, fontFamily: F.body, fontSize: 12, textAlign: "center", lineHeight: 17 },
 
   scanRow: { flexDirection: "row", alignItems: "center", gap: 10, marginTop: 14 },
@@ -344,15 +352,12 @@ const s = StyleSheet.create({
     alignItems: "center",
     gap: 14,
     backgroundColor: ACCENT,
-    borderWidth: 2,
-    borderColor: C.ink,
     borderRadius: R.lg,
     padding: 16,
     marginBottom: 14,
-    ...keycap(6),
   },
   storiesEmoji: {
-    color: ACCENT,
+    color: shade(ACCENT, 0.15),
     fontSize: 18,
     width: 36,
     height: 36,
@@ -373,7 +378,7 @@ const s = StyleSheet.create({
     padding: 20,
     alignItems: "center",
     marginBottom: 14,
-    ...keycap(5),
+    ...keycap(2, shade(ACCENT, 0.1)),
   },
   heroNum: { fontFamily: F.display, fontSize: 54, color: C.ink, letterSpacing: -2, lineHeight: 58 },
   heroLabel: { color: C.dim, fontFamily: F.bodySemi, fontSize: 13, marginBottom: 16 },
@@ -382,7 +387,7 @@ const s = StyleSheet.create({
     flex: 1,
     backgroundColor: C.surface,
     borderWidth: 2,
-    borderColor: C.ink,
+    borderColor: C.border,
     borderRadius: R.md,
     paddingVertical: 10,
     alignItems: "center",
@@ -395,12 +400,12 @@ const s = StyleSheet.create({
     alignItems: "center",
     gap: 14,
     backgroundColor: C.surface,
-    borderColor: C.ink,
+    borderColor: C.border,
     borderWidth: 2,
     borderRadius: R.lg,
     padding: 16,
     marginBottom: 18,
-    ...keycap(5),
+    ...keycap(2),
   },
   personaEmoji: { fontSize: 40 },
   personaTitle: { color: C.text, fontFamily: F.display, fontSize: 18 },
@@ -414,13 +419,12 @@ const s = StyleSheet.create({
     gap: 12,
     backgroundColor: C.surface,
     borderWidth: 2,
-    borderColor: C.ink,
+    borderColor: C.border,
     borderRadius: R.lg,
     padding: 10,
     marginBottom: 12,
-    ...keycap(5),
   },
-  memCover: { width: 68, height: 68, borderRadius: R.md, borderWidth: 2, borderColor: C.ink, backgroundColor: C.surfaceAlt },
+  memCover: { width: 68, height: 68, borderRadius: R.md, borderWidth: 2, borderColor: C.border, backgroundColor: C.surfaceAlt },
   memBody: { flex: 1 },
   memTitle: { fontFamily: F.display, fontSize: 16, color: C.ink },
   memBlurb: { fontFamily: F.body, fontSize: 12.5, color: C.dim, marginTop: 2, lineHeight: 17 },
@@ -432,44 +436,23 @@ const s = StyleSheet.create({
     width: "47%",
     backgroundColor: C.surfaceAlt,
     borderWidth: 2,
-    borderColor: C.ink,
+    borderColor: C.border,
     borderRadius: R.md,
     padding: 14,
   },
-  statBig: { color: ACCENT, fontFamily: F.display, fontSize: 28 },
+  statBig: { color: shade(ACCENT, 0.15), fontFamily: F.display, fontSize: 28 },
   statLabel: { color: C.dim, fontFamily: F.body, fontSize: 12, marginTop: 2 },
 
   repHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 6 },
-  repBtn: {
-    backgroundColor: wash(C.blue, 0.16),
-    borderColor: C.blue,
-    borderWidth: 2,
-    borderRadius: R.pill,
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    ...keycap(3),
-  },
-  repBtnText: { color: C.blue, fontFamily: F.bodyBold, fontSize: 13 },
   repBox: {
     maxHeight: 220,
     backgroundColor: C.surfaceAlt,
     borderWidth: 2,
-    borderColor: C.ink,
+    borderColor: C.border,
     borderRadius: R.md,
     padding: 12,
   },
   repJson: { fontFamily: F.mono, fontSize: 11, color: C.ink, lineHeight: 16 },
-
-  rescan: {
-    backgroundColor: wash(ACCENT, 0.16),
-    borderColor: ACCENT,
-    borderWidth: 2,
-    borderRadius: R.md,
-    paddingVertical: 13,
-    alignItems: "center",
-    ...keycap(4),
-  },
-  rescanText: { color: ACCENT, fontFamily: F.bodyBold, fontSize: 14 },
 
   note: { color: C.gold, fontFamily: F.bodySemi, fontSize: 13, textAlign: "center", marginTop: 16, lineHeight: 19 },
 });

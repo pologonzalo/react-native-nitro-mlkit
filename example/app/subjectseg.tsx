@@ -1,11 +1,11 @@
 import { NitroSubjectSegmenter } from "@nitro-mlkit/subject-segmentation";
 import { useState } from "react";
 import { ActivityIndicator, Alert, Image, Platform, ScrollView, StyleSheet, Text, View } from "react-native";
-import { SCENES } from "../src/samples";
-import { C, F, R, T } from "../src/theme";
+import { SUBJECTS } from "../src/samples";
+import { C, F, R, T, shade } from "../src/theme";
 import { Card, Pill, SamplePicker, TitleBlock } from "../src/ui";
 
-const ACCENT = "#10b981";
+const ACCENT = C.blue;
 const SUPPORTED = Platform.OS === "android";
 
 export default function SubjectSegScreen() {
@@ -46,7 +46,7 @@ export default function SubjectSegScreen() {
         </Card>
       )}
 
-      <SamplePicker samples={SCENES} accent={ACCENT} onPick={run} disabled={loading || !SUPPORTED} />
+      <SamplePicker samples={SUBJECTS} accent={ACCENT} onPick={run} disabled={loading || !SUPPORTED} />
 
       {uri && (
         <View style={s.compare}>
@@ -57,7 +57,7 @@ export default function SubjectSegScreen() {
           <View style={s.col}>
             <Text style={s.colLabel}>SUBJECT</Text>
             {fgUri ? (
-              <Image source={{ uri: fgUri }} style={{ ...s.img, backgroundColor: "#052e26" }} resizeMode="contain" />
+              <Image source={{ uri: fgUri }} style={{ ...s.img, backgroundColor: shade(ACCENT, 0.65) }} resizeMode="contain" />
             ) : (
               <View style={{ ...s.img, ...s.placeholder }}>{loading && <ActivityIndicator color={ACCENT} />}</View>
             )}
@@ -89,7 +89,7 @@ const s = StyleSheet.create({
   compare: { flexDirection: "row", gap: 10, marginTop: 16 },
   col: { flex: 1 },
   colLabel: { color: C.faint, fontFamily: F.bodyBold, fontSize: 11, marginBottom: 6, letterSpacing: 1 },
-  img: { width: "100%", height: 220, borderRadius: R.lg, backgroundColor: C.surfaceAlt, borderWidth: 2, borderColor: C.ink },
+  img: { width: "100%", height: 220, borderRadius: R.lg, backgroundColor: C.surfaceAlt, borderWidth: 2, borderColor: C.border },
   placeholder: { alignItems: "center", justifyContent: "center" },
   statusRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginVertical: 14 },
   status: { fontFamily: F.bodySemi, color: C.gold, fontSize: 13, textAlign: "center" },

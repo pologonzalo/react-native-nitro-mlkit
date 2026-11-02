@@ -14,10 +14,12 @@ import {
   Text,
   View,
 } from "react-native";
-import { C, F, R, T, keycap, tint, wash } from "../src/theme";
-import { Card, Pill, TitleBlock } from "../src/ui";
+import { C, F, R, T, keycap, shade } from "../src/theme";
+import { Button, Card, Pill, TitleBlock } from "../src/ui";
 
-const ACCENT = "#d946ef";
+const ACCENT = C.purple;
+// Darker cousin of the accent for anything that must read on white (ink, chip labels).
+const ACCENT_INK = shade(ACCENT, 0.15);
 const LANGS = ["en-US", "es-ES", "fr-FR", "emoji"];
 
 export default function DigitalInkScreen() {
@@ -106,13 +108,15 @@ export default function DigitalInkScreen() {
           <Pressable
             key={l}
             onPress={() => setLang(l)}
-            style={{
+            style={({ pressed }) => ({
               ...s.langChip,
-              backgroundColor: lang === l ? ACCENT : wash(ACCENT, 0.14),
-              borderColor: lang === l ? ACCENT : tint(ACCENT, 0.4),
-            }}
+              backgroundColor: lang === l ? ACCENT : C.surface,
+              borderColor: lang === l ? ACCENT : C.border,
+              ...keycap(pressed ? 0 : 3, lang === l ? shade(ACCENT) : C.border),
+              transform: [{ translateY: pressed ? 3 : 0 }],
+            })}
           >
-            <Text style={{ ...s.langText, color: lang === l ? "#1a021f" : ACCENT }}>{l}</Text>
+            <Text style={{ ...s.langText, color: lang === l ? "#fff" : ACCENT_INK }}>{l}</Text>
           </Pressable>
         ))}
       </View>
@@ -129,7 +133,7 @@ export default function DigitalInkScreen() {
                 width: 5,
                 height: 5,
                 borderRadius: 3,
-                backgroundColor: ACCENT,
+                backgroundColor: ACCENT_INK,
               }}
             />
           )),
@@ -138,12 +142,15 @@ export default function DigitalInkScreen() {
       </View>
 
       <View style={s.actions}>
-        <Pressable style={s.btnPrimary} onPress={recognize} disabled={loading}>
-          <Text style={s.btnPrimaryText}>Recognize</Text>
-        </Pressable>
-        <Pressable style={s.btnGhost} onPress={clear} disabled={loading}>
-          <Text style={s.btnGhostText}>Clear</Text>
-        </Pressable>
+        <Button
+          title="Recognize"
+          onPress={recognize}
+          accent={ACCENT}
+          disabled={loading}
+          loading={loading}
+          style={{ flex: 1 }}
+        />
+        <Button title="Clear" onPress={clear} variant="soft" accent={ACCENT} disabled={loading} />
       </View>
 
       <View style={s.statusRow}>
@@ -182,27 +189,14 @@ const s = StyleSheet.create({
     borderRadius: R.lg,
     backgroundColor: C.surface,
     borderWidth: 2,
-    borderColor: C.ink,
+    borderColor: C.border,
     overflow: "hidden",
     alignItems: "center",
     justifyContent: "center",
-    ...keycap(4),
+    ...keycap(2),
   },
   canvasHint: { color: C.faint, fontFamily: F.bodySemi, fontSize: 16 },
   actions: { flexDirection: "row", gap: 10, marginTop: 14 },
-  btnPrimary: { flex: 1, backgroundColor: ACCENT, paddingVertical: 14, borderRadius: R.md, alignItems: "center", borderWidth: 2, borderColor: C.ink, ...keycap(5) },
-  btnPrimaryText: { color: "#1a021f", fontFamily: F.display, fontSize: 16 },
-  btnGhost: {
-    paddingVertical: 14,
-    paddingHorizontal: 22,
-    borderRadius: R.md,
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: C.ink,
-    backgroundColor: C.surface,
-    ...keycap(4),
-  },
-  btnGhostText: { color: C.dim, fontFamily: F.bodyBold, fontSize: 15 },
   statusRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginVertical: 14 },
   status: { fontFamily: F.bodySemi, color: C.gold, fontSize: 14, textAlign: "center" },
   head: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },

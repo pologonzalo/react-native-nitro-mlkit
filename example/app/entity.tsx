@@ -9,10 +9,10 @@ import {
   Text,
   View,
 } from "react-native";
-import { C, F, R, T, keycap, tint, wash } from "../src/theme";
+import { C, F, R, T, keycap, wash } from "../src/theme";
 import { Card, Pill, TitleBlock } from "../src/ui";
 
-const ACCENT = "#a855f7";
+const ACCENT = C.red;
 const SAMPLES = [
   "Call me at +1 202-555-0147 or email john@example.com",
   "The meeting is on March 3rd at 5pm",
@@ -63,7 +63,16 @@ export default function EntityScreen() {
       <TitleBlock name="@nitro-mlkit/entity-extraction" tagline="Find phones, emails, dates, money… · Android-only" />
 
       {SAMPLES.map((t, i) => (
-        <Pressable key={i} style={s.chip} onPress={() => annotate(t)} disabled={loading}>
+        <Pressable
+          key={i}
+          onPress={() => annotate(t)}
+          disabled={loading}
+          style={({ pressed }) => ({
+            ...s.chip,
+            ...keycap(pressed ? 0 : 3, wash(ACCENT, 0.4)),
+            transform: [{ translateY: pressed ? 3 : 0 }],
+          })}
+        >
           <Text style={s.chipText} numberOfLines={2}>{t}</Text>
         </Pressable>
       ))}
@@ -99,13 +108,12 @@ const s = StyleSheet.create({
   content: { padding: 20, paddingTop: 16, paddingBottom: 40 },
   chip: {
     backgroundColor: wash(ACCENT, 0.12),
-    borderColor: tint(ACCENT, 0.5),
+    borderColor: wash(ACCENT, 0.4),
     borderWidth: 2,
     borderRadius: R.md,
     paddingVertical: 12,
     paddingHorizontal: 14,
     marginBottom: 8,
-    ...keycap(3),
   },
   chipText: { color: C.text, fontFamily: F.bodySemi, fontSize: 13.5 },
   statusRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginVertical: 16 },

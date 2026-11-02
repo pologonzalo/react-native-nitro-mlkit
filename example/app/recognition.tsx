@@ -10,18 +10,17 @@ import {
   Text,
   View,
 } from "react-native";
-import { FACES } from "../src/samples";
-import { C, F, R, T, keycap, tint, wash } from "../src/theme";
-import { Card, Meter, Pill, TitleBlock } from "../src/ui";
+import { PERSONS } from "../src/samples";
+import { C, F, R, T, wash } from "../src/theme";
+import { Button, Card, Meter, Pill, TitleBlock } from "../src/ui";
 
-const ACCENT = "#ef4444";
+const ACCENT = C.blueDeep;
 // A TFLite face-embedding model (downloaded at runtime; you host your own in prod).
 const MODEL_URL =
   "https://huggingface.co/unixio/nova-face-embedding/resolve/main/tflite/face_embedding_v1.tflite";
 
-// Two people to register, and a query photo (reuse the same faces).
-const PERSON_A = FACES[0]; // Woman 1
-const PERSON_B = FACES[1]; // Man 1
+// Two people to register, plus a stranger who should match nobody.
+const [PERSON_A, PERSON_B, STRANGER] = PERSONS;
 
 export default function RecognitionScreen() {
   const supported = NitroRecognizer.isSupported();
@@ -50,8 +49,8 @@ export default function RecognitionScreen() {
     setLoading(true);
     setStatus("Registering 2 people…");
     try {
-      await NitroRecognizer.registerPerson("a", "Woman 1", PERSON_A.url);
-      await NitroRecognizer.registerPerson("b", "Man 1", PERSON_B.url);
+      await NitroRecognizer.registerPerson("a", PERSON_A.label, PERSON_A.url);
+      await NitroRecognizer.registerPerson("b", PERSON_B.label, PERSON_B.url);
       setRegistered(NitroRecognizer.getRegistry().map((p) => p.name));
       setStatus("Registered 2 people");
     } catch (e: any) {
@@ -96,9 +95,12 @@ export default function RecognitionScreen() {
       )}
 
       <Step n={1} label="Load model" done={modelReady}>
-        <Pressable style={btn(modelReady)} onPress={loadModel} disabled={loading || modelReady || !supported}>
-          <Text style={s.btnText}>{modelReady ? "✓ Model ready" : "Download model"}</Text>
-        </Pressable>
+        <Button
+          title={modelReady ? "✓ Model ready" : "Download model"}
+          onPress={loadModel}
+          accent={ACCENT}
+          disabled={loading || modelReady || !supported}
+        />
       </Step>
 
       <Step n={2} label="Register people" done={registered.length > 0}>
@@ -107,9 +109,12 @@ export default function RecognitionScreen() {
             <Image key={p.url} source={{ uri: p.url }} style={s.avatar} />
           ))}
         </View>
-        <Pressable style={btn(!modelReady)} onPress={registerPeople} disabled={loading || !modelReady}>
-          <Text style={s.btnText}>Register Woman 1 + Man 1</Text>
-        </Pressable>
+        <Button
+          title="Register 2 people"
+          onPress={registerPeople}
+          accent={ACCENT}
+          disabled={loading || !modelReady}
+        />
         {registered.length > 0 && (
           <Text style={{ ...T.faint, marginTop: 8 }}>Registry: {registered.join(", ")}</Text>
         )}
@@ -117,7 +122,7 @@ export default function RecognitionScreen() {
 
       <Step n={3} label="Who is this?" done={false}>
         <View style={s.queryRow}>
-          {[PERSON_A, PERSON_B, FACES[2]].map((p) => (
+          {[PERSON_A, PERSON_B, STRANGER].map((p) => (
             <Pressable key={p.url} onPress={() => identify(p)} disabled={loading || registered.length === 0}>
               <Image source={{ uri: p.url }} style={s.queryImg} />
               <Text style={s.queryLabel}>{p.label}</Text>
@@ -153,8 +158,8 @@ function Step({ n, label, done, children }: { n: number; label: string; done: bo
   return (
     <View style={s.step}>
       <View style={s.stepHead}>
-        <View style={{ ...s.stepNum, backgroundColor: done ? ACCENT : tint(ACCENT, 0.2) }}>
-          <Text style={s.stepNumText}>{done ? "✓" : n}</Text>
+        <View style={{ ...s.stepNum, backgroundColor: done ? ACCENT : wash(ACCENT, 0.15) }}>
+          <Text style={{ ...s.stepNumText, color: done ? "#fff" : ACCENT }}>{done ? "✓" : n}</Text>
         </View>
         <Text style={T.label}>{label}</Text>
       </View>
@@ -163,30 +168,17 @@ function Step({ n, label, done, children }: { n: number; label: string; done: bo
   );
 }
 
-function btn(disabledLook: boolean) {
-  return {
-    backgroundColor: disabledLook ? wash(ACCENT, 0.16) : ACCENT,
-    borderColor: C.ink,
-    borderWidth: 2,
-    paddingVertical: 13,
-    borderRadius: R.md,
-    alignItems: "center" as const,
-    ...keycap(4),
-  };
-}
-
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.bg },
   content: { padding: 20, paddingTop: 16, paddingBottom: 40 },
-  btnText: { color: "#fff", fontFamily: F.display, fontSize: 16 },
   step: { marginBottom: 18 },
   stepHead: { flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 10 },
-  stepNum: { width: 26, height: 26, borderRadius: 13, alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: C.ink },
-  stepNumText: { color: "#fff", fontFamily: F.bodyBold, fontSize: 12 },
+  stepNum: { width: 26, height: 26, borderRadius: 13, alignItems: "center", justifyContent: "center" },
+  stepNumText: { fontFamily: F.bodyBold, fontSize: 12 },
   people: { flexDirection: "row", gap: 10, marginBottom: 10 },
-  avatar: { width: 60, height: 60, borderRadius: 30, backgroundColor: C.surfaceAlt, borderWidth: 2, borderColor: C.ink },
+  avatar: { width: 60, height: 60, borderRadius: 30, backgroundColor: C.surfaceAlt, borderWidth: 2, borderColor: C.border },
   queryRow: { flexDirection: "row", gap: 12 },
-  queryImg: { width: 90, height: 90, borderRadius: R.md, backgroundColor: C.surfaceAlt, borderWidth: 2, borderColor: C.ink },
+  queryImg: { width: 90, height: 90, borderRadius: R.md, backgroundColor: C.surfaceAlt, borderWidth: 2, borderColor: C.border },
   queryLabel: { color: C.dim, fontFamily: F.bodySemi, fontSize: 11, textAlign: "center", marginTop: 4 },
   statusRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginVertical: 14 },
   status: { fontFamily: F.bodySemi, color: C.gold, fontSize: 14, textAlign: "center" },

@@ -3,7 +3,6 @@ import * as MediaLibrary from "expo-media-library/legacy";
 import { type ReactNode, useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -16,10 +15,10 @@ import {
   type CleanupPlan,
 } from "../src/photo-quality";
 import { clearScanCache, PERMISSION_DENIED, scanGallery } from "../src/photo-scan";
-import { C, F, keycap, R, T, wash } from "../src/theme";
-import { Card, Meter } from "../src/ui";
+import { C, F, keycap, R, shade, T, wash } from "../src/theme";
+import { Button, Card, Meter } from "../src/ui";
 
-const ACCENT = "#12B981"; // clean emerald
+const ACCENT = C.green;
 
 type Phase = "idle" | "scanning" | "done";
 
@@ -122,9 +121,12 @@ export default function CleanerScreen() {
             <Bullet emoji="📱">Flags screenshots & text clutter</Bullet>
             <Bullet emoji="🗑️">You review — deletion always asks first</Bullet>
           </Card>
-          <Pressable style={s.cta} onPress={() => scan()}>
-            <Text style={s.ctaText}>Find clutter 🧹</Text>
-          </Pressable>
+          <Button
+            title="Find clutter 🧹"
+            accent={ACCENT}
+            onPress={() => scan()}
+            style={{ marginBottom: 12 }}
+          />
           <Text style={s.privacy}>Reads your recent photos on-device. Deletion is always confirmed by iOS.</Text>
         </>
       )}
@@ -164,13 +166,14 @@ export default function CleanerScreen() {
             <>
               <View style={s.sectionRow}>
                 <Text style={s.section}>Similar shots · keep the best</Text>
-                <Pressable
-                  style={s.delBtn}
+                <Button
+                  title={`Delete ${view.duplicates} extras`}
+                  variant="soft"
+                  small
+                  accent={C.danger}
                   disabled={busy}
                   onPress={() => remove(view.bursts.flatMap((b) => b.rest.map((p) => p.id)))}
-                >
-                  <Text style={s.delBtnText}>Delete {view.duplicates} extras</Text>
-                </Pressable>
+                />
               </View>
               {view.bursts.map((b) => (
                 <BurstRow key={b.best.id} burst={b} />
@@ -185,13 +188,14 @@ export default function CleanerScreen() {
                 <Text style={s.section}>
                   Screenshots · {Math.round((view.screenshots.length / (plan?.totalPhotos ?? 1)) * 100)}% of roll
                 </Text>
-                <Pressable
-                  style={s.delBtn}
+                <Button
+                  title={`Delete ${view.screenshots.length}`}
+                  variant="soft"
+                  small
+                  accent={C.danger}
                   disabled={busy}
                   onPress={() => remove(view.screenshots.map((p) => p.id))}
-                >
-                  <Text style={s.delBtnText}>Delete {view.screenshots.length}</Text>
-                </Pressable>
+                />
               </View>
               <View style={s.grid}>
                 {view.screenshots.slice(0, 12).map((p) => (
@@ -208,9 +212,14 @@ export default function CleanerScreen() {
             </View>
           )}
 
-          <Pressable style={s.rescan} onPress={() => scan(true)}>
-            <Text style={s.rescanText}>Rescan 🔄</Text>
-          </Pressable>
+          <Button
+            title="Rescan 🔄"
+            variant="soft"
+            small
+            accent={ACCENT}
+            onPress={() => scan(true)}
+            style={{ marginTop: 6 }}
+          />
         </>
       )}
 
@@ -234,8 +243,8 @@ function BurstRow({ burst }: { burst: Burst }) {
         {/* Extras */}
         {burst.rest.map((p) => (
           <View key={p.id} style={s.shot}>
-            <ExpoImage source={{ uri: p.uri }} style={{ ...s.shotImg, borderColor: C.ink, opacity: 0.55 }} contentFit="cover" transition={120} />
-            <View style={{ ...s.tag, backgroundColor: C.ink }}>
+            <ExpoImage source={{ uri: p.uri }} style={{ ...s.shotImg, borderColor: C.border, opacity: 0.55 }} contentFit="cover" transition={120} />
+            <View style={{ ...s.tag, backgroundColor: C.dim }}>
               <Text style={s.tagText}>✕ extra</Text>
             </View>
           </View>
@@ -274,25 +283,20 @@ const s = StyleSheet.create({
   bulletEmoji: { fontSize: 18, width: 22, textAlign: "center" },
   bulletText: { color: C.dim, fontFamily: F.body, fontSize: 14, flex: 1 },
 
-  cta: {
-    backgroundColor: ACCENT, borderWidth: 2, borderColor: C.ink, borderRadius: R.lg,
-    paddingVertical: 16, alignItems: "center", marginBottom: 12, ...keycap(6),
-  },
-  ctaText: { color: "#fff", fontFamily: F.display, fontSize: 18 },
   privacy: { color: C.faint, fontFamily: F.body, fontSize: 12, textAlign: "center", lineHeight: 17 },
 
   scanRow: { flexDirection: "row", alignItems: "center", gap: 10, marginTop: 14 },
   scanText: { color: C.gold, fontFamily: F.mono, fontSize: 13, fontVariant: ["tabular-nums"] },
 
   hero: {
-    backgroundColor: wash(ACCENT, 0.18), borderColor: ACCENT, borderWidth: 2, borderRadius: R.xl,
-    padding: 20, alignItems: "center", marginBottom: 14, ...keycap(5),
+    backgroundColor: wash(ACCENT, 0.16), borderColor: ACCENT, borderWidth: 2, borderRadius: R.xl,
+    padding: 20, alignItems: "center", marginBottom: 14, ...keycap(2, shade(ACCENT, 0.1)),
   },
   heroNum: { fontFamily: F.display, fontSize: 54, color: C.ink, letterSpacing: -2, lineHeight: 58 },
   heroLabel: { color: C.dim, fontFamily: F.bodySemi, fontSize: 13, marginBottom: 16 },
   heroChips: { flexDirection: "row", gap: 10, alignSelf: "stretch" },
   heroChip: {
-    flex: 1, backgroundColor: C.surface, borderWidth: 2, borderColor: C.ink, borderRadius: R.md,
+    flex: 1, backgroundColor: C.surface, borderWidth: 2, borderColor: C.border, borderRadius: R.md,
     paddingVertical: 10, alignItems: "center",
   },
   heroChipValue: { color: C.ink, fontFamily: F.display, fontSize: 20, fontVariant: ["tabular-nums"] },
@@ -302,11 +306,6 @@ const s = StyleSheet.create({
 
   sectionRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 10 },
   section: { fontFamily: F.bodyBold, fontSize: 13, color: C.dim, textTransform: "uppercase", letterSpacing: 0.6, flex: 1 },
-  delBtn: {
-    backgroundColor: wash("#EF4444", 0.14), borderColor: "#EF4444", borderWidth: 2, borderRadius: R.pill,
-    paddingVertical: 6, paddingHorizontal: 12, ...keycap(3),
-  },
-  delBtnText: { color: "#EF4444", fontFamily: F.bodyBold, fontSize: 12 },
 
   burstRow: { gap: 10, paddingRight: 4 },
   shot: { width: 96 },
@@ -315,15 +314,9 @@ const s = StyleSheet.create({
   tagText: { color: "#fff", fontFamily: F.bodyBold, fontSize: 9.5 },
 
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 14 },
-  gridThumb: { width: "31%", aspectRatio: 1, borderRadius: R.sm, borderWidth: 2, borderColor: C.ink, backgroundColor: C.surfaceAlt },
+  gridThumb: { width: "31%", aspectRatio: 1, borderRadius: R.sm, borderWidth: 2, borderColor: C.border, backgroundColor: C.surfaceAlt },
 
   busyRow: { flexDirection: "row", alignItems: "center", gap: 10, justifyContent: "center", marginVertical: 12 },
-
-  rescan: {
-    backgroundColor: wash(ACCENT, 0.16), borderColor: ACCENT, borderWidth: 2, borderRadius: R.md,
-    paddingVertical: 13, alignItems: "center", marginTop: 6, ...keycap(4),
-  },
-  rescanText: { color: C.mintInk, fontFamily: F.bodyBold, fontSize: 14 },
 
   note: { color: C.gold, fontFamily: F.bodySemi, fontSize: 13, textAlign: "center", marginTop: 16, lineHeight: 19 },
 });

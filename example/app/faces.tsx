@@ -1,20 +1,20 @@
 import { NitroFace, PerformanceMode } from "@nitro-mlkit/face-detection";
+import { router } from "expo-router";
 import { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   Image,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
 import { FACES } from "../src/samples";
-import { C, F, R, T, keycap, tint, wash } from "../src/theme";
-import { Card, Meter, Pill, SamplePicker, TitleBlock } from "../src/ui";
+import { C, F, R, T, wash } from "../src/theme";
+import { Button, Card, Meter, Pill, SamplePicker, TitleBlock } from "../src/ui";
 
-const ACCENT = "#3b82f6";
+const ACCENT = C.blue;
 
 type Face = {
   smilingProbability: number;
@@ -99,12 +99,8 @@ export default function FacesScreen() {
 
       {imageUri && (
         <View style={s.actions}>
-          <Pressable style={s.action} onPress={crop} disabled={loading}>
-            <Text style={s.actionText}>Crop faces</Text>
-          </Pressable>
-          <Pressable style={s.action} onPress={batch} disabled={loading}>
-            <Text style={s.actionText}>Batch 10× 🚀</Text>
-          </Pressable>
+          <Button title="Crop faces" onPress={crop} disabled={loading} accent={ACCENT} variant="soft" small style={{ flex: 1 }} />
+          <Button title="Batch 10× 🚀" onPress={batch} disabled={loading} accent={ACCENT} variant="soft" small style={{ flex: 1 }} />
         </View>
       )}
 
@@ -129,6 +125,22 @@ export default function FacesScreen() {
           <MeterRow label="👁️ Right eye" value={f.rightEyeOpenProbability} accent={ACCENT} />
         </Card>
       ))}
+
+      {/* Batch detection has its own showpiece: the benchmark race. */}
+      <Card style={s.race}>
+        <View style={s.raceHead}>
+          <View style={{ ...s.raceChip, backgroundColor: wash(ACCENT, 0.14) }}>
+            <Text style={{ fontSize: 22 }}>🏁</Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={T.h2}>The Race</Text>
+            <Text style={T.sub}>
+              Nitro's native batch vs two bridge wrappers — same ML Kit engine, real measured times.
+            </Text>
+          </View>
+        </View>
+        <Button title="Watch it run" onPress={() => router.push("/benchmark")} accent={ACCENT} small style={{ marginTop: 12 }} />
+      </Card>
     </ScrollView>
   );
 }
@@ -148,22 +160,15 @@ function MeterRow({ label, value, accent }: { label: string; value: number; acce
 const s = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.bg },
   content: { padding: 20, paddingTop: 16, paddingBottom: 40 },
-  preview: { width: "100%", height: 280, borderRadius: R.lg, marginTop: 16, backgroundColor: C.surfaceAlt, borderWidth: 2, borderColor: C.ink },
+  preview: { width: "100%", height: 280, borderRadius: R.lg, marginTop: 16, backgroundColor: C.surfaceAlt, borderWidth: 2, borderColor: C.border },
   statusRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginVertical: 14 },
   status: { fontFamily: F.bodySemi, color: C.gold, fontSize: 14, textAlign: "center" },
   actions: { flexDirection: "row", gap: 10, marginBottom: 14 },
-  action: {
-    flex: 1,
-    backgroundColor: wash(ACCENT, 0.16),
-    borderColor: ACCENT,
-    borderWidth: 2,
-    paddingVertical: 12,
-    borderRadius: R.md,
-    alignItems: "center",
-    ...keycap(4),
-  },
-  actionText: { color: ACCENT, fontFamily: F.bodyBold, fontSize: 14 },
-  crop: { width: 96, height: 96, borderRadius: R.md, marginRight: 10, backgroundColor: C.surfaceAlt, borderWidth: 2, borderColor: C.ink },
+  crop: { width: 96, height: 96, borderRadius: R.md, marginRight: 10, backgroundColor: C.surfaceAlt, borderWidth: 2, borderColor: C.border },
   cardHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   meterHead: { flexDirection: "row", justifyContent: "space-between", marginBottom: 5 },
+
+  race: { marginTop: 8 },
+  raceHead: { flexDirection: "row", gap: 12, alignItems: "flex-start" },
+  raceChip: { width: 44, height: 44, borderRadius: 14, alignItems: "center", justifyContent: "center" },
 });

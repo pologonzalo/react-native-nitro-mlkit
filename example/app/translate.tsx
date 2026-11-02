@@ -10,10 +10,10 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { C, F, R, T, keycap, tint, wash } from "../src/theme";
-import { Card, Pill, TitleBlock } from "../src/ui";
+import { C, F, R, T, keycap, shade, wash } from "../src/theme";
+import { Button, Card, Pill, TitleBlock } from "../src/ui";
 
-const ACCENT = "#6366f1";
+const ACCENT = C.blueDeep;
 const TARGETS = [
   { code: "es", label: "Spanish" },
   { code: "fr", label: "French" },
@@ -63,11 +63,13 @@ export default function TranslateScreen() {
             <Pressable
               key={tg.code}
               onPress={() => setTarget(tg.code)}
-              style={{
+              style={({ pressed }) => ({
                 ...s.target,
-                backgroundColor: on ? ACCENT : wash(ACCENT, 0.14),
-                borderColor: on ? ACCENT : tint(ACCENT, 0.4),
-              }}
+                backgroundColor: on ? ACCENT : wash(ACCENT, 0.1),
+                borderColor: on ? ACCENT : wash(ACCENT, 0.35),
+                ...keycap(pressed ? 0 : 3, on ? shade(ACCENT) : wash(ACCENT, 0.35)),
+                transform: [{ translateY: pressed ? 3 : 0 }],
+              })}
             >
               <Text style={{ ...s.targetText, color: on ? "#fff" : ACCENT }}>{tg.label}</Text>
             </Pressable>
@@ -83,13 +85,26 @@ export default function TranslateScreen() {
         placeholderTextColor={C.faint}
         multiline
       />
-      <Pressable style={s.go} onPress={() => translate(input)} disabled={loading}>
-        <Text style={s.goText}>Translate →</Text>
-      </Pressable>
+      <Button
+        title="Translate →"
+        onPress={() => translate(input)}
+        disabled={loading}
+        accent={ACCENT}
+        style={{ marginTop: 10 }}
+      />
 
       <Text style={{ ...T.faint, marginTop: 14, marginBottom: 6 }}>OR TAP A PHRASE</Text>
       {PRESETS.map((p, i) => (
-        <Pressable key={i} style={s.chip} onPress={() => translate(p)} disabled={loading}>
+        <Pressable
+          key={i}
+          onPress={() => translate(p)}
+          disabled={loading}
+          style={({ pressed }) => ({
+            ...s.chip,
+            ...keycap(pressed ? 0 : 3, wash(ACCENT, 0.4)),
+            transform: [{ translateY: pressed ? 3 : 0 }],
+          })}
+        >
           <Text style={s.chipText} numberOfLines={1}>{p}</Text>
         </Pressable>
       ))}
@@ -118,11 +133,11 @@ const s = StyleSheet.create({
   content: { padding: 20, paddingTop: 16, paddingBottom: 40 },
   label: { color: C.faint, fontFamily: F.bodyBold, fontSize: 12, marginBottom: 8, letterSpacing: 1 },
   targets: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 16 },
-  target: { paddingVertical: 8, paddingHorizontal: 15, borderRadius: R.pill, borderWidth: 2, ...keycap(3) },
+  target: { paddingVertical: 8, paddingHorizontal: 15, borderRadius: R.pill, borderWidth: 2 },
   targetText: { fontFamily: F.bodyBold, fontSize: 13 },
   input: {
     backgroundColor: C.surface,
-    borderColor: C.ink,
+    borderColor: C.border,
     borderWidth: 2,
     borderRadius: R.md,
     color: C.text,
@@ -132,17 +147,14 @@ const s = StyleSheet.create({
     minHeight: 70,
     textAlignVertical: "top",
   },
-  go: { backgroundColor: ACCENT, paddingVertical: 13, borderRadius: R.md, alignItems: "center", marginTop: 10, borderWidth: 2, borderColor: C.ink, ...keycap(5) },
-  goText: { color: "#fff", fontFamily: F.display, fontSize: 16 },
   chip: {
     backgroundColor: wash(ACCENT, 0.12),
-    borderColor: tint(ACCENT, 0.5),
+    borderColor: wash(ACCENT, 0.4),
     borderWidth: 2,
     borderRadius: R.md,
     paddingVertical: 11,
     paddingHorizontal: 14,
     marginBottom: 8,
-    ...keycap(3),
   },
   chipText: { color: C.text, fontFamily: F.bodySemi, fontSize: 13.5 },
   statusRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginVertical: 16 },

@@ -5,7 +5,7 @@ import { FACES } from "../src/samples";
 import { C, F, T } from "../src/theme";
 import { AnnotatedImage, Card, Pill, SamplePicker, TitleBlock, imageSize } from "../src/ui";
 
-const ACCENT = "#f43f5e";
+const ACCENT = C.purple;
 
 export default function FaceMeshScreen() {
   // ML Kit Face Mesh Detection is Android-only (no iOS SDK). Platform.OS is
